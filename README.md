@@ -117,7 +117,7 @@ foo.wg()
 
 ### Crunch the data
 
-Now compute δ<sup>13</sup>C, δ<sup>18</sup>Ο, and raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values.
+Now compute δ<sup>13</sup>C, δ<sup>18</sup>Ο, and raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values. Note that δ<sup>18</sup>Ο is the CO<sub>2</sub> composition. The user is responsible for any acid fractionation correction.
 
 ```python
 foo.crunch()
