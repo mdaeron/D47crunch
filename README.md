@@ -117,7 +117,7 @@ foo.wg()
 
 ### Crunch the data
 
-Now compute δ^(13)C, δ^(18)Ο, and raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values.
+Now compute δ<sup>13</sup>C, δ<sup>18</sup>Ο, and raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values.
 
 ```python
 foo.crunch()
