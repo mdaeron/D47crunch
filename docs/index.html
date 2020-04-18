@@ -78,9 +78,9 @@ rcParams[&#39;savefig.dpi&#39;] = 150
 
 def smart_type(x):
         &#39;&#39;&#39;
-        Tries to convert a string to a float if it includes &#39;.&#39;,
-        or to an integer if it does not. If both attempts fail,
-        return the original string unchanged.
+        Tries to convert string `x` to a float if it includes a decimal point, or
+        to an integer if it does not. If both attempts fail, return the original
+        string unchanged.
         &#39;&#39;&#39;
         try:
                 y = float(x)
@@ -100,7 +100,32 @@ def pf(txt):
 
 def pretty_table(x, header = 1, hsep = &#39;  &#39;, vsep = &#39;-&#39;):
         &#39;&#39;&#39;
-        Reads a list of lists of strings and outputs an ascii table.
+        Reads a list of lists of strings and outputs an ascii table
+        
+        __Parameters__
+        
+        + `x`: a list of lists of strings
+        + `header`: the number of lines to treat as header lines
+        + `hsep`: the horizontal separator between columns
+        + `vsep`: the character to use as vertical separator
+        
+        __Example__
+        
+        ```python
+        x = [[&#39;A&#39;,&#39;B&#39;, &#39;C&#39;], [&#39;1&#39;, &#39;1.9999&#39;, &#39;foo&#39;], [&#39;10&#39;, &#39;x&#39;, &#39;bar&#39;]]
+        print(pretty_table(x))
+        ```
+        
+        output:
+
+        ```python
+        --  ------  ---
+        A        B    C
+        --  ------  ---
+        1   1.9999  foo
+        10       x  bar
+        --  ------  ---
+        ```
         &#39;&#39;&#39;
         txt = [&#39;&#39;]
         widths = [np.max([len(e) for e in c]) for c in zip(*x)]
@@ -119,31 +144,93 @@ def pretty_table(x, header = 1, hsep = &#39;  &#39;, vsep = &#39;-&#39;):
 
 def make_csv(x, hsep = &#39;,&#39;, vsep = &#39;\n&#39;):
         &#39;&#39;&#39;
-        Reads a list of lists of strings and outputs a csv table.
+        Formats a list of lists of strings as a CSV
+        
+        __Parameters__
+        
+        + `x`: the list of lists of strings to format
+        + `hsep`: the field separator (a comma, by default)
+        + `vsep`: the line-ending convention to use (`&#39;\\n&#39;` by default)
+        
+        __Example__
+        
+        ```python
+        x = [[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;], [&#39;d&#39;, &#39;e&#39;, &#39;f&#39;]]
+        print(make_csv(x))
+        ```
+        
+        output:
+        
+        ```python
+        a,b,c
+        d,e,f
+        ```
         &#39;&#39;&#39;
         return vsep.join([hsep.join(l) for l in x])
 
 
 def transpose_table(x):
         &#39;&#39;&#39;
-        Transpose a list if lists.
+        Transpose a list if lists
+        
+        __Parameters__
+        
+        + `x`: a list of lists
+
+        __Example__
+        
+        ```python
+        x = [[1, 2], [3, 4]]
+        print(transpose_table(x))
+        ```
+        
+        outputs:
+        
+        ```python
+        [[1, 3], [2, 4]]
+        ```
+
         &#39;&#39;&#39;
         return [[e for e in c] for c in zip(*x)]
 
 
 def correlated_sum(X,C,f = &#39;&#39;):
         &#39;&#39;&#39;
-        Return the mean and SE of the sum of the elements
-        of X, optionally weighted by the elements of f,
-        accounting for C the covariance matrix of X.
+        Compute covariance-aware linear combinations
+        
+        Return the mean and SE of the sum of the elements of `X`, with optional
+        weights corresponding to the elements of `f`, accounting for `C`,
+        the covariance matrix of `X`.
         &#39;&#39;&#39;
-        if f == &#39;&#39;: f = [1 for x in X]
+        if f == &#39;&#39;:
+                f = [1 for x in X]
         return np.dot(f,X), (np.dot(f,np.dot(C,f)))**.5
 
 
 def w_avg(X, sX) :
         &#39;&#39;&#39;
-        Compute weighted average.
+        Compute variance-weighted average
+        
+        Returns the value and SE of the weighted average of the elements of `X`,
+        with relative weights equal to their inverse variances (`1/sX**2`).
+        
+        __Parameters__
+        
+        + `X`: array-like of elements to average
+        + `sX`: array-like of the corresponding SE values
+
+        __Tip__
+
+        If `X` and `sX` are initially arranged as a list of `(x, sx)` doublets,
+        they may be rearranged using `zip()`:
+        
+        ```python
+        foo = [(0, 0.1), (1, 0.05), (2, 0.05)]
+        print(w_avg(*zip(*foo)))
+        
+        # output:
+        # (1.3333333333333333, 0.03333333333333334)
+        ```
         &#39;&#39;&#39;
         X = [ x for x in X ]
         sX = [ sx for sx in sX ]
@@ -156,45 +243,123 @@ def w_avg(X, sX) :
 
 class D47data(list):
         &#39;&#39;&#39;
-        Store and process data for a large set of Δ47 analyses.
+        Store and process data for a large set of Δ&lt;sub&gt;47&lt;/sub&gt; analyses,
+        usually comprising more than one analytical session.
         &#39;&#39;&#39;
 
         ### 17O CORRECTION PARAMETERS
         R13_VPDB = 0.01118  # (Chang &amp; Li, 1990)
+        &#39;&#39;&#39;
+        Absolute (&lt;sup&gt;13&lt;/sup&gt;C/&lt;sup&gt;12&lt;/sup&gt;C) ratio of VPDB.
+        By default equal to 0.01118 ([Chang &amp; Li, 1990])
+        
+        [Chang &amp; Li, 1990]: http://www.cnki.com.cn/Article/CJFDTotal-JXTW199004006.htm
+        &#39;&#39;&#39;
+        
         R18_VSMOW = 0.0020052  # (Baertschi, 1976)
+        &#39;&#39;&#39;
+        Absolute (&lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VSMOW.
+        By default equal to 0.0020052 ([Baertschi, 1976])
+        
+        [Baertschi, 1976]: https://doi.org/10.1016/0012-821X(76)90115-1
+        &#39;&#39;&#39;
+
         lambda_17 = 0.528  # (Barkan &amp; Luz, 2005)
+        &#39;&#39;&#39;
+        Mass-dependent exponent for triple oxygen isotopes.
+        By default equal to 0.528 ([Barkan &amp; Luz, 2005])
+        
+        [Barkan &amp; Luz, 2005]: https://doi.org/10.1002/rcm.2250
+        &#39;&#39;&#39;
+
         R17_VSMOW = 0.00038475  # (Assonov &amp; Brenninkmeijer, 2003, rescaled to R13_VPDB)
+        &#39;&#39;&#39;
+        Absolute (&lt;sup&gt;17&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VSMOW.
+        By default equal to 0.00038475 ([Daëron et al., 2016])
+        
+        [Daëron et al., 2016]: https://dx.doi.org/10.1016/j.chemgeo.2016.08.014
+        &#39;&#39;&#39;
+
         R18_VPDB = R18_VSMOW * 1.03092
+        &#39;&#39;&#39;
+        Absolute (&lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VPDB.
+        By definition equal to `R18_VSMOW * 1.03092`.
+        &#39;&#39;&#39;
+
         R17_VPDB = R17_VSMOW * 1.03092 ** lambda_17
+        &#39;&#39;&#39;
+        Absolute (&lt;sup&gt;17&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VPDB.
+        By definition equal to `R17_VSMOW * 1.03092 ** lambda_17`.
+        &#39;&#39;&#39;
 
         LEVENE_REF_SAMPLE = &#39;ETH-3&#39;
-        SAMPLE_CONSTRAINING_WG_COMPOSITION = &#39;ETH-3&#39;
-        d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION = 1.71  # (Bernasconi et al., 2018)
-        d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION = -1.78 # (Bernasconi et al., 2018)
-        T_ACID = 90.0
-        ALPHA_18O_ACID_REACTION = np.exp(3.59 / (T_ACID + 273.15) - 1.79e-3)  # (Kim et al., 2007, calcite)
+        &#39;&#39;&#39;
+        After the Δ&lt;sub&gt;47&lt;/sub&gt; standardization step, each sample is tested to
+        assess whether the Δ&lt;sub&gt;47&lt;/sub&gt; variance within all analyses for that
+        sample is significantly larger than that observed for a given reference
+        sample (using [Levene&#39;s test], which yields a p-value corresponding to
+        the null hypothesis that the underlying variances are equal).
+        
+        `LEVENE_REF_SAMPLE` (by default equal to `&#39;ETH-3&#39;`) specifies which
+        sample should be used as a reference for this test.
+        
+        [Levene&#39;s test]: https://en.wikipedia.org/wiki/Levene%27s_test
+        &#39;&#39;&#39;
+        
+        SAMPLE_CONSTRAINING_WG_COMPOSITION = (&#39;ETH-3&#39;, 1.71, -1.78) # (Bernasconi et al., 2018)
+        &#39;&#39;&#39;
+        specifies the name, δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt;
+        of the carbonate standard used by `D47data.wg()` to compute the isotopic composition
+        of the working gas in each session.
+        
+        By default equal to `(&#39;ETH-3&#39;, 1.71, -1.78)` after [Bernasconi et al. (2018)].
+        
+        [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+        &#39;&#39;&#39;
+        
+        ALPHA_18O_ACID_REACTION = np.exp(3.59 / (90 + 273.15) - 1.79e-3)  # (Kim et al., 2007, calcite)
+        &#39;&#39;&#39;
+        specifies the &lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;O fractionation factor generally applicable
+        to acid reactions in the dataset. Currently only used by `self.wg()`.
+        
+        By default equal to 1.00813 (calcite reacted at 90 °C, [Kim et al., 2007]).
+        
+        [Kim et al., 2007]: https://dx.doi.org/10.1016/j.chemgeo.2007.08.005
+        &#39;&#39;&#39;
 
         Nominal_D47 = {
                 &#39;ETH-1&#39;: 0.258,
                 &#39;ETH-2&#39;: 0.256,
                 &#39;ETH-3&#39;: 0.691,
                 }       # (Bernasconi et al., 2018)
+        &#39;&#39;&#39;
+        Nominal Δ&lt;sub&gt;47&lt;/sub&gt; values assigned to the anchor samples, used in particular by
+        `self.normalize()` to standardize unknown samples to a carbonate Δ&lt;sub&gt;47&lt;/sub&gt;
+        reference frame.
+        
+        By default equal to `{&#39;ETH-1&#39;: 0.258, &#39;ETH-2&#39;: 0.256, &#39;ETH-3&#39;: 0.691}` after
+        [Bernasconi et al. (2018)].
+        
+        [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+        &#39;&#39;&#39;
 
 
         def __init__(self, l = [], verbose = False, msgcolor = &#39;\033[92m&#39;):
+                &#39;&#39;&#39;
+                _Parameters_
+                
+                + `l`: a list of dictionaries, with each element including at least the keys
+                `UID`, `Session`, `Sample`, `d45`, `d46`, and `d47`.
+                + `verbose`: if `True`, print out additional information when calling `D47data`
+                methods.
+                + `msgcolor`: terminal color used when printing out verbose information
+                (light green by default).
+                
+                _Returns_ a `D47data` object derived from `list`.
+                &#39;&#39;&#39;
                 self.verbose = verbose
                 self.msgcolor = msgcolor
                 list.__init__(self, l)
-#               self.R13_VPDB = D47data.R13_VPDB
-#               self.R18_VSMOW = D47data.R18_VSMOW
-#               self.lambda_17 = D47data.lambda_17
-#               self.R18_VPDB = D47data.R18_VPDB
-#               self.R17_VPDB = D47data.R17_VPDB
-#               self.SAMPLE_CONSTRAINING_WG_COMPOSITION = D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION
-#               self.d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION = D47data.d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION
-#               self.d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION = D47data.d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION
-#               self.ALPHA_18O_ACID_REACTION = D47data.ALPHA_18O_ACID_REACTION
-#               self.Nominal_D47 = D47data.Nominal_D47.copy()
                 self.Nf = None
                 self.repro = {}
                 self.refresh()
@@ -202,7 +367,7 @@ class D47data(list):
 
         def vprint(self, txt):
                 &#39;&#39;&#39;
-                Print log message to screen if D47data.verbose is true.
+                Print verbose message `txt` to screen if `self.verbose == True`.
                 &#39;&#39;&#39;
                 if self.verbose:
                         print(f&#39;{self.msgcolor}[D47data]   {txt}\033[0m&#39;)
@@ -210,7 +375,7 @@ class D47data(list):
 
         def refresh(self):
                 &#39;&#39;&#39;
-                &gt;&gt;&gt; Missing docstring
+                Update `self.sessions`, `self.samples`, `self.anchors`, and `self.unknowns`.
                 &#39;&#39;&#39;
                 self.refresh_sessions()
                 self.refresh_samples()
@@ -218,7 +383,8 @@ class D47data(list):
 
         def refresh_sessions(self):
                 &#39;&#39;&#39;
-                &gt;&gt;&gt; Missing docstring
+                Update `self.sessions` and set `scrambling_drift`, `slope_drift`, and `wg_drift`
+                to `False` for all sessions.
                 &#39;&#39;&#39;
                 self.sessions = {
                         s: {&#39;data&#39;: [r for r in self if r[&#39;Session&#39;] == s]}
@@ -232,7 +398,7 @@ class D47data(list):
 
         def refresh_samples(self):
                 &#39;&#39;&#39;
-                &gt;&gt;&gt; Missing docstring
+                Define `self.samples`, `self.anchors`, and `self.unknowns`.
                 &#39;&#39;&#39;
                 self.samples = {
                         s: {&#39;data&#39;: [r for r in self if r[&#39;Sample&#39;] == s]}
@@ -242,19 +408,55 @@ class D47data(list):
                 self.unknowns = {s: self.samples[s] for s in self.samples if s not in self.Nominal_D47}
 
 
-        def read(self, file, sep = &#39;,&#39;):
+        def read(self, filename, sep = &#39;,&#39;):
                 &#39;&#39;&#39;
-                Read file in csv format to load analysis data into a D47data object.
-                Use &#39;sep&#39; argument to define the csv separator.
+                Read file in csv format to load data into a `D47data` object.
+                
+                In the csv file, spaces befor and after field separators (`&#39;,&#39;` by default)
+                are optional. Each line corresponds to a single analysis.
+                
+                The required fields are:
+                
+                + `UID`: a unique identifier
+                + `Session`: an identifier for the analytical session
+                + `Sample`: a sample identifier
+                + `d45`, `d46`, `d47`: the working-gas delta values
+
+                Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
+                VSMOW, λ = 0.528), and are otherwise assumed to be zero. Working-gas deltas `d48`
+                and `d49` may also be provided, and are also set to 0 otherwise.
+                
+                __Parameters__
+                
+                + `fileneme`: the path of the file to read
+                + `sep`: csv separator delimiting the fields
                 &#39;&#39;&#39;
-                with open(file) as fid:
+                with open(filename) as fid:
                         self.input(fid.read(), sep = sep)
 
 
         def input(self, txt, sep = &#39;,&#39;):
                 &#39;&#39;&#39;
-                Read string in csv format to load analysis data into a D47data object.
-                Use &#39;sep&#39; argument to define the csv separator.
+                Read `txt` string in csv format to load analysis data into a `D47data` object.
+
+                In the csv string, spaces befor and after field separators (`&#39;,&#39;` by default)
+                are optional. Each line corresponds to a single analysis.
+                
+                The required fields are:
+                
+                + `UID`: a unique identifier
+                + `Session`: an identifier for the analytical session
+                + `Sample`: a sample identifier
+                + `d45`, `d46`, `d47`: the working-gas delta values
+
+                Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
+                VSMOW, λ = 0.528), and are otherwise assumed to be zero. Working-gas deltas `d48`
+                and `d49` may also be provided, and are also set to 0 otherwise.
+                
+                __Parameters__
+                
+                + `txt`: the csv string to read
+                + `sep`: csv separator delimiting the fields
                 &#39;&#39;&#39;
                 txt = [[x.strip() for x in l.split(sep)] for l in txt.splitlines() if l.strip()]
                 data = [{k: smart_type(v) for k,v in zip(txt[0], l)} for l in txt[1:]]
@@ -262,7 +464,7 @@ class D47data(list):
                 self.refresh()
 
 
-        def wg(self):
+        def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
                 &#39;&#39;&#39;
                 Compute bulk composition of the working gas for each session
                 based on the average composition, within each session,
@@ -271,10 +473,14 @@ class D47data(list):
 
                 self.vprint(f&#34;Computing working gas composition:&#34;)
 
-                sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION
-                d13C_vpdb = self.d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION
-                d18O_vpdb = self.d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION
-                a18_acid = self.ALPHA_18O_ACID_REACTION
+                if sample == &#39;&#39;:
+                        sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
+                if d13C_vpdb == &#39;&#39;:
+                        d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
+                if d18O_vpdb == &#39;&#39;:
+                        d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
+                if a18_acid == &#39;&#39;:
+                        a18_acid = self.ALPHA_18O_ACID_REACTION
 
                 R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
                 R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
@@ -510,8 +716,30 @@ class D47data(list):
                         self.table_of_analyses()
                         self.table_of_samples()
 
+
+        def assign_timestamps(self):
+                &#39;&#39;&#39;
+                Assign a time field `t` to each analysis.
+                
+                If `TimeTag` is one of the data fields, `t` is equal within a given session
+                to `TimeTag` minus the mean value of `TimeTag` for that session.
+                Otherwise, `TimeTag` is by default equal to the index of each analysis
+                in the dataset and `t` is defined as above.
+                &#39;&#39;&#39;
+                for session in self.sessions:
+                        sdata = self.sessions[session][&#39;data&#39;]
+                        try:
+                                t0 = np.mean([r[&#39;TimeTag&#39;] for r in sdata])
+                                for r in sdata:
+                                        r[&#39;t&#39;] = r[&#39;TimeTag&#39;] - t0
+                        except KeyError:
+                                t0 = (len(sdata)-1)/2
+                                for t,r in enumerate(sdata):
+                                        r[&#39;t&#39;] = t - t0
+
+
         def normalize(self,
-                method = &#39;lmfit&#39;,
+                method = &#39;integrated_fit&#39;,
                 weighted_sessions = [],
                 consolidate = True,
                 consolidate_tables = True,
@@ -519,17 +747,21 @@ class D47data(list):
                 ):
                 &#39;&#39;&#39;
                 Compute absolute Δ47 values for all replicate analyses and for sample averages.
-                If &#34;method&#34; argument is set to &#34;lmfit&#34;, the normalization processes all sessions
+                If `method` argument is set to `&#39;integrated_fit&#39;`, the normalization processes all sessions
                 in a single step, assuming that all samples (anchors and unknowns alike) are
-                homogeneous (i.e. that their true Δ47 value does not change between sessions).
-                If &#34;method&#34; argument is set to &#34;indep_sessions&#34;, the normalization processes each
-                session independently.
+                homogeneous (i.e. that their true Δ&lt;sub&gt;47&lt;/sub&gt; value does not change between sessions).
+                If `method` argument is set to `&#39;independent_sessions&#39;`, the normalization processes each
+                session independently, based only on anchors analyses.
                 &#39;&#39;&#39;
-                if method == &#39;lmfit&#39;:
+
+                self.normalization_method = method
+                self.assign_timestamps()
+
+                if method == &#39;integrated_fit&#39;:
                         if weighted_sessions:
                                 for session_group in weighted_sessions:
                                         X = D47data([r for r in self if r[&#39;Session&#39;] in session_group], verbose = self.verbose)
-                                        result = X.normalize(method = &#39;lmfit&#39;, weighted_sessions = [], consolidate = False)
+                                        result = X.normalize(method = &#39;integrated_fit&#39;, weighted_sessions = [], consolidate = False)
                                         w = np.sqrt(result.redchi)
                                         self.vprint(f&#39;Session group {session_group} MRSWD = {w:.4f}&#39;)
                                         for r in X:
@@ -538,17 +770,6 @@ class D47data(list):
                                 self.vprint(&#39;All weights set to 1 ppm&#39;)
                                 for r in self:
                                         r[&#39;wD47raw&#39;] = 0.001
-
-                        for s in self.sessions:
-                                G = self.sessions[s][&#39;data&#39;]
-                                try:
-                                        t0 = np.mean([r[&#39;TimeTag&#39;] for r in G])
-                                        for r in G:
-                                                r[&#39;t&#39;] = r[&#39;TimeTag&#39;] - t0
-                                except KeyError:
-                                        t0 = (len(G)-1)/2
-                                        for t,r in enumerate(G):
-                                                r[&#39;t&#39;] = t - t0
 
                         params = Parameters()
                         for k,session in enumerate(self.sessions):
@@ -620,8 +841,57 @@ class D47data(list):
                                 self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
                         return result
 
-                elif method == &#39;indep_sessions&#39;:
-                        pass
+                elif method == &#39;independent_sessions&#39;:
+                        for session in self.sessions:
+                                self.sessions[session][&#39;Np&#39;] = 3
+                                self.vprint(&#39;&#39;)
+                                self.vprint(f&#39;Standardizing session {session}.&#39;)
+                                sdata = self.sessions[session][&#39;data&#39;]
+                                A = np.array([
+                                        [self.Nominal_D47[r[&#39;Sample&#39;]], r[&#39;d47&#39;], 1]
+                                        for r in sdata if r[&#39;Sample&#39;] in self.anchors
+                                        ])
+                                Y = np.array([[r[&#39;D47raw&#39;]] for r in sdata if r[&#39;Sample&#39;] in self.anchors])
+                                self.sessions[session][&#39;Na&#39;] = Y.size
+                                CM = linalg.inv(A.T @ A)
+                                a,b,c = (CM @ A.T @ Y).T[0,:3]
+
+                                self.vprint(f&#39;a = {a:.4f}&#39;)
+                                self.vprint(f&#39;b = {b:.2e}&#39;)
+                                self.vprint(f&#39;c = {c:.4f}&#39;)
+                                self.sessions[session][&#39;a&#39;] = a
+                                self.sessions[session][&#39;b&#39;] = b
+                                self.sessions[session][&#39;c&#39;] = c
+                                self.sessions[session][&#39;CM&#39;] = CM.copy()
+
+                                for r in sdata :
+                                        r[&#39;D47&#39;] = ( r[&#39;D47raw&#39;] - b * r[&#39;d47&#39;] - c ) / a
+                        
+                        Nss = len(self.sessions)
+                        Na = len(self)
+                        Ns = len(self.samples)
+                        Nu = len(self.unknowns)
+                        avgD47 = {
+                                sample: np.mean([r[&#39;D47&#39;] for r in self if r[&#39;Sample&#39;] == sample])
+                                for sample in self.samples
+                                }
+                        chi2 = np.sum([(r[&#39;D47&#39;] - avgD47[r[&#39;Sample&#39;]])**2 for r in self])
+                        rD47 = (chi2/(Na-Nu-3*Nss))**.5
+                        self.repro[&#39;sigma_47&#39;] = rD47
+
+                        for session in self.sessions:
+                                self.sessions[session][&#39;CM&#39;] *= a**2 * chi2 / (Na-Nu-3*Nss)
+                                self.sessions[session][&#39;SE_a&#39;] = self.sessions[session][&#39;CM&#39;][0,0]**.5
+                                self.sessions[session][&#39;SE_b&#39;] = self.sessions[session][&#39;CM&#39;][1,1]**.5
+                                self.sessions[session][&#39;SE_c&#39;] = self.sessions[session][&#39;CM&#39;][2,2]**.5
+                        
+#                       self.Nf = np.sum([self.sessions[s][&#39;Na&#39;] - self.sessions[s][&#39;Np&#39;] for s in self.sessions])
+                        self.Nf = len(self) - len(self.unknowns) - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])
+                        self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
+
+                        if consolidate:
+                                self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
+
 
         def report(self):
                 &#39;&#39;&#39;
@@ -636,20 +906,21 @@ class D47data(list):
                 a = self.sessions[session][&#39;a&#39;]
                 b = self.sessions[session][&#39;b&#39;]
                 c = self.sessions[session][&#39;c&#39;]
-                s = pf(session)
-                i = self.normalization.var_names.index(f&#39;a_{s}&#39;)
-                j = self.normalization.var_names.index(f&#39;b_{s}&#39;)
-                k = self.normalization.var_names.index(f&#39;c_{s}&#39;)
-                CM = np.zeros((3,3))
-                CM[0,0] = self.normalization.covar[i,i]
-                CM[0,1] = self.normalization.covar[i,j]
-                CM[0,2] = self.normalization.covar[i,k]
-                CM[1,0] = self.normalization.covar[j,i]
-                CM[1,1] = self.normalization.covar[j,j]
-                CM[1,2] = self.normalization.covar[j,k]
-                CM[2,0] = self.normalization.covar[k,i]
-                CM[2,1] = self.normalization.covar[k,j]
-                CM[2,2] = self.normalization.covar[k,k]
+#               s = pf(session)
+#               i = self.normalization.var_names.index(f&#39;a_{s}&#39;)
+#               j = self.normalization.var_names.index(f&#39;b_{s}&#39;)
+#               k = self.normalization.var_names.index(f&#39;c_{s}&#39;)
+#               CM = np.zeros((3,3))
+#               CM[0,0] = self.normalization.covar[i,i]
+#               CM[0,1] = self.normalization.covar[i,j]
+#               CM[0,2] = self.normalization.covar[i,k]
+#               CM[1,0] = self.normalization.covar[j,i]
+#               CM[1,1] = self.normalization.covar[j,j]
+#               CM[1,2] = self.normalization.covar[j,k]
+#               CM[2,0] = self.normalization.covar[k,i]
+#               CM[2,1] = self.normalization.covar[k,j]
+#               CM[2,2] = self.normalization.covar[k,k]
+                CM = self.sessions[session][&#39;CM&#39;]
 
                 y, x = d47, D47
                 z = a * x + b * y + c
@@ -676,6 +947,7 @@ class D47data(list):
                 out += [[&#39;External reproducibility of Δ47 (unknowns)&#39;, f&#34;{1000 * self.repro[&#39;r_D47u&#39;]:.1f} ppm&#34;]]
                 out += [[&#39;External reproducibility of Δ47 (all)&#39;, f&#34;{1000 * self.repro[&#39;r_D47&#39;]:.1f} ppm&#34;]]
                 out += [[&#39;Degrees of freedom (Student\&#39;s 95% t-factor)&#39;, f&#34;{self.Nf} ({self.t95:.2f})&#34;]]
+                out += [[&#39;Standardization method&#39;, self.normalization_method]]
                 print(pretty_table(out, header = 0)) 
                 
                 include_a2 = any([self.sessions[session][&#39;scrambling_drift&#39;] for session in self.sessions])
@@ -883,26 +1155,42 @@ class D47data(list):
                 &#39;&#39;&#39;
                 &gt;&gt;&gt; Missing docstring
                 &#39;&#39;&#39;
+                D47_ref_pop = [r[&#39;D47&#39;] for r in self.samples[self.LEVENE_REF_SAMPLE][&#39;data&#39;]]
                 for sample in self.samples:
                         self.samples[sample][&#39;N&#39;] = len(self.samples[sample][&#39;data&#39;])
                         if self.samples[sample][&#39;N&#39;] &gt; 1:
                                 self.samples[sample][&#39;SD_D47&#39;] = stdev([r[&#39;D47&#39;] for r in self.samples[sample][&#39;data&#39;]])
+
                         self.samples[sample][&#39;d13C_VPDB&#39;] = np.mean([r[&#39;d13C_VPDB&#39;] for r in self.samples[sample][&#39;data&#39;]])
                         self.samples[sample][&#39;d18O_VSMOW&#39;] = np.mean([r[&#39;d18O_VSMOW&#39;] for r in self.samples[sample][&#39;data&#39;]])
-
-                for sample in self.anchors:
-                        self.samples[sample][&#39;D47&#39;] = self.Nominal_D47[sample]
-                        self.samples[sample][&#39;SE_D47&#39;] = 0.
-
-                D47_ref_pop = [r[&#39;D47&#39;] for r in self.samples[self.LEVENE_REF_SAMPLE][&#39;data&#39;]]
-
-                for sample in self.unknowns:
-                        self.samples[sample][&#39;D47&#39;] = self.normalization.params.valuesdict()[f&#39;D47_{pf(sample)}&#39;]
-                        self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
 
                         D47_pop = [r[&#39;D47&#39;] for r in self.samples[sample][&#39;data&#39;]]
                         if len(D47_pop) &gt; 1:
                                 self.samples[sample][&#39;p_Levene&#39;] = levene(D47_ref_pop, D47_pop, center = &#39;median&#39;)[1]
+
+                if self.normalization_method == &#39;integrated_fit&#39;:
+                        for sample in self.anchors:
+                                self.samples[sample][&#39;D47&#39;] = self.Nominal_D47[sample]
+                                self.samples[sample][&#39;SE_D47&#39;] = 0.
+                        for sample in self.unknowns:
+                                self.samples[sample][&#39;D47&#39;] = self.normalization.params.valuesdict()[f&#39;D47_{pf(sample)}&#39;]
+                                self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
+
+                elif self.normalization_method == &#39;independent_sessions&#39;:
+                        for sample in self.anchors:
+                                self.samples[sample][&#39;D47&#39;] = self.Nominal_D47[sample]
+                                self.samples[sample][&#39;SE_D47&#39;] = 0.
+                        for sample in self.unknowns:
+                                session_avg = []
+                                for session in self.sessions:
+                                        sdata = [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]
+                                        if sdata:
+                                                avg_D47 = np.mean([r[&#39;D47&#39;] for r in sdata])
+                                                avg_d47 = np.mean([r[&#39;d47&#39;] for r in sdata])
+                                                sigma_s = self.normalization_error(session, avg_d47, avg_D47)
+                                                sigma_u = self.repro[&#39;sigma_47&#39;] / len(sdata)**.5
+                                                session_avg.append((avg_D47, (sigma_u**2 + sigma_s**2)**.5))
+                                self.samples[sample][&#39;D47&#39;], self.samples[sample][&#39;SE_D47&#39;] = w_avg(*zip(*session_avg))
 
 
         def consolidate_sessions(self):
@@ -912,30 +1200,59 @@ class D47data(list):
                 for session in self.sessions:
                         self.sessions[session][&#39;Na&#39;] = len([r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors])
                         self.sessions[session][&#39;Nu&#39;] = len([r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns])
-                        self.sessions[session][&#39;a&#39;] = self.normalization.params.valuesdict()[f&#39;a_{pf(session)}&#39;]
-                        i = self.normalization.var_names.index(f&#39;a_{pf(session)}&#39;)
-                        self.sessions[session][&#39;SE_a&#39;] = self.normalization.covar[i,i]**.5
-                        self.sessions[session][&#39;b&#39;] = self.normalization.params.valuesdict()[f&#39;b_{pf(session)}&#39;]
-                        i = self.normalization.var_names.index(f&#39;b_{pf(session)}&#39;)
-                        self.sessions[session][&#39;SE_b&#39;] = self.normalization.covar[i,i]**.5
-                        self.sessions[session][&#39;c&#39;] = self.normalization.params.valuesdict()[f&#39;c_{pf(session)}&#39;]
-                        i = self.normalization.var_names.index(f&#39;c_{pf(session)}&#39;)
-                        self.sessions[session][&#39;SE_c&#39;] = self.normalization.covar[i,i]**.5
-                        self.sessions[session][&#39;a2&#39;] = self.normalization.params.valuesdict()[f&#39;a2_{pf(session)}&#39;]
-                        if self.sessions[session][&#39;scrambling_drift&#39;]:
-                                i = self.normalization.var_names.index(f&#39;a2_{pf(session)}&#39;)
-                                self.sessions[session][&#39;SE_a2&#39;] = self.normalization.covar[i,i]**.5
-                        self.sessions[session][&#39;b2&#39;] = self.normalization.params.valuesdict()[f&#39;b2_{pf(session)}&#39;]
-                        if self.sessions[session][&#39;slope_drift&#39;]:
-                                i = self.normalization.var_names.index(f&#39;b2_{pf(session)}&#39;)
-                                self.sessions[session][&#39;SE_b2&#39;] = self.normalization.covar[i,i]**.5
-                        self.sessions[session][&#39;c2&#39;] = self.normalization.params.valuesdict()[f&#39;c2_{pf(session)}&#39;]
-                        if self.sessions[session][&#39;wg_drift&#39;]:
-                                i = self.normalization.var_names.index(f&#39;c2_{pf(session)}&#39;)
-                                self.sessions[session][&#39;SE_c2&#39;] = self.normalization.covar[i,i]**.5
+
                         self.sessions[session][&#39;r_d13C_VPDB&#39;] = self.compute_reproducibility(&#39;d13C_VPDB&#39;, samples = &#39;anchors&#39;, sessions = [session])
                         self.sessions[session][&#39;r_d18O_VSMOW&#39;] = self.compute_reproducibility(&#39;d18O_VSMOW&#39;, samples = &#39;anchors&#39;, sessions = [session])
                         self.sessions[session][&#39;r_D47&#39;] = self.compute_reproducibility(&#39;D47&#39;, sessions = [session])
+
+                if self.normalization_method == &#39;integrated_fit&#39;:
+                        for session in self.sessions:
+
+                                self.sessions[session][&#39;Np&#39;] = 3
+                                for k in [&#39;scrambling&#39;, &#39;slope&#39;, &#39;wg&#39;]:
+                                        if self.sessions[session][f&#39;{k}_drift&#39;]:
+                                                self.sessions[session][&#39;Np&#39;] += 1
+
+                                self.sessions[session][&#39;a&#39;] = self.normalization.params.valuesdict()[f&#39;a_{pf(session)}&#39;]
+                                i = self.normalization.var_names.index(f&#39;a_{pf(session)}&#39;)
+                                self.sessions[session][&#39;SE_a&#39;] = self.normalization.covar[i,i]**.5
+
+                                self.sessions[session][&#39;b&#39;] = self.normalization.params.valuesdict()[f&#39;b_{pf(session)}&#39;]
+                                i = self.normalization.var_names.index(f&#39;b_{pf(session)}&#39;)
+                                self.sessions[session][&#39;SE_b&#39;] = self.normalization.covar[i,i]**.5
+
+                                self.sessions[session][&#39;c&#39;] = self.normalization.params.valuesdict()[f&#39;c_{pf(session)}&#39;]
+                                i = self.normalization.var_names.index(f&#39;c_{pf(session)}&#39;)
+                                self.sessions[session][&#39;SE_c&#39;] = self.normalization.covar[i,i]**.5
+
+                                self.sessions[session][&#39;a2&#39;] = self.normalization.params.valuesdict()[f&#39;a2_{pf(session)}&#39;]
+                                if self.sessions[session][&#39;scrambling_drift&#39;]:
+                                        i = self.normalization.var_names.index(f&#39;a2_{pf(session)}&#39;)
+                                        self.sessions[session][&#39;SE_a2&#39;] = self.normalization.covar[i,i]**.5
+                                else:
+                                        self.sessions[session][&#39;SE_a2&#39;] = 0.
+
+                                self.sessions[session][&#39;b2&#39;] = self.normalization.params.valuesdict()[f&#39;b2_{pf(session)}&#39;]
+                                if self.sessions[session][&#39;slope_drift&#39;]:
+                                        i = self.normalization.var_names.index(f&#39;b2_{pf(session)}&#39;)
+                                        self.sessions[session][&#39;SE_b2&#39;] = self.normalization.covar[i,i]**.5
+                                else:
+                                        self.sessions[session][&#39;SE_b2&#39;] = 0.
+
+                                self.sessions[session][&#39;c2&#39;] = self.normalization.params.valuesdict()[f&#39;c2_{pf(session)}&#39;]
+                                if self.sessions[session][&#39;wg_drift&#39;]:
+                                        i = self.normalization.var_names.index(f&#39;c2_{pf(session)}&#39;)
+                                        self.sessions[session][&#39;SE_c2&#39;] = self.normalization.covar[i,i]**.5
+                                else:
+                                        self.sessions[session][&#39;SE_c2&#39;] = 0.
+
+                                i = self.normalization.var_names.index(f&#39;a_{pf(session)}&#39;)
+                                j = self.normalization.var_names.index(f&#39;b_{pf(session)}&#39;)
+                                k = self.normalization.var_names.index(f&#39;c_{pf(session)}&#39;)
+                                self.sessions[session][&#39;CM&#39;] = self.normalization.covar[[i,j,k],:][:,[i,j,k]]
+
+                elif self.normalization_method == &#39;independent_sessions&#39;:
+                        pass
 
 
         def consolidate_repro(self):
@@ -944,9 +1261,20 @@ class D47data(list):
                 &#39;&#39;&#39;
                 self.repro[&#39;r_d13C_VPDB&#39;] = self.compute_reproducibility(&#39;d13C_VPDB&#39;, samples = &#39;anchors&#39;)
                 self.repro[&#39;r_d18O_VSMOW&#39;] = self.compute_reproducibility(&#39;d18O_VSMOW&#39;, samples = &#39;anchors&#39;)
+
+                N_anchor_analyses = len([r for r in self if r[&#39;Sample&#39;] in self.anchors])
+
                 self.repro[&#39;r_D47a&#39;] = self.compute_reproducibility(&#39;D47&#39;, samples = &#39;anchors&#39;)
+                self.repro[&#39;r_D47a&#39;] /= (
+                        (N_anchor_analyses - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])) / (N_anchor_analyses - len(self.anchors))
+                        )**.5
+
                 self.repro[&#39;r_D47u&#39;] = self.compute_reproducibility(&#39;D47&#39;, samples = &#39;unknowns&#39;)
+
                 self.repro[&#39;r_D47&#39;] = self.compute_reproducibility(&#39;D47&#39;, samples = &#39;all samples&#39;)
+                self.repro[&#39;r_D47&#39;] /= (
+                        (len(self) - len(self.unknowns) - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])) / (len(self) - len(self.samples))
+                        )**.5
 
 
         def consolidate(self,
@@ -971,8 +1299,12 @@ class D47data(list):
 
         def compute_reproducibility(self, key, samples = &#39;all samples&#39;, sessions = &#39;all sessions&#39;):
                 &#39;&#39;&#39;
-                Compute external reproducibility of r[key].
+                Compute external reproducibility of `[r[key] for r in self]`.
                 &#39;&#39;&#39;
+                # NB: it&#39;s debatable whether rD47 should be computed
+                # with Nf = len(self)-len(self.samples) instead of
+                # Nf = len(self) - len(self.unknwons) - 3*len(self.sessions)
+
                 if samples == &#39;all samples&#39;:
                         mysamples = [k for k in self.samples]
                 elif samples == &#39;anchors&#39;:
@@ -1003,16 +1335,21 @@ class D47data(list):
                 of a group of samples. Weights are equal by default. If normalize is
                 True, weights will be rescaled so that their sum equals 1.
                 
-                Examples
-                --------
-                ```sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])```
+                __Examples__
 
-                will return the value and SE of (Δ47(X) + 2*Δ47(Y)/3, where Δ47(X)
-                and Δ47(Y) are the average Δ47 of samples X and Y, respectively.
+                ```python
+                self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])
+                ```
 
-                &gt; sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)
-                
-                will return the value and SE of the difference Δ47(X) - Δ47(Y)
+                returns the value and SE of [Δ&lt;sub&gt;47&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;47&lt;/sub&gt;(Y)]/3,
+                where Δ&lt;sub&gt;47&lt;/sub&gt;(X) and Δ&lt;sub&gt;47&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;47&lt;/sub&gt;
+                values of samples X and Y, respectively.
+
+                ```python
+                self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)
+                ```
+
+                returns the value and SE of the difference Δ&lt;sub&gt;47&lt;/sub&gt;(X) - Δ&lt;sub&gt;47&lt;/sub&gt;(Y).
                 &#39;&#39;&#39;
                 if weights == &#39;equal&#39;:
                         weights = [1/len(samples)] * len(samples)
@@ -1028,7 +1365,22 @@ class D47data(list):
                         X = [self.samples[sample][&#39;D47&#39;] for sample in samples]
                         return correlated_sum(X, C, weights)
                 except ValueError:
-                        return (0., 0.)</code></pre>
+                        return (0., 0.)
+
+
+        def sample_D47_covar(self, sample1, sample2 = &#39;&#39;):
+                &#39;&#39;&#39;
+                &gt;&gt;&gt; Missing docstring
+                &#39;&#39;&#39;
+                if sample2 == &#39;&#39;:
+                        sample2 = sample1
+                if self.normalization_method == &#39;integrated_fit&#39;:
+                        i = self.normalization.var_names.index(f&#39;D47_{pf(sample1)}&#39;)
+                        j = self.normalization.var_names.index(f&#39;D47_{pf(sample2)}&#39;)
+                        return self.normalization.covar[i, j]           
+                elif self.normalization_method == &#39;independent_sessions&#39;:
+                        if sample1 == sample2:
+                                return self.samples[sample1][&#39;SE_D47&#39;]**2</code></pre>
 </details>
 </section>
 <section>
@@ -1042,20 +1394,24 @@ class D47data(list):
 <span>def <span class="ident">correlated_sum</span></span>(<span>X, C, f='')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Return the mean and SE of the sum of the elements
-of X, optionally weighted by the elements of f,
-accounting for C the covariance matrix of X.</p></section>
+<section class="desc"><p>Compute covariance-aware linear combinations</p>
+<p>Return the mean and SE of the sum of the elements of <code>X</code>, with optional
+weights corresponding to the elements of <code>f</code>, accounting for <code>C</code>,
+the covariance matrix of <code>X</code>.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def correlated_sum(X,C,f = &#39;&#39;):
         &#39;&#39;&#39;
-        Return the mean and SE of the sum of the elements
-        of X, optionally weighted by the elements of f,
-        accounting for C the covariance matrix of X.
+        Compute covariance-aware linear combinations
+        
+        Return the mean and SE of the sum of the elements of `X`, with optional
+        weights corresponding to the elements of `f`, accounting for `C`,
+        the covariance matrix of `X`.
         &#39;&#39;&#39;
-        if f == &#39;&#39;: f = [1 for x in X]
+        if f == &#39;&#39;:
+                f = [1 for x in X]
         return np.dot(f,X), (np.dot(f,np.dot(C,f)))**.5</code></pre>
 </details>
 </dd>
@@ -1063,14 +1419,48 @@ accounting for C the covariance matrix of X.</p></section>
 <span>def <span class="ident">make_csv</span></span>(<span>x, hsep=',', vsep='\n')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Reads a list of lists of strings and outputs a csv table.</p></section>
+<section class="desc"><p>Formats a list of lists of strings as a CSV</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>x</code>: the list of lists of strings to format</li>
+<li><code>hsep</code>: the field separator (a comma, by default)</li>
+<li><code>vsep</code>: the line-ending convention to use (<code>'\n'</code> by default)</li>
+</ul>
+<p><strong>Example</strong></p>
+<pre><code class="python">x = [['a', 'b', 'c'], ['d', 'e', 'f']]
+print(make_csv(x))
+</code></pre>
+<p>output:</p>
+<pre><code class="python">a,b,c
+d,e,f
+</code></pre></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def make_csv(x, hsep = &#39;,&#39;, vsep = &#39;\n&#39;):
         &#39;&#39;&#39;
-        Reads a list of lists of strings and outputs a csv table.
+        Formats a list of lists of strings as a CSV
+        
+        __Parameters__
+        
+        + `x`: the list of lists of strings to format
+        + `hsep`: the field separator (a comma, by default)
+        + `vsep`: the line-ending convention to use (`&#39;\\n&#39;` by default)
+        
+        __Example__
+        
+        ```python
+        x = [[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;], [&#39;d&#39;, &#39;e&#39;, &#39;f&#39;]]
+        print(make_csv(x))
+        ```
+        
+        output:
+        
+        ```python
+        a,b,c
+        d,e,f
+        ```
         &#39;&#39;&#39;
         return vsep.join([hsep.join(l) for l in x])</code></pre>
 </details>
@@ -1096,14 +1486,58 @@ accounting for C the covariance matrix of X.</p></section>
 ', vsep='-')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Reads a list of lists of strings and outputs an ascii table.</p></section>
+<section class="desc"><p>Reads a list of lists of strings and outputs an ascii table</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>x</code>: a list of lists of strings</li>
+<li><code>header</code>: the number of lines to treat as header lines</li>
+<li><code>hsep</code>: the horizontal separator between columns</li>
+<li><code>vsep</code>: the character to use as vertical separator</li>
+</ul>
+<p><strong>Example</strong></p>
+<pre><code class="python">x = [['A','B', 'C'], ['1', '1.9999', 'foo'], ['10', 'x', 'bar']]
+print(pretty_table(x))
+</code></pre>
+<p>output:</p>
+<pre><code class="python">--  ------  ---
+A        B    C
+--  ------  ---
+1   1.9999  foo
+10       x  bar
+--  ------  ---
+</code></pre></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def pretty_table(x, header = 1, hsep = &#39;  &#39;, vsep = &#39;-&#39;):
         &#39;&#39;&#39;
-        Reads a list of lists of strings and outputs an ascii table.
+        Reads a list of lists of strings and outputs an ascii table
+        
+        __Parameters__
+        
+        + `x`: a list of lists of strings
+        + `header`: the number of lines to treat as header lines
+        + `hsep`: the horizontal separator between columns
+        + `vsep`: the character to use as vertical separator
+        
+        __Example__
+        
+        ```python
+        x = [[&#39;A&#39;,&#39;B&#39;, &#39;C&#39;], [&#39;1&#39;, &#39;1.9999&#39;, &#39;foo&#39;], [&#39;10&#39;, &#39;x&#39;, &#39;bar&#39;]]
+        print(pretty_table(x))
+        ```
+        
+        output:
+
+        ```python
+        --  ------  ---
+        A        B    C
+        --  ------  ---
+        1   1.9999  foo
+        10       x  bar
+        --  ------  ---
+        ```
         &#39;&#39;&#39;
         txt = [&#39;&#39;]
         widths = [np.max([len(e) for e in c]) for c in zip(*x)]
@@ -1124,18 +1558,18 @@ accounting for C the covariance matrix of X.</p></section>
 <span>def <span class="ident">smart_type</span></span>(<span>x)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Tries to convert a string to a float if it includes '.',
-or to an integer if it does not. If both attempts fail,
-return the original string unchanged.</p></section>
+<section class="desc"><p>Tries to convert string <code>x</code> to a float if it includes a decimal point, or
+to an integer if it does not. If both attempts fail, return the original
+string unchanged.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def smart_type(x):
         &#39;&#39;&#39;
-        Tries to convert a string to a float if it includes &#39;.&#39;,
-        or to an integer if it does not. If both attempts fail,
-        return the original string unchanged.
+        Tries to convert string `x` to a float if it includes a decimal point, or
+        to an integer if it does not. If both attempts fail, return the original
+        string unchanged.
         &#39;&#39;&#39;
         try:
                 y = float(x)
@@ -1150,14 +1584,43 @@ return the original string unchanged.</p></section>
 <span>def <span class="ident">transpose_table</span></span>(<span>x)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Transpose a list if lists.</p></section>
+<section class="desc"><p>Transpose a list if lists</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>x</code>: a list of lists</li>
+</ul>
+<p><strong>Example</strong></p>
+<pre><code class="python">x = [[1, 2], [3, 4]]
+print(transpose_table(x))
+</code></pre>
+<p>outputs:</p>
+<pre><code class="python">[[1, 3], [2, 4]]
+</code></pre></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def transpose_table(x):
         &#39;&#39;&#39;
-        Transpose a list if lists.
+        Transpose a list if lists
+        
+        __Parameters__
+        
+        + `x`: a list of lists
+
+        __Example__
+        
+        ```python
+        x = [[1, 2], [3, 4]]
+        print(transpose_table(x))
+        ```
+        
+        outputs:
+        
+        ```python
+        [[1, 3], [2, 4]]
+        ```
+
         &#39;&#39;&#39;
         return [[e for e in c] for c in zip(*x)]</code></pre>
 </details>
@@ -1166,14 +1629,51 @@ return the original string unchanged.</p></section>
 <span>def <span class="ident">w_avg</span></span>(<span>X, sX)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Compute weighted average.</p></section>
+<section class="desc"><p>Compute variance-weighted average</p>
+<p>Returns the value and SE of the weighted average of the elements of <code>X</code>,
+with relative weights equal to their inverse variances (<code>1/sX**2</code>).</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>X</code>: array-like of elements to average</li>
+<li><code>sX</code>: array-like of the corresponding SE values</li>
+</ul>
+<p><strong>Tip</strong></p>
+<p>If <code>X</code> and <code>sX</code> are initially arranged as a list of <code>(x, sx)</code> doublets,
+they may be rearranged using <code>zip()</code>:</p>
+<pre><code class="python">foo = [(0, 0.1), (1, 0.05), (2, 0.05)]
+print(w_avg(*zip(*foo)))
+
+# output:
+# (1.3333333333333333, 0.03333333333333334)
+</code></pre></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def w_avg(X, sX) :
         &#39;&#39;&#39;
-        Compute weighted average.
+        Compute variance-weighted average
+        
+        Returns the value and SE of the weighted average of the elements of `X`,
+        with relative weights equal to their inverse variances (`1/sX**2`).
+        
+        __Parameters__
+        
+        + `X`: array-like of elements to average
+        + `sX`: array-like of the corresponding SE values
+
+        __Tip__
+
+        If `X` and `sX` are initially arranged as a list of `(x, sx)` doublets,
+        they may be rearranged using `zip()`:
+        
+        ```python
+        foo = [(0, 0.1), (1, 0.05), (2, 0.05)]
+        print(w_avg(*zip(*foo)))
+        
+        # output:
+        # (1.3333333333333333, 0.03333333333333334)
+        ```
         &#39;&#39;&#39;
         X = [ x for x in X ]
         sX = [ sx for sx in sX ]
@@ -1194,52 +1694,141 @@ return the original string unchanged.</p></section>
 <span>(</span><span>l=[], verbose=False, msgcolor='\x1b[92m')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Store and process data for a large set of Δ47 analyses.</p></section>
+<section class="desc"><p>Store and process data for a large set of Δ<sub>47</sub> analyses,
+usually comprising more than one analytical session.</p>
+<p><em>Parameters</em></p>
+<ul>
+<li><code>l</code>: a list of dictionaries, with each element including at least the keys
+<code>UID</code>, <code>Session</code>, <code>Sample</code>, <code>d45</code>, <code>d46</code>, and <code>d47</code>.</li>
+<li><code>verbose</code>: if <code>True</code>, print out additional information when calling <a title="D47crunch.D47data" href="#D47crunch.D47data"><code>D47data</code></a>
+methods.</li>
+<li><code>msgcolor</code>: terminal color used when printing out verbose information
+(light green by default).</li>
+</ul>
+<p><em>Returns</em> a <a title="D47crunch.D47data" href="#D47crunch.D47data"><code>D47data</code></a> object derived from <code>list</code>.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class D47data(list):
         &#39;&#39;&#39;
-        Store and process data for a large set of Δ47 analyses.
+        Store and process data for a large set of Δ&lt;sub&gt;47&lt;/sub&gt; analyses,
+        usually comprising more than one analytical session.
         &#39;&#39;&#39;
 
         ### 17O CORRECTION PARAMETERS
         R13_VPDB = 0.01118  # (Chang &amp; Li, 1990)
+        &#39;&#39;&#39;
+        Absolute (&lt;sup&gt;13&lt;/sup&gt;C/&lt;sup&gt;12&lt;/sup&gt;C) ratio of VPDB.
+        By default equal to 0.01118 ([Chang &amp; Li, 1990])
+        
+        [Chang &amp; Li, 1990]: http://www.cnki.com.cn/Article/CJFDTotal-JXTW199004006.htm
+        &#39;&#39;&#39;
+        
         R18_VSMOW = 0.0020052  # (Baertschi, 1976)
+        &#39;&#39;&#39;
+        Absolute (&lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VSMOW.
+        By default equal to 0.0020052 ([Baertschi, 1976])
+        
+        [Baertschi, 1976]: https://doi.org/10.1016/0012-821X(76)90115-1
+        &#39;&#39;&#39;
+
         lambda_17 = 0.528  # (Barkan &amp; Luz, 2005)
+        &#39;&#39;&#39;
+        Mass-dependent exponent for triple oxygen isotopes.
+        By default equal to 0.528 ([Barkan &amp; Luz, 2005])
+        
+        [Barkan &amp; Luz, 2005]: https://doi.org/10.1002/rcm.2250
+        &#39;&#39;&#39;
+
         R17_VSMOW = 0.00038475  # (Assonov &amp; Brenninkmeijer, 2003, rescaled to R13_VPDB)
+        &#39;&#39;&#39;
+        Absolute (&lt;sup&gt;17&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VSMOW.
+        By default equal to 0.00038475 ([Daëron et al., 2016])
+        
+        [Daëron et al., 2016]: https://dx.doi.org/10.1016/j.chemgeo.2016.08.014
+        &#39;&#39;&#39;
+
         R18_VPDB = R18_VSMOW * 1.03092
+        &#39;&#39;&#39;
+        Absolute (&lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VPDB.
+        By definition equal to `R18_VSMOW * 1.03092`.
+        &#39;&#39;&#39;
+
         R17_VPDB = R17_VSMOW * 1.03092 ** lambda_17
+        &#39;&#39;&#39;
+        Absolute (&lt;sup&gt;17&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VPDB.
+        By definition equal to `R17_VSMOW * 1.03092 ** lambda_17`.
+        &#39;&#39;&#39;
 
         LEVENE_REF_SAMPLE = &#39;ETH-3&#39;
-        SAMPLE_CONSTRAINING_WG_COMPOSITION = &#39;ETH-3&#39;
-        d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION = 1.71  # (Bernasconi et al., 2018)
-        d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION = -1.78 # (Bernasconi et al., 2018)
-        T_ACID = 90.0
-        ALPHA_18O_ACID_REACTION = np.exp(3.59 / (T_ACID + 273.15) - 1.79e-3)  # (Kim et al., 2007, calcite)
+        &#39;&#39;&#39;
+        After the Δ&lt;sub&gt;47&lt;/sub&gt; standardization step, each sample is tested to
+        assess whether the Δ&lt;sub&gt;47&lt;/sub&gt; variance within all analyses for that
+        sample is significantly larger than that observed for a given reference
+        sample (using [Levene&#39;s test], which yields a p-value corresponding to
+        the null hypothesis that the underlying variances are equal).
+        
+        `LEVENE_REF_SAMPLE` (by default equal to `&#39;ETH-3&#39;`) specifies which
+        sample should be used as a reference for this test.
+        
+        [Levene&#39;s test]: https://en.wikipedia.org/wiki/Levene%27s_test
+        &#39;&#39;&#39;
+        
+        SAMPLE_CONSTRAINING_WG_COMPOSITION = (&#39;ETH-3&#39;, 1.71, -1.78) # (Bernasconi et al., 2018)
+        &#39;&#39;&#39;
+        specifies the name, δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt;
+        of the carbonate standard used by `D47data.wg()` to compute the isotopic composition
+        of the working gas in each session.
+        
+        By default equal to `(&#39;ETH-3&#39;, 1.71, -1.78)` after [Bernasconi et al. (2018)].
+        
+        [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+        &#39;&#39;&#39;
+        
+        ALPHA_18O_ACID_REACTION = np.exp(3.59 / (90 + 273.15) - 1.79e-3)  # (Kim et al., 2007, calcite)
+        &#39;&#39;&#39;
+        specifies the &lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;O fractionation factor generally applicable
+        to acid reactions in the dataset. Currently only used by `self.wg()`.
+        
+        By default equal to 1.00813 (calcite reacted at 90 °C, [Kim et al., 2007]).
+        
+        [Kim et al., 2007]: https://dx.doi.org/10.1016/j.chemgeo.2007.08.005
+        &#39;&#39;&#39;
 
         Nominal_D47 = {
                 &#39;ETH-1&#39;: 0.258,
                 &#39;ETH-2&#39;: 0.256,
                 &#39;ETH-3&#39;: 0.691,
                 }       # (Bernasconi et al., 2018)
+        &#39;&#39;&#39;
+        Nominal Δ&lt;sub&gt;47&lt;/sub&gt; values assigned to the anchor samples, used in particular by
+        `self.normalize()` to standardize unknown samples to a carbonate Δ&lt;sub&gt;47&lt;/sub&gt;
+        reference frame.
+        
+        By default equal to `{&#39;ETH-1&#39;: 0.258, &#39;ETH-2&#39;: 0.256, &#39;ETH-3&#39;: 0.691}` after
+        [Bernasconi et al. (2018)].
+        
+        [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+        &#39;&#39;&#39;
 
 
         def __init__(self, l = [], verbose = False, msgcolor = &#39;\033[92m&#39;):
+                &#39;&#39;&#39;
+                _Parameters_
+                
+                + `l`: a list of dictionaries, with each element including at least the keys
+                `UID`, `Session`, `Sample`, `d45`, `d46`, and `d47`.
+                + `verbose`: if `True`, print out additional information when calling `D47data`
+                methods.
+                + `msgcolor`: terminal color used when printing out verbose information
+                (light green by default).
+                
+                _Returns_ a `D47data` object derived from `list`.
+                &#39;&#39;&#39;
                 self.verbose = verbose
                 self.msgcolor = msgcolor
                 list.__init__(self, l)
-#               self.R13_VPDB = D47data.R13_VPDB
-#               self.R18_VSMOW = D47data.R18_VSMOW
-#               self.lambda_17 = D47data.lambda_17
-#               self.R18_VPDB = D47data.R18_VPDB
-#               self.R17_VPDB = D47data.R17_VPDB
-#               self.SAMPLE_CONSTRAINING_WG_COMPOSITION = D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION
-#               self.d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION = D47data.d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION
-#               self.d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION = D47data.d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION
-#               self.ALPHA_18O_ACID_REACTION = D47data.ALPHA_18O_ACID_REACTION
-#               self.Nominal_D47 = D47data.Nominal_D47.copy()
                 self.Nf = None
                 self.repro = {}
                 self.refresh()
@@ -1247,7 +1836,7 @@ return the original string unchanged.</p></section>
 
         def vprint(self, txt):
                 &#39;&#39;&#39;
-                Print log message to screen if D47data.verbose is true.
+                Print verbose message `txt` to screen if `self.verbose == True`.
                 &#39;&#39;&#39;
                 if self.verbose:
                         print(f&#39;{self.msgcolor}[D47data]   {txt}\033[0m&#39;)
@@ -1255,7 +1844,7 @@ return the original string unchanged.</p></section>
 
         def refresh(self):
                 &#39;&#39;&#39;
-                &gt;&gt;&gt; Missing docstring
+                Update `self.sessions`, `self.samples`, `self.anchors`, and `self.unknowns`.
                 &#39;&#39;&#39;
                 self.refresh_sessions()
                 self.refresh_samples()
@@ -1263,7 +1852,8 @@ return the original string unchanged.</p></section>
 
         def refresh_sessions(self):
                 &#39;&#39;&#39;
-                &gt;&gt;&gt; Missing docstring
+                Update `self.sessions` and set `scrambling_drift`, `slope_drift`, and `wg_drift`
+                to `False` for all sessions.
                 &#39;&#39;&#39;
                 self.sessions = {
                         s: {&#39;data&#39;: [r for r in self if r[&#39;Session&#39;] == s]}
@@ -1277,7 +1867,7 @@ return the original string unchanged.</p></section>
 
         def refresh_samples(self):
                 &#39;&#39;&#39;
-                &gt;&gt;&gt; Missing docstring
+                Define `self.samples`, `self.anchors`, and `self.unknowns`.
                 &#39;&#39;&#39;
                 self.samples = {
                         s: {&#39;data&#39;: [r for r in self if r[&#39;Sample&#39;] == s]}
@@ -1287,19 +1877,55 @@ return the original string unchanged.</p></section>
                 self.unknowns = {s: self.samples[s] for s in self.samples if s not in self.Nominal_D47}
 
 
-        def read(self, file, sep = &#39;,&#39;):
+        def read(self, filename, sep = &#39;,&#39;):
                 &#39;&#39;&#39;
-                Read file in csv format to load analysis data into a D47data object.
-                Use &#39;sep&#39; argument to define the csv separator.
+                Read file in csv format to load data into a `D47data` object.
+                
+                In the csv file, spaces befor and after field separators (`&#39;,&#39;` by default)
+                are optional. Each line corresponds to a single analysis.
+                
+                The required fields are:
+                
+                + `UID`: a unique identifier
+                + `Session`: an identifier for the analytical session
+                + `Sample`: a sample identifier
+                + `d45`, `d46`, `d47`: the working-gas delta values
+
+                Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
+                VSMOW, λ = 0.528), and are otherwise assumed to be zero. Working-gas deltas `d48`
+                and `d49` may also be provided, and are also set to 0 otherwise.
+                
+                __Parameters__
+                
+                + `fileneme`: the path of the file to read
+                + `sep`: csv separator delimiting the fields
                 &#39;&#39;&#39;
-                with open(file) as fid:
+                with open(filename) as fid:
                         self.input(fid.read(), sep = sep)
 
 
         def input(self, txt, sep = &#39;,&#39;):
                 &#39;&#39;&#39;
-                Read string in csv format to load analysis data into a D47data object.
-                Use &#39;sep&#39; argument to define the csv separator.
+                Read `txt` string in csv format to load analysis data into a `D47data` object.
+
+                In the csv string, spaces befor and after field separators (`&#39;,&#39;` by default)
+                are optional. Each line corresponds to a single analysis.
+                
+                The required fields are:
+                
+                + `UID`: a unique identifier
+                + `Session`: an identifier for the analytical session
+                + `Sample`: a sample identifier
+                + `d45`, `d46`, `d47`: the working-gas delta values
+
+                Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
+                VSMOW, λ = 0.528), and are otherwise assumed to be zero. Working-gas deltas `d48`
+                and `d49` may also be provided, and are also set to 0 otherwise.
+                
+                __Parameters__
+                
+                + `txt`: the csv string to read
+                + `sep`: csv separator delimiting the fields
                 &#39;&#39;&#39;
                 txt = [[x.strip() for x in l.split(sep)] for l in txt.splitlines() if l.strip()]
                 data = [{k: smart_type(v) for k,v in zip(txt[0], l)} for l in txt[1:]]
@@ -1307,7 +1933,7 @@ return the original string unchanged.</p></section>
                 self.refresh()
 
 
-        def wg(self):
+        def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
                 &#39;&#39;&#39;
                 Compute bulk composition of the working gas for each session
                 based on the average composition, within each session,
@@ -1316,10 +1942,14 @@ return the original string unchanged.</p></section>
 
                 self.vprint(f&#34;Computing working gas composition:&#34;)
 
-                sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION
-                d13C_vpdb = self.d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION
-                d18O_vpdb = self.d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION
-                a18_acid = self.ALPHA_18O_ACID_REACTION
+                if sample == &#39;&#39;:
+                        sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
+                if d13C_vpdb == &#39;&#39;:
+                        d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
+                if d18O_vpdb == &#39;&#39;:
+                        d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
+                if a18_acid == &#39;&#39;:
+                        a18_acid = self.ALPHA_18O_ACID_REACTION
 
                 R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
                 R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
@@ -1555,8 +2185,30 @@ return the original string unchanged.</p></section>
                         self.table_of_analyses()
                         self.table_of_samples()
 
+
+        def assign_timestamps(self):
+                &#39;&#39;&#39;
+                Assign a time field `t` to each analysis.
+                
+                If `TimeTag` is one of the data fields, `t` is equal within a given session
+                to `TimeTag` minus the mean value of `TimeTag` for that session.
+                Otherwise, `TimeTag` is by default equal to the index of each analysis
+                in the dataset and `t` is defined as above.
+                &#39;&#39;&#39;
+                for session in self.sessions:
+                        sdata = self.sessions[session][&#39;data&#39;]
+                        try:
+                                t0 = np.mean([r[&#39;TimeTag&#39;] for r in sdata])
+                                for r in sdata:
+                                        r[&#39;t&#39;] = r[&#39;TimeTag&#39;] - t0
+                        except KeyError:
+                                t0 = (len(sdata)-1)/2
+                                for t,r in enumerate(sdata):
+                                        r[&#39;t&#39;] = t - t0
+
+
         def normalize(self,
-                method = &#39;lmfit&#39;,
+                method = &#39;integrated_fit&#39;,
                 weighted_sessions = [],
                 consolidate = True,
                 consolidate_tables = True,
@@ -1564,17 +2216,21 @@ return the original string unchanged.</p></section>
                 ):
                 &#39;&#39;&#39;
                 Compute absolute Δ47 values for all replicate analyses and for sample averages.
-                If &#34;method&#34; argument is set to &#34;lmfit&#34;, the normalization processes all sessions
+                If `method` argument is set to `&#39;integrated_fit&#39;`, the normalization processes all sessions
                 in a single step, assuming that all samples (anchors and unknowns alike) are
-                homogeneous (i.e. that their true Δ47 value does not change between sessions).
-                If &#34;method&#34; argument is set to &#34;indep_sessions&#34;, the normalization processes each
-                session independently.
+                homogeneous (i.e. that their true Δ&lt;sub&gt;47&lt;/sub&gt; value does not change between sessions).
+                If `method` argument is set to `&#39;independent_sessions&#39;`, the normalization processes each
+                session independently, based only on anchors analyses.
                 &#39;&#39;&#39;
-                if method == &#39;lmfit&#39;:
+
+                self.normalization_method = method
+                self.assign_timestamps()
+
+                if method == &#39;integrated_fit&#39;:
                         if weighted_sessions:
                                 for session_group in weighted_sessions:
                                         X = D47data([r for r in self if r[&#39;Session&#39;] in session_group], verbose = self.verbose)
-                                        result = X.normalize(method = &#39;lmfit&#39;, weighted_sessions = [], consolidate = False)
+                                        result = X.normalize(method = &#39;integrated_fit&#39;, weighted_sessions = [], consolidate = False)
                                         w = np.sqrt(result.redchi)
                                         self.vprint(f&#39;Session group {session_group} MRSWD = {w:.4f}&#39;)
                                         for r in X:
@@ -1583,17 +2239,6 @@ return the original string unchanged.</p></section>
                                 self.vprint(&#39;All weights set to 1 ppm&#39;)
                                 for r in self:
                                         r[&#39;wD47raw&#39;] = 0.001
-
-                        for s in self.sessions:
-                                G = self.sessions[s][&#39;data&#39;]
-                                try:
-                                        t0 = np.mean([r[&#39;TimeTag&#39;] for r in G])
-                                        for r in G:
-                                                r[&#39;t&#39;] = r[&#39;TimeTag&#39;] - t0
-                                except KeyError:
-                                        t0 = (len(G)-1)/2
-                                        for t,r in enumerate(G):
-                                                r[&#39;t&#39;] = t - t0
 
                         params = Parameters()
                         for k,session in enumerate(self.sessions):
@@ -1665,8 +2310,57 @@ return the original string unchanged.</p></section>
                                 self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
                         return result
 
-                elif method == &#39;indep_sessions&#39;:
-                        pass
+                elif method == &#39;independent_sessions&#39;:
+                        for session in self.sessions:
+                                self.sessions[session][&#39;Np&#39;] = 3
+                                self.vprint(&#39;&#39;)
+                                self.vprint(f&#39;Standardizing session {session}.&#39;)
+                                sdata = self.sessions[session][&#39;data&#39;]
+                                A = np.array([
+                                        [self.Nominal_D47[r[&#39;Sample&#39;]], r[&#39;d47&#39;], 1]
+                                        for r in sdata if r[&#39;Sample&#39;] in self.anchors
+                                        ])
+                                Y = np.array([[r[&#39;D47raw&#39;]] for r in sdata if r[&#39;Sample&#39;] in self.anchors])
+                                self.sessions[session][&#39;Na&#39;] = Y.size
+                                CM = linalg.inv(A.T @ A)
+                                a,b,c = (CM @ A.T @ Y).T[0,:3]
+
+                                self.vprint(f&#39;a = {a:.4f}&#39;)
+                                self.vprint(f&#39;b = {b:.2e}&#39;)
+                                self.vprint(f&#39;c = {c:.4f}&#39;)
+                                self.sessions[session][&#39;a&#39;] = a
+                                self.sessions[session][&#39;b&#39;] = b
+                                self.sessions[session][&#39;c&#39;] = c
+                                self.sessions[session][&#39;CM&#39;] = CM.copy()
+
+                                for r in sdata :
+                                        r[&#39;D47&#39;] = ( r[&#39;D47raw&#39;] - b * r[&#39;d47&#39;] - c ) / a
+                        
+                        Nss = len(self.sessions)
+                        Na = len(self)
+                        Ns = len(self.samples)
+                        Nu = len(self.unknowns)
+                        avgD47 = {
+                                sample: np.mean([r[&#39;D47&#39;] for r in self if r[&#39;Sample&#39;] == sample])
+                                for sample in self.samples
+                                }
+                        chi2 = np.sum([(r[&#39;D47&#39;] - avgD47[r[&#39;Sample&#39;]])**2 for r in self])
+                        rD47 = (chi2/(Na-Nu-3*Nss))**.5
+                        self.repro[&#39;sigma_47&#39;] = rD47
+
+                        for session in self.sessions:
+                                self.sessions[session][&#39;CM&#39;] *= a**2 * chi2 / (Na-Nu-3*Nss)
+                                self.sessions[session][&#39;SE_a&#39;] = self.sessions[session][&#39;CM&#39;][0,0]**.5
+                                self.sessions[session][&#39;SE_b&#39;] = self.sessions[session][&#39;CM&#39;][1,1]**.5
+                                self.sessions[session][&#39;SE_c&#39;] = self.sessions[session][&#39;CM&#39;][2,2]**.5
+                        
+#                       self.Nf = np.sum([self.sessions[s][&#39;Na&#39;] - self.sessions[s][&#39;Np&#39;] for s in self.sessions])
+                        self.Nf = len(self) - len(self.unknowns) - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])
+                        self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
+
+                        if consolidate:
+                                self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
+
 
         def report(self):
                 &#39;&#39;&#39;
@@ -1681,20 +2375,21 @@ return the original string unchanged.</p></section>
                 a = self.sessions[session][&#39;a&#39;]
                 b = self.sessions[session][&#39;b&#39;]
                 c = self.sessions[session][&#39;c&#39;]
-                s = pf(session)
-                i = self.normalization.var_names.index(f&#39;a_{s}&#39;)
-                j = self.normalization.var_names.index(f&#39;b_{s}&#39;)
-                k = self.normalization.var_names.index(f&#39;c_{s}&#39;)
-                CM = np.zeros((3,3))
-                CM[0,0] = self.normalization.covar[i,i]
-                CM[0,1] = self.normalization.covar[i,j]
-                CM[0,2] = self.normalization.covar[i,k]
-                CM[1,0] = self.normalization.covar[j,i]
-                CM[1,1] = self.normalization.covar[j,j]
-                CM[1,2] = self.normalization.covar[j,k]
-                CM[2,0] = self.normalization.covar[k,i]
-                CM[2,1] = self.normalization.covar[k,j]
-                CM[2,2] = self.normalization.covar[k,k]
+#               s = pf(session)
+#               i = self.normalization.var_names.index(f&#39;a_{s}&#39;)
+#               j = self.normalization.var_names.index(f&#39;b_{s}&#39;)
+#               k = self.normalization.var_names.index(f&#39;c_{s}&#39;)
+#               CM = np.zeros((3,3))
+#               CM[0,0] = self.normalization.covar[i,i]
+#               CM[0,1] = self.normalization.covar[i,j]
+#               CM[0,2] = self.normalization.covar[i,k]
+#               CM[1,0] = self.normalization.covar[j,i]
+#               CM[1,1] = self.normalization.covar[j,j]
+#               CM[1,2] = self.normalization.covar[j,k]
+#               CM[2,0] = self.normalization.covar[k,i]
+#               CM[2,1] = self.normalization.covar[k,j]
+#               CM[2,2] = self.normalization.covar[k,k]
+                CM = self.sessions[session][&#39;CM&#39;]
 
                 y, x = d47, D47
                 z = a * x + b * y + c
@@ -1721,6 +2416,7 @@ return the original string unchanged.</p></section>
                 out += [[&#39;External reproducibility of Δ47 (unknowns)&#39;, f&#34;{1000 * self.repro[&#39;r_D47u&#39;]:.1f} ppm&#34;]]
                 out += [[&#39;External reproducibility of Δ47 (all)&#39;, f&#34;{1000 * self.repro[&#39;r_D47&#39;]:.1f} ppm&#34;]]
                 out += [[&#39;Degrees of freedom (Student\&#39;s 95% t-factor)&#39;, f&#34;{self.Nf} ({self.t95:.2f})&#34;]]
+                out += [[&#39;Standardization method&#39;, self.normalization_method]]
                 print(pretty_table(out, header = 0)) 
                 
                 include_a2 = any([self.sessions[session][&#39;scrambling_drift&#39;] for session in self.sessions])
@@ -1928,26 +2624,42 @@ return the original string unchanged.</p></section>
                 &#39;&#39;&#39;
                 &gt;&gt;&gt; Missing docstring
                 &#39;&#39;&#39;
+                D47_ref_pop = [r[&#39;D47&#39;] for r in self.samples[self.LEVENE_REF_SAMPLE][&#39;data&#39;]]
                 for sample in self.samples:
                         self.samples[sample][&#39;N&#39;] = len(self.samples[sample][&#39;data&#39;])
                         if self.samples[sample][&#39;N&#39;] &gt; 1:
                                 self.samples[sample][&#39;SD_D47&#39;] = stdev([r[&#39;D47&#39;] for r in self.samples[sample][&#39;data&#39;]])
+
                         self.samples[sample][&#39;d13C_VPDB&#39;] = np.mean([r[&#39;d13C_VPDB&#39;] for r in self.samples[sample][&#39;data&#39;]])
                         self.samples[sample][&#39;d18O_VSMOW&#39;] = np.mean([r[&#39;d18O_VSMOW&#39;] for r in self.samples[sample][&#39;data&#39;]])
-
-                for sample in self.anchors:
-                        self.samples[sample][&#39;D47&#39;] = self.Nominal_D47[sample]
-                        self.samples[sample][&#39;SE_D47&#39;] = 0.
-
-                D47_ref_pop = [r[&#39;D47&#39;] for r in self.samples[self.LEVENE_REF_SAMPLE][&#39;data&#39;]]
-
-                for sample in self.unknowns:
-                        self.samples[sample][&#39;D47&#39;] = self.normalization.params.valuesdict()[f&#39;D47_{pf(sample)}&#39;]
-                        self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
 
                         D47_pop = [r[&#39;D47&#39;] for r in self.samples[sample][&#39;data&#39;]]
                         if len(D47_pop) &gt; 1:
                                 self.samples[sample][&#39;p_Levene&#39;] = levene(D47_ref_pop, D47_pop, center = &#39;median&#39;)[1]
+
+                if self.normalization_method == &#39;integrated_fit&#39;:
+                        for sample in self.anchors:
+                                self.samples[sample][&#39;D47&#39;] = self.Nominal_D47[sample]
+                                self.samples[sample][&#39;SE_D47&#39;] = 0.
+                        for sample in self.unknowns:
+                                self.samples[sample][&#39;D47&#39;] = self.normalization.params.valuesdict()[f&#39;D47_{pf(sample)}&#39;]
+                                self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
+
+                elif self.normalization_method == &#39;independent_sessions&#39;:
+                        for sample in self.anchors:
+                                self.samples[sample][&#39;D47&#39;] = self.Nominal_D47[sample]
+                                self.samples[sample][&#39;SE_D47&#39;] = 0.
+                        for sample in self.unknowns:
+                                session_avg = []
+                                for session in self.sessions:
+                                        sdata = [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]
+                                        if sdata:
+                                                avg_D47 = np.mean([r[&#39;D47&#39;] for r in sdata])
+                                                avg_d47 = np.mean([r[&#39;d47&#39;] for r in sdata])
+                                                sigma_s = self.normalization_error(session, avg_d47, avg_D47)
+                                                sigma_u = self.repro[&#39;sigma_47&#39;] / len(sdata)**.5
+                                                session_avg.append((avg_D47, (sigma_u**2 + sigma_s**2)**.5))
+                                self.samples[sample][&#39;D47&#39;], self.samples[sample][&#39;SE_D47&#39;] = w_avg(*zip(*session_avg))
 
 
         def consolidate_sessions(self):
@@ -1957,30 +2669,59 @@ return the original string unchanged.</p></section>
                 for session in self.sessions:
                         self.sessions[session][&#39;Na&#39;] = len([r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors])
                         self.sessions[session][&#39;Nu&#39;] = len([r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns])
-                        self.sessions[session][&#39;a&#39;] = self.normalization.params.valuesdict()[f&#39;a_{pf(session)}&#39;]
-                        i = self.normalization.var_names.index(f&#39;a_{pf(session)}&#39;)
-                        self.sessions[session][&#39;SE_a&#39;] = self.normalization.covar[i,i]**.5
-                        self.sessions[session][&#39;b&#39;] = self.normalization.params.valuesdict()[f&#39;b_{pf(session)}&#39;]
-                        i = self.normalization.var_names.index(f&#39;b_{pf(session)}&#39;)
-                        self.sessions[session][&#39;SE_b&#39;] = self.normalization.covar[i,i]**.5
-                        self.sessions[session][&#39;c&#39;] = self.normalization.params.valuesdict()[f&#39;c_{pf(session)}&#39;]
-                        i = self.normalization.var_names.index(f&#39;c_{pf(session)}&#39;)
-                        self.sessions[session][&#39;SE_c&#39;] = self.normalization.covar[i,i]**.5
-                        self.sessions[session][&#39;a2&#39;] = self.normalization.params.valuesdict()[f&#39;a2_{pf(session)}&#39;]
-                        if self.sessions[session][&#39;scrambling_drift&#39;]:
-                                i = self.normalization.var_names.index(f&#39;a2_{pf(session)}&#39;)
-                                self.sessions[session][&#39;SE_a2&#39;] = self.normalization.covar[i,i]**.5
-                        self.sessions[session][&#39;b2&#39;] = self.normalization.params.valuesdict()[f&#39;b2_{pf(session)}&#39;]
-                        if self.sessions[session][&#39;slope_drift&#39;]:
-                                i = self.normalization.var_names.index(f&#39;b2_{pf(session)}&#39;)
-                                self.sessions[session][&#39;SE_b2&#39;] = self.normalization.covar[i,i]**.5
-                        self.sessions[session][&#39;c2&#39;] = self.normalization.params.valuesdict()[f&#39;c2_{pf(session)}&#39;]
-                        if self.sessions[session][&#39;wg_drift&#39;]:
-                                i = self.normalization.var_names.index(f&#39;c2_{pf(session)}&#39;)
-                                self.sessions[session][&#39;SE_c2&#39;] = self.normalization.covar[i,i]**.5
+
                         self.sessions[session][&#39;r_d13C_VPDB&#39;] = self.compute_reproducibility(&#39;d13C_VPDB&#39;, samples = &#39;anchors&#39;, sessions = [session])
                         self.sessions[session][&#39;r_d18O_VSMOW&#39;] = self.compute_reproducibility(&#39;d18O_VSMOW&#39;, samples = &#39;anchors&#39;, sessions = [session])
                         self.sessions[session][&#39;r_D47&#39;] = self.compute_reproducibility(&#39;D47&#39;, sessions = [session])
+
+                if self.normalization_method == &#39;integrated_fit&#39;:
+                        for session in self.sessions:
+
+                                self.sessions[session][&#39;Np&#39;] = 3
+                                for k in [&#39;scrambling&#39;, &#39;slope&#39;, &#39;wg&#39;]:
+                                        if self.sessions[session][f&#39;{k}_drift&#39;]:
+                                                self.sessions[session][&#39;Np&#39;] += 1
+
+                                self.sessions[session][&#39;a&#39;] = self.normalization.params.valuesdict()[f&#39;a_{pf(session)}&#39;]
+                                i = self.normalization.var_names.index(f&#39;a_{pf(session)}&#39;)
+                                self.sessions[session][&#39;SE_a&#39;] = self.normalization.covar[i,i]**.5
+
+                                self.sessions[session][&#39;b&#39;] = self.normalization.params.valuesdict()[f&#39;b_{pf(session)}&#39;]
+                                i = self.normalization.var_names.index(f&#39;b_{pf(session)}&#39;)
+                                self.sessions[session][&#39;SE_b&#39;] = self.normalization.covar[i,i]**.5
+
+                                self.sessions[session][&#39;c&#39;] = self.normalization.params.valuesdict()[f&#39;c_{pf(session)}&#39;]
+                                i = self.normalization.var_names.index(f&#39;c_{pf(session)}&#39;)
+                                self.sessions[session][&#39;SE_c&#39;] = self.normalization.covar[i,i]**.5
+
+                                self.sessions[session][&#39;a2&#39;] = self.normalization.params.valuesdict()[f&#39;a2_{pf(session)}&#39;]
+                                if self.sessions[session][&#39;scrambling_drift&#39;]:
+                                        i = self.normalization.var_names.index(f&#39;a2_{pf(session)}&#39;)
+                                        self.sessions[session][&#39;SE_a2&#39;] = self.normalization.covar[i,i]**.5
+                                else:
+                                        self.sessions[session][&#39;SE_a2&#39;] = 0.
+
+                                self.sessions[session][&#39;b2&#39;] = self.normalization.params.valuesdict()[f&#39;b2_{pf(session)}&#39;]
+                                if self.sessions[session][&#39;slope_drift&#39;]:
+                                        i = self.normalization.var_names.index(f&#39;b2_{pf(session)}&#39;)
+                                        self.sessions[session][&#39;SE_b2&#39;] = self.normalization.covar[i,i]**.5
+                                else:
+                                        self.sessions[session][&#39;SE_b2&#39;] = 0.
+
+                                self.sessions[session][&#39;c2&#39;] = self.normalization.params.valuesdict()[f&#39;c2_{pf(session)}&#39;]
+                                if self.sessions[session][&#39;wg_drift&#39;]:
+                                        i = self.normalization.var_names.index(f&#39;c2_{pf(session)}&#39;)
+                                        self.sessions[session][&#39;SE_c2&#39;] = self.normalization.covar[i,i]**.5
+                                else:
+                                        self.sessions[session][&#39;SE_c2&#39;] = 0.
+
+                                i = self.normalization.var_names.index(f&#39;a_{pf(session)}&#39;)
+                                j = self.normalization.var_names.index(f&#39;b_{pf(session)}&#39;)
+                                k = self.normalization.var_names.index(f&#39;c_{pf(session)}&#39;)
+                                self.sessions[session][&#39;CM&#39;] = self.normalization.covar[[i,j,k],:][:,[i,j,k]]
+
+                elif self.normalization_method == &#39;independent_sessions&#39;:
+                        pass
 
 
         def consolidate_repro(self):
@@ -1989,9 +2730,20 @@ return the original string unchanged.</p></section>
                 &#39;&#39;&#39;
                 self.repro[&#39;r_d13C_VPDB&#39;] = self.compute_reproducibility(&#39;d13C_VPDB&#39;, samples = &#39;anchors&#39;)
                 self.repro[&#39;r_d18O_VSMOW&#39;] = self.compute_reproducibility(&#39;d18O_VSMOW&#39;, samples = &#39;anchors&#39;)
+
+                N_anchor_analyses = len([r for r in self if r[&#39;Sample&#39;] in self.anchors])
+
                 self.repro[&#39;r_D47a&#39;] = self.compute_reproducibility(&#39;D47&#39;, samples = &#39;anchors&#39;)
+                self.repro[&#39;r_D47a&#39;] /= (
+                        (N_anchor_analyses - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])) / (N_anchor_analyses - len(self.anchors))
+                        )**.5
+
                 self.repro[&#39;r_D47u&#39;] = self.compute_reproducibility(&#39;D47&#39;, samples = &#39;unknowns&#39;)
+
                 self.repro[&#39;r_D47&#39;] = self.compute_reproducibility(&#39;D47&#39;, samples = &#39;all samples&#39;)
+                self.repro[&#39;r_D47&#39;] /= (
+                        (len(self) - len(self.unknowns) - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])) / (len(self) - len(self.samples))
+                        )**.5
 
 
         def consolidate(self,
@@ -2016,8 +2768,12 @@ return the original string unchanged.</p></section>
 
         def compute_reproducibility(self, key, samples = &#39;all samples&#39;, sessions = &#39;all sessions&#39;):
                 &#39;&#39;&#39;
-                Compute external reproducibility of r[key].
+                Compute external reproducibility of `[r[key] for r in self]`.
                 &#39;&#39;&#39;
+                # NB: it&#39;s debatable whether rD47 should be computed
+                # with Nf = len(self)-len(self.samples) instead of
+                # Nf = len(self) - len(self.unknwons) - 3*len(self.sessions)
+
                 if samples == &#39;all samples&#39;:
                         mysamples = [k for k in self.samples]
                 elif samples == &#39;anchors&#39;:
@@ -2048,16 +2804,21 @@ return the original string unchanged.</p></section>
                 of a group of samples. Weights are equal by default. If normalize is
                 True, weights will be rescaled so that their sum equals 1.
                 
-                Examples
-                --------
-                ```sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])```
+                __Examples__
 
-                will return the value and SE of (Δ47(X) + 2*Δ47(Y)/3, where Δ47(X)
-                and Δ47(Y) are the average Δ47 of samples X and Y, respectively.
+                ```python
+                self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])
+                ```
 
-                &gt; sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)
-                
-                will return the value and SE of the difference Δ47(X) - Δ47(Y)
+                returns the value and SE of [Δ&lt;sub&gt;47&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;47&lt;/sub&gt;(Y)]/3,
+                where Δ&lt;sub&gt;47&lt;/sub&gt;(X) and Δ&lt;sub&gt;47&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;47&lt;/sub&gt;
+                values of samples X and Y, respectively.
+
+                ```python
+                self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)
+                ```
+
+                returns the value and SE of the difference Δ&lt;sub&gt;47&lt;/sub&gt;(X) - Δ&lt;sub&gt;47&lt;/sub&gt;(Y).
                 &#39;&#39;&#39;
                 if weights == &#39;equal&#39;:
                         weights = [1/len(samples)] * len(samples)
@@ -2073,7 +2834,22 @@ return the original string unchanged.</p></section>
                         X = [self.samples[sample][&#39;D47&#39;] for sample in samples]
                         return correlated_sum(X, C, weights)
                 except ValueError:
-                        return (0., 0.)</code></pre>
+                        return (0., 0.)
+
+
+        def sample_D47_covar(self, sample1, sample2 = &#39;&#39;):
+                &#39;&#39;&#39;
+                &gt;&gt;&gt; Missing docstring
+                &#39;&#39;&#39;
+                if sample2 == &#39;&#39;:
+                        sample2 = sample1
+                if self.normalization_method == &#39;integrated_fit&#39;:
+                        i = self.normalization.var_names.index(f&#39;D47_{pf(sample1)}&#39;)
+                        j = self.normalization.var_names.index(f&#39;D47_{pf(sample2)}&#39;)
+                        return self.normalization.covar[i, j]           
+                elif self.normalization_method == &#39;independent_sessions&#39;:
+                        if sample1 == sample2:
+                                return self.samples[sample1][&#39;SE_D47&#39;]**2</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2083,59 +2859,102 @@ return the original string unchanged.</p></section>
 <dl>
 <dt id="D47crunch.D47data.ALPHA_18O_ACID_REACTION"><code class="name">var <span class="ident">ALPHA_18O_ACID_REACTION</span></code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>specifies the <sup>18</sup>O/<sup>16</sup>O fractionation factor generally applicable
+to acid reactions in the dataset. Currently only used by <code>self.wg()</code>.</p>
+<p>By default equal to 1.00813 (calcite reacted at 90 °C, <a href="https://dx.doi.org/10.1016/j.chemgeo.2007.08.005">Kim et al., 2007</a>).</p></section>
 </dd>
 <dt id="D47crunch.D47data.LEVENE_REF_SAMPLE"><code class="name">var <span class="ident">LEVENE_REF_SAMPLE</span></code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>After the Δ<sub>47</sub> standardization step, each sample is tested to
+assess whether the Δ<sub>47</sub> variance within all analyses for that
+sample is significantly larger than that observed for a given reference
+sample (using <a href="https://en.wikipedia.org/wiki/Levene%27s_test">Levene's test</a>, which yields a p-value corresponding to
+the null hypothesis that the underlying variances are equal).</p>
+<p><code>LEVENE_REF_SAMPLE</code> (by default equal to <code>'ETH-3'</code>) specifies which
+sample should be used as a reference for this test.</p></section>
 </dd>
 <dt id="D47crunch.D47data.Nominal_D47"><code class="name">var <span class="ident">Nominal_D47</span></code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Nominal Δ<sub>47</sub> values assigned to the anchor samples, used in particular by
+<code>self.normalize()</code> to standardize unknown samples to a carbonate Δ<sub>47</sub>
+reference frame.</p>
+<p>By default equal to <code>{'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691}</code> after
+<a href="https://doi.org/10.1029/2017GC007385">Bernasconi et al. (2018)</a>.</p></section>
 </dd>
 <dt id="D47crunch.D47data.R13_VPDB"><code class="name">var <span class="ident">R13_VPDB</span></code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Absolute (<sup>13</sup>C/<sup>12</sup>C) ratio of VPDB.
+By default equal to 0.01118 (<a href="http://www.cnki.com.cn/Article/CJFDTotal-JXTW199004006.htm">Chang &amp; Li, 1990</a>)</p></section>
 </dd>
 <dt id="D47crunch.D47data.R17_VPDB"><code class="name">var <span class="ident">R17_VPDB</span></code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Absolute (<sup>17</sup>O/<sup>16</sup>C) ratio of VPDB.
+By definition equal to <code>R17_VSMOW * 1.03092 ** lambda_17</code>.</p></section>
 </dd>
 <dt id="D47crunch.D47data.R17_VSMOW"><code class="name">var <span class="ident">R17_VSMOW</span></code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Absolute (<sup>17</sup>O/<sup>16</sup>C) ratio of VSMOW.
+By default equal to 0.00038475 (<a href="https://dx.doi.org/10.1016/j.chemgeo.2016.08.014">Daëron et al., 2016</a>)</p></section>
 </dd>
 <dt id="D47crunch.D47data.R18_VPDB"><code class="name">var <span class="ident">R18_VPDB</span></code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Absolute (<sup>18</sup>O/<sup>16</sup>C) ratio of VPDB.
+By definition equal to <code>R18_VSMOW * 1.03092</code>.</p></section>
 </dd>
 <dt id="D47crunch.D47data.R18_VSMOW"><code class="name">var <span class="ident">R18_VSMOW</span></code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Absolute (<sup>18</sup>O/<sup>16</sup>C) ratio of VSMOW.
+By default equal to 0.0020052 (<a href="https://doi.org/10.1016/0012-821X(76&gt;)90115-1">Baertschi, 1976</a>)</p></section>
 </dd>
 <dt id="D47crunch.D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION"><code class="name">var <span class="ident">SAMPLE_CONSTRAINING_WG_COMPOSITION</span></code></dt>
 <dd>
-<section class="desc"></section>
-</dd>
-<dt id="D47crunch.D47data.T_ACID"><code class="name">var <span class="ident">T_ACID</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="D47crunch.D47data.d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION"><code class="name">var <span class="ident">d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION</span></code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-<dt id="D47crunch.D47data.d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION"><code class="name">var <span class="ident">d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION</span></code></dt>
-<dd>
-<section class="desc"></section>
+<section class="desc"><p>specifies the name, δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub>
+of the carbonate standard used by <a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg"><code>D47data.wg()</code></a> to compute the isotopic composition
+of the working gas in each session.</p>
+<p>By default equal to <code>('ETH-3', 1.71, -1.78)</code> after <a href="https://doi.org/10.1029/2017GC007385">Bernasconi et al. (2018)</a>.</p></section>
 </dd>
 <dt id="D47crunch.D47data.lambda_17"><code class="name">var <span class="ident">lambda_17</span></code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Mass-dependent exponent for triple oxygen isotopes.
+By default equal to 0.528 (<a href="https://doi.org/10.1002/rcm.2250">Barkan &amp; Luz, 2005</a>)</p></section>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="D47crunch.D47data.assign_timestamps"><code class="name flex">
+<span>def <span class="ident">assign_timestamps</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Assign a time field <code>t</code> to each analysis.</p>
+<p>If <code>TimeTag</code> is one of the data fields, <code>t</code> is equal within a given session
+to <code>TimeTag</code> minus the mean value of <code>TimeTag</code> for that session.
+Otherwise, <code>TimeTag</code> is by default equal to the index of each analysis
+in the dataset and <code>t</code> is defined as above.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def assign_timestamps(self):
+        &#39;&#39;&#39;
+        Assign a time field `t` to each analysis.
+        
+        If `TimeTag` is one of the data fields, `t` is equal within a given session
+        to `TimeTag` minus the mean value of `TimeTag` for that session.
+        Otherwise, `TimeTag` is by default equal to the index of each analysis
+        in the dataset and `t` is defined as above.
+        &#39;&#39;&#39;
+        for session in self.sessions:
+                sdata = self.sessions[session][&#39;data&#39;]
+                try:
+                        t0 = np.mean([r[&#39;TimeTag&#39;] for r in sdata])
+                        for r in sdata:
+                                r[&#39;t&#39;] = r[&#39;TimeTag&#39;] - t0
+                except KeyError:
+                        t0 = (len(sdata)-1)/2
+                        for t,r in enumerate(sdata):
+                                r[&#39;t&#39;] = t - t0</code></pre>
+</details>
+</dd>
 <dt id="D47crunch.D47data.compute_bulk_and_clumping_deltas"><code class="name flex">
 <span>def <span class="ident">compute_bulk_and_clumping_deltas</span></span>(<span>self, r)</span>
 </code></dt>
@@ -2288,15 +3107,19 @@ anomalies, all expressed in permil.</p></section>
 <span>def <span class="ident">compute_reproducibility</span></span>(<span>self, key, samples='all samples', sessions='all sessions')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Compute external reproducibility of r[key].</p></section>
+<section class="desc"><p>Compute external reproducibility of <code>[r[key] for r in self]</code>.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def compute_reproducibility(self, key, samples = &#39;all samples&#39;, sessions = &#39;all sessions&#39;):
         &#39;&#39;&#39;
-        Compute external reproducibility of r[key].
+        Compute external reproducibility of `[r[key] for r in self]`.
         &#39;&#39;&#39;
+        # NB: it&#39;s debatable whether rD47 should be computed
+        # with Nf = len(self)-len(self.samples) instead of
+        # Nf = len(self) - len(self.unknwons) - 3*len(self.sessions)
+
         if samples == &#39;all samples&#39;:
                 mysamples = [k for k in self.samples]
         elif samples == &#39;anchors&#39;:
@@ -2366,9 +3189,20 @@ anomalies, all expressed in permil.</p></section>
         &#39;&#39;&#39;
         self.repro[&#39;r_d13C_VPDB&#39;] = self.compute_reproducibility(&#39;d13C_VPDB&#39;, samples = &#39;anchors&#39;)
         self.repro[&#39;r_d18O_VSMOW&#39;] = self.compute_reproducibility(&#39;d18O_VSMOW&#39;, samples = &#39;anchors&#39;)
+
+        N_anchor_analyses = len([r for r in self if r[&#39;Sample&#39;] in self.anchors])
+
         self.repro[&#39;r_D47a&#39;] = self.compute_reproducibility(&#39;D47&#39;, samples = &#39;anchors&#39;)
+        self.repro[&#39;r_D47a&#39;] /= (
+                (N_anchor_analyses - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])) / (N_anchor_analyses - len(self.anchors))
+                )**.5
+
         self.repro[&#39;r_D47u&#39;] = self.compute_reproducibility(&#39;D47&#39;, samples = &#39;unknowns&#39;)
-        self.repro[&#39;r_D47&#39;] = self.compute_reproducibility(&#39;D47&#39;, samples = &#39;all samples&#39;)</code></pre>
+
+        self.repro[&#39;r_D47&#39;] = self.compute_reproducibility(&#39;D47&#39;, samples = &#39;all samples&#39;)
+        self.repro[&#39;r_D47&#39;] /= (
+                (len(self) - len(self.unknowns) - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])) / (len(self) - len(self.samples))
+                )**.5</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.consolidate_samples"><code class="name flex">
@@ -2385,26 +3219,42 @@ anomalies, all expressed in permil.</p></section>
         &#39;&#39;&#39;
         &gt;&gt;&gt; Missing docstring
         &#39;&#39;&#39;
+        D47_ref_pop = [r[&#39;D47&#39;] for r in self.samples[self.LEVENE_REF_SAMPLE][&#39;data&#39;]]
         for sample in self.samples:
                 self.samples[sample][&#39;N&#39;] = len(self.samples[sample][&#39;data&#39;])
                 if self.samples[sample][&#39;N&#39;] &gt; 1:
                         self.samples[sample][&#39;SD_D47&#39;] = stdev([r[&#39;D47&#39;] for r in self.samples[sample][&#39;data&#39;]])
+
                 self.samples[sample][&#39;d13C_VPDB&#39;] = np.mean([r[&#39;d13C_VPDB&#39;] for r in self.samples[sample][&#39;data&#39;]])
                 self.samples[sample][&#39;d18O_VSMOW&#39;] = np.mean([r[&#39;d18O_VSMOW&#39;] for r in self.samples[sample][&#39;data&#39;]])
 
-        for sample in self.anchors:
-                self.samples[sample][&#39;D47&#39;] = self.Nominal_D47[sample]
-                self.samples[sample][&#39;SE_D47&#39;] = 0.
-
-        D47_ref_pop = [r[&#39;D47&#39;] for r in self.samples[self.LEVENE_REF_SAMPLE][&#39;data&#39;]]
-
-        for sample in self.unknowns:
-                self.samples[sample][&#39;D47&#39;] = self.normalization.params.valuesdict()[f&#39;D47_{pf(sample)}&#39;]
-                self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
-
                 D47_pop = [r[&#39;D47&#39;] for r in self.samples[sample][&#39;data&#39;]]
                 if len(D47_pop) &gt; 1:
-                        self.samples[sample][&#39;p_Levene&#39;] = levene(D47_ref_pop, D47_pop, center = &#39;median&#39;)[1]</code></pre>
+                        self.samples[sample][&#39;p_Levene&#39;] = levene(D47_ref_pop, D47_pop, center = &#39;median&#39;)[1]
+
+        if self.normalization_method == &#39;integrated_fit&#39;:
+                for sample in self.anchors:
+                        self.samples[sample][&#39;D47&#39;] = self.Nominal_D47[sample]
+                        self.samples[sample][&#39;SE_D47&#39;] = 0.
+                for sample in self.unknowns:
+                        self.samples[sample][&#39;D47&#39;] = self.normalization.params.valuesdict()[f&#39;D47_{pf(sample)}&#39;]
+                        self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
+
+        elif self.normalization_method == &#39;independent_sessions&#39;:
+                for sample in self.anchors:
+                        self.samples[sample][&#39;D47&#39;] = self.Nominal_D47[sample]
+                        self.samples[sample][&#39;SE_D47&#39;] = 0.
+                for sample in self.unknowns:
+                        session_avg = []
+                        for session in self.sessions:
+                                sdata = [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]
+                                if sdata:
+                                        avg_D47 = np.mean([r[&#39;D47&#39;] for r in sdata])
+                                        avg_d47 = np.mean([r[&#39;d47&#39;] for r in sdata])
+                                        sigma_s = self.normalization_error(session, avg_d47, avg_D47)
+                                        sigma_u = self.repro[&#39;sigma_47&#39;] / len(sdata)**.5
+                                        session_avg.append((avg_D47, (sigma_u**2 + sigma_s**2)**.5))
+                        self.samples[sample][&#39;D47&#39;], self.samples[sample][&#39;SE_D47&#39;] = w_avg(*zip(*session_avg))</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.consolidate_sessions"><code class="name flex">
@@ -2424,30 +3274,59 @@ anomalies, all expressed in permil.</p></section>
         for session in self.sessions:
                 self.sessions[session][&#39;Na&#39;] = len([r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors])
                 self.sessions[session][&#39;Nu&#39;] = len([r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns])
-                self.sessions[session][&#39;a&#39;] = self.normalization.params.valuesdict()[f&#39;a_{pf(session)}&#39;]
-                i = self.normalization.var_names.index(f&#39;a_{pf(session)}&#39;)
-                self.sessions[session][&#39;SE_a&#39;] = self.normalization.covar[i,i]**.5
-                self.sessions[session][&#39;b&#39;] = self.normalization.params.valuesdict()[f&#39;b_{pf(session)}&#39;]
-                i = self.normalization.var_names.index(f&#39;b_{pf(session)}&#39;)
-                self.sessions[session][&#39;SE_b&#39;] = self.normalization.covar[i,i]**.5
-                self.sessions[session][&#39;c&#39;] = self.normalization.params.valuesdict()[f&#39;c_{pf(session)}&#39;]
-                i = self.normalization.var_names.index(f&#39;c_{pf(session)}&#39;)
-                self.sessions[session][&#39;SE_c&#39;] = self.normalization.covar[i,i]**.5
-                self.sessions[session][&#39;a2&#39;] = self.normalization.params.valuesdict()[f&#39;a2_{pf(session)}&#39;]
-                if self.sessions[session][&#39;scrambling_drift&#39;]:
-                        i = self.normalization.var_names.index(f&#39;a2_{pf(session)}&#39;)
-                        self.sessions[session][&#39;SE_a2&#39;] = self.normalization.covar[i,i]**.5
-                self.sessions[session][&#39;b2&#39;] = self.normalization.params.valuesdict()[f&#39;b2_{pf(session)}&#39;]
-                if self.sessions[session][&#39;slope_drift&#39;]:
-                        i = self.normalization.var_names.index(f&#39;b2_{pf(session)}&#39;)
-                        self.sessions[session][&#39;SE_b2&#39;] = self.normalization.covar[i,i]**.5
-                self.sessions[session][&#39;c2&#39;] = self.normalization.params.valuesdict()[f&#39;c2_{pf(session)}&#39;]
-                if self.sessions[session][&#39;wg_drift&#39;]:
-                        i = self.normalization.var_names.index(f&#39;c2_{pf(session)}&#39;)
-                        self.sessions[session][&#39;SE_c2&#39;] = self.normalization.covar[i,i]**.5
+
                 self.sessions[session][&#39;r_d13C_VPDB&#39;] = self.compute_reproducibility(&#39;d13C_VPDB&#39;, samples = &#39;anchors&#39;, sessions = [session])
                 self.sessions[session][&#39;r_d18O_VSMOW&#39;] = self.compute_reproducibility(&#39;d18O_VSMOW&#39;, samples = &#39;anchors&#39;, sessions = [session])
-                self.sessions[session][&#39;r_D47&#39;] = self.compute_reproducibility(&#39;D47&#39;, sessions = [session])</code></pre>
+                self.sessions[session][&#39;r_D47&#39;] = self.compute_reproducibility(&#39;D47&#39;, sessions = [session])
+
+        if self.normalization_method == &#39;integrated_fit&#39;:
+                for session in self.sessions:
+
+                        self.sessions[session][&#39;Np&#39;] = 3
+                        for k in [&#39;scrambling&#39;, &#39;slope&#39;, &#39;wg&#39;]:
+                                if self.sessions[session][f&#39;{k}_drift&#39;]:
+                                        self.sessions[session][&#39;Np&#39;] += 1
+
+                        self.sessions[session][&#39;a&#39;] = self.normalization.params.valuesdict()[f&#39;a_{pf(session)}&#39;]
+                        i = self.normalization.var_names.index(f&#39;a_{pf(session)}&#39;)
+                        self.sessions[session][&#39;SE_a&#39;] = self.normalization.covar[i,i]**.5
+
+                        self.sessions[session][&#39;b&#39;] = self.normalization.params.valuesdict()[f&#39;b_{pf(session)}&#39;]
+                        i = self.normalization.var_names.index(f&#39;b_{pf(session)}&#39;)
+                        self.sessions[session][&#39;SE_b&#39;] = self.normalization.covar[i,i]**.5
+
+                        self.sessions[session][&#39;c&#39;] = self.normalization.params.valuesdict()[f&#39;c_{pf(session)}&#39;]
+                        i = self.normalization.var_names.index(f&#39;c_{pf(session)}&#39;)
+                        self.sessions[session][&#39;SE_c&#39;] = self.normalization.covar[i,i]**.5
+
+                        self.sessions[session][&#39;a2&#39;] = self.normalization.params.valuesdict()[f&#39;a2_{pf(session)}&#39;]
+                        if self.sessions[session][&#39;scrambling_drift&#39;]:
+                                i = self.normalization.var_names.index(f&#39;a2_{pf(session)}&#39;)
+                                self.sessions[session][&#39;SE_a2&#39;] = self.normalization.covar[i,i]**.5
+                        else:
+                                self.sessions[session][&#39;SE_a2&#39;] = 0.
+
+                        self.sessions[session][&#39;b2&#39;] = self.normalization.params.valuesdict()[f&#39;b2_{pf(session)}&#39;]
+                        if self.sessions[session][&#39;slope_drift&#39;]:
+                                i = self.normalization.var_names.index(f&#39;b2_{pf(session)}&#39;)
+                                self.sessions[session][&#39;SE_b2&#39;] = self.normalization.covar[i,i]**.5
+                        else:
+                                self.sessions[session][&#39;SE_b2&#39;] = 0.
+
+                        self.sessions[session][&#39;c2&#39;] = self.normalization.params.valuesdict()[f&#39;c2_{pf(session)}&#39;]
+                        if self.sessions[session][&#39;wg_drift&#39;]:
+                                i = self.normalization.var_names.index(f&#39;c2_{pf(session)}&#39;)
+                                self.sessions[session][&#39;SE_c2&#39;] = self.normalization.covar[i,i]**.5
+                        else:
+                                self.sessions[session][&#39;SE_c2&#39;] = 0.
+
+                        i = self.normalization.var_names.index(f&#39;a_{pf(session)}&#39;)
+                        j = self.normalization.var_names.index(f&#39;b_{pf(session)}&#39;)
+                        k = self.normalization.var_names.index(f&#39;c_{pf(session)}&#39;)
+                        self.sessions[session][&#39;CM&#39;] = self.normalization.covar[[i,j,k],:][:,[i,j,k]]
+
+        elif self.normalization_method == &#39;independent_sessions&#39;:
+                pass</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.crunch"><code class="name flex">
@@ -2475,16 +3354,50 @@ anomalies, all expressed in permil.</p></section>
 <span>def <span class="ident">input</span></span>(<span>self, txt, sep=',')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Read string in csv format to load analysis data into a D47data object.
-Use 'sep' argument to define the csv separator.</p></section>
+<section class="desc"><p>Read <code>txt</code> string in csv format to load analysis data into a <a title="D47crunch.D47data" href="#D47crunch.D47data"><code>D47data</code></a> object.</p>
+<p>In the csv string, spaces befor and after field separators (<code>','</code> by default)
+are optional. Each line corresponds to a single analysis.</p>
+<p>The required fields are:</p>
+<ul>
+<li><code>UID</code>: a unique identifier</li>
+<li><code>Session</code>: an identifier for the analytical session</li>
+<li><code>Sample</code>: a sample identifier</li>
+<li><code>d45</code>, <code>d46</code>, <code>d47</code>: the working-gas delta values</li>
+</ul>
+<p>Independently known oxygen-17 anomalies may be provided as <code>D17O</code> (in ‰ relative to
+VSMOW, λ = 0.528), and are otherwise assumed to be zero. Working-gas deltas <code>d48</code>
+and <code>d49</code> may also be provided, and are also set to 0 otherwise.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>txt</code>: the csv string to read</li>
+<li><code>sep</code>: csv separator delimiting the fields</li>
+</ul></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def input(self, txt, sep = &#39;,&#39;):
         &#39;&#39;&#39;
-        Read string in csv format to load analysis data into a D47data object.
-        Use &#39;sep&#39; argument to define the csv separator.
+        Read `txt` string in csv format to load analysis data into a `D47data` object.
+
+        In the csv string, spaces befor and after field separators (`&#39;,&#39;` by default)
+        are optional. Each line corresponds to a single analysis.
+        
+        The required fields are:
+        
+        + `UID`: a unique identifier
+        + `Session`: an identifier for the analytical session
+        + `Sample`: a sample identifier
+        + `d45`, `d46`, `d47`: the working-gas delta values
+
+        Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
+        VSMOW, λ = 0.528), and are otherwise assumed to be zero. Working-gas deltas `d48`
+        and `d49` may also be provided, and are also set to 0 otherwise.
+        
+        __Parameters__
+        
+        + `txt`: the csv string to read
+        + `sep`: csv separator delimiting the fields
         &#39;&#39;&#39;
         txt = [[x.strip() for x in l.split(sep)] for l in txt.splitlines() if l.strip()]
         data = [{k: smart_type(v) for k,v in zip(txt[0], l)} for l in txt[1:]]
@@ -2502,56 +3415,57 @@ Use 'sep' argument to define the csv separator.</p></section>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def normalization_error(self, session, d47, D47):
-        &#39;&#39;&#39;
-        &gt;&gt;&gt; Missing docstring
-        &#39;&#39;&#39;
-        a = self.sessions[session][&#39;a&#39;]
-        b = self.sessions[session][&#39;b&#39;]
-        c = self.sessions[session][&#39;c&#39;]
-        s = pf(session)
-        i = self.normalization.var_names.index(f&#39;a_{s}&#39;)
-        j = self.normalization.var_names.index(f&#39;b_{s}&#39;)
-        k = self.normalization.var_names.index(f&#39;c_{s}&#39;)
-        CM = np.zeros((3,3))
-        CM[0,0] = self.normalization.covar[i,i]
-        CM[0,1] = self.normalization.covar[i,j]
-        CM[0,2] = self.normalization.covar[i,k]
-        CM[1,0] = self.normalization.covar[j,i]
-        CM[1,1] = self.normalization.covar[j,j]
-        CM[1,2] = self.normalization.covar[j,k]
-        CM[2,0] = self.normalization.covar[k,i]
-        CM[2,1] = self.normalization.covar[k,j]
-        CM[2,2] = self.normalization.covar[k,k]
+<pre><code class="python">        def normalization_error(self, session, d47, D47):
+                &#39;&#39;&#39;
+                &gt;&gt;&gt; Missing docstring
+                &#39;&#39;&#39;
+                a = self.sessions[session][&#39;a&#39;]
+                b = self.sessions[session][&#39;b&#39;]
+                c = self.sessions[session][&#39;c&#39;]
+#               s = pf(session)
+#               i = self.normalization.var_names.index(f&#39;a_{s}&#39;)
+#               j = self.normalization.var_names.index(f&#39;b_{s}&#39;)
+#               k = self.normalization.var_names.index(f&#39;c_{s}&#39;)
+#               CM = np.zeros((3,3))
+#               CM[0,0] = self.normalization.covar[i,i]
+#               CM[0,1] = self.normalization.covar[i,j]
+#               CM[0,2] = self.normalization.covar[i,k]
+#               CM[1,0] = self.normalization.covar[j,i]
+#               CM[1,1] = self.normalization.covar[j,j]
+#               CM[1,2] = self.normalization.covar[j,k]
+#               CM[2,0] = self.normalization.covar[k,i]
+#               CM[2,1] = self.normalization.covar[k,j]
+#               CM[2,2] = self.normalization.covar[k,k]
+                CM = self.sessions[session][&#39;CM&#39;]
 
-        y, x = d47, D47
-        z = a * x + b * y + c
-        dxdy = -b / a
-        dxdz = a ** -1
-        dxda = -x / a
-        dxdb = -y / a
-        dxdc = -a ** -1
-        V = np.array([dxda, dxdb, dxdc])
-        sx = (V @ CM @ V.T) ** .5
-        return sx</code></pre>
+                y, x = d47, D47
+                z = a * x + b * y + c
+                dxdy = -b / a
+                dxdz = a ** -1
+                dxda = -x / a
+                dxdb = -y / a
+                dxdc = -a ** -1
+                V = np.array([dxda, dxdb, dxdc])
+                sx = (V @ CM @ V.T) ** .5
+                return sx</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.normalize"><code class="name flex">
-<span>def <span class="ident">normalize</span></span>(<span>self, method='lmfit', weighted_sessions=[], consolidate=True, consolidate_tables=True, consolidate_plots=True)</span>
+<span>def <span class="ident">normalize</span></span>(<span>self, method='integrated_fit', weighted_sessions=[], consolidate=True, consolidate_tables=True, consolidate_plots=True)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Compute absolute Δ47 values for all replicate analyses and for sample averages.
-If "method" argument is set to "lmfit", the normalization processes all sessions
+If <code>method</code> argument is set to <code>'integrated_fit'</code>, the normalization processes all sessions
 in a single step, assuming that all samples (anchors and unknowns alike) are
-homogeneous (i.e. that their true Δ47 value does not change between sessions).
-If "method" argument is set to "indep_sessions", the normalization processes each
-session independently.</p></section>
+homogeneous (i.e. that their true Δ<sub>47</sub> value does not change between sessions).
+If <code>method</code> argument is set to <code>'independent_sessions'</code>, the normalization processes each
+session independently, based only on anchors analyses.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">        def normalize(self,
-                method = &#39;lmfit&#39;,
+                method = &#39;integrated_fit&#39;,
                 weighted_sessions = [],
                 consolidate = True,
                 consolidate_tables = True,
@@ -2559,17 +3473,21 @@ session independently.</p></section>
                 ):
                 &#39;&#39;&#39;
                 Compute absolute Δ47 values for all replicate analyses and for sample averages.
-                If &#34;method&#34; argument is set to &#34;lmfit&#34;, the normalization processes all sessions
+                If `method` argument is set to `&#39;integrated_fit&#39;`, the normalization processes all sessions
                 in a single step, assuming that all samples (anchors and unknowns alike) are
-                homogeneous (i.e. that their true Δ47 value does not change between sessions).
-                If &#34;method&#34; argument is set to &#34;indep_sessions&#34;, the normalization processes each
-                session independently.
+                homogeneous (i.e. that their true Δ&lt;sub&gt;47&lt;/sub&gt; value does not change between sessions).
+                If `method` argument is set to `&#39;independent_sessions&#39;`, the normalization processes each
+                session independently, based only on anchors analyses.
                 &#39;&#39;&#39;
-                if method == &#39;lmfit&#39;:
+
+                self.normalization_method = method
+                self.assign_timestamps()
+
+                if method == &#39;integrated_fit&#39;:
                         if weighted_sessions:
                                 for session_group in weighted_sessions:
                                         X = D47data([r for r in self if r[&#39;Session&#39;] in session_group], verbose = self.verbose)
-                                        result = X.normalize(method = &#39;lmfit&#39;, weighted_sessions = [], consolidate = False)
+                                        result = X.normalize(method = &#39;integrated_fit&#39;, weighted_sessions = [], consolidate = False)
                                         w = np.sqrt(result.redchi)
                                         self.vprint(f&#39;Session group {session_group} MRSWD = {w:.4f}&#39;)
                                         for r in X:
@@ -2578,17 +3496,6 @@ session independently.</p></section>
                                 self.vprint(&#39;All weights set to 1 ppm&#39;)
                                 for r in self:
                                         r[&#39;wD47raw&#39;] = 0.001
-
-                        for s in self.sessions:
-                                G = self.sessions[s][&#39;data&#39;]
-                                try:
-                                        t0 = np.mean([r[&#39;TimeTag&#39;] for r in G])
-                                        for r in G:
-                                                r[&#39;t&#39;] = r[&#39;TimeTag&#39;] - t0
-                                except KeyError:
-                                        t0 = (len(G)-1)/2
-                                        for t,r in enumerate(G):
-                                                r[&#39;t&#39;] = t - t0
 
                         params = Parameters()
                         for k,session in enumerate(self.sessions):
@@ -2660,8 +3567,56 @@ session independently.</p></section>
                                 self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
                         return result
 
-                elif method == &#39;indep_sessions&#39;:
-                        pass</code></pre>
+                elif method == &#39;independent_sessions&#39;:
+                        for session in self.sessions:
+                                self.sessions[session][&#39;Np&#39;] = 3
+                                self.vprint(&#39;&#39;)
+                                self.vprint(f&#39;Standardizing session {session}.&#39;)
+                                sdata = self.sessions[session][&#39;data&#39;]
+                                A = np.array([
+                                        [self.Nominal_D47[r[&#39;Sample&#39;]], r[&#39;d47&#39;], 1]
+                                        for r in sdata if r[&#39;Sample&#39;] in self.anchors
+                                        ])
+                                Y = np.array([[r[&#39;D47raw&#39;]] for r in sdata if r[&#39;Sample&#39;] in self.anchors])
+                                self.sessions[session][&#39;Na&#39;] = Y.size
+                                CM = linalg.inv(A.T @ A)
+                                a,b,c = (CM @ A.T @ Y).T[0,:3]
+
+                                self.vprint(f&#39;a = {a:.4f}&#39;)
+                                self.vprint(f&#39;b = {b:.2e}&#39;)
+                                self.vprint(f&#39;c = {c:.4f}&#39;)
+                                self.sessions[session][&#39;a&#39;] = a
+                                self.sessions[session][&#39;b&#39;] = b
+                                self.sessions[session][&#39;c&#39;] = c
+                                self.sessions[session][&#39;CM&#39;] = CM.copy()
+
+                                for r in sdata :
+                                        r[&#39;D47&#39;] = ( r[&#39;D47raw&#39;] - b * r[&#39;d47&#39;] - c ) / a
+                        
+                        Nss = len(self.sessions)
+                        Na = len(self)
+                        Ns = len(self.samples)
+                        Nu = len(self.unknowns)
+                        avgD47 = {
+                                sample: np.mean([r[&#39;D47&#39;] for r in self if r[&#39;Sample&#39;] == sample])
+                                for sample in self.samples
+                                }
+                        chi2 = np.sum([(r[&#39;D47&#39;] - avgD47[r[&#39;Sample&#39;]])**2 for r in self])
+                        rD47 = (chi2/(Na-Nu-3*Nss))**.5
+                        self.repro[&#39;sigma_47&#39;] = rD47
+
+                        for session in self.sessions:
+                                self.sessions[session][&#39;CM&#39;] *= a**2 * chi2 / (Na-Nu-3*Nss)
+                                self.sessions[session][&#39;SE_a&#39;] = self.sessions[session][&#39;CM&#39;][0,0]**.5
+                                self.sessions[session][&#39;SE_b&#39;] = self.sessions[session][&#39;CM&#39;][1,1]**.5
+                                self.sessions[session][&#39;SE_c&#39;] = self.sessions[session][&#39;CM&#39;][2,2]**.5
+                        
+#                       self.Nf = np.sum([self.sessions[s][&#39;Na&#39;] - self.sessions[s][&#39;Np&#39;] for s in self.sessions])
+                        self.Nf = len(self) - len(self.unknowns) - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])
+                        self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
+
+                        if consolidate:
+                                self.consolidate(tables = consolidate_tables, plots = consolidate_plots)</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.plot_sessions"><code class="name flex">
@@ -2751,21 +3706,55 @@ session independently.</p></section>
 </details>
 </dd>
 <dt id="D47crunch.D47data.read"><code class="name flex">
-<span>def <span class="ident">read</span></span>(<span>self, file, sep=',')</span>
+<span>def <span class="ident">read</span></span>(<span>self, filename, sep=',')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Read file in csv format to load analysis data into a D47data object.
-Use 'sep' argument to define the csv separator.</p></section>
+<section class="desc"><p>Read file in csv format to load data into a <a title="D47crunch.D47data" href="#D47crunch.D47data"><code>D47data</code></a> object.</p>
+<p>In the csv file, spaces befor and after field separators (<code>','</code> by default)
+are optional. Each line corresponds to a single analysis.</p>
+<p>The required fields are:</p>
+<ul>
+<li><code>UID</code>: a unique identifier</li>
+<li><code>Session</code>: an identifier for the analytical session</li>
+<li><code>Sample</code>: a sample identifier</li>
+<li><code>d45</code>, <code>d46</code>, <code>d47</code>: the working-gas delta values</li>
+</ul>
+<p>Independently known oxygen-17 anomalies may be provided as <code>D17O</code> (in ‰ relative to
+VSMOW, λ = 0.528), and are otherwise assumed to be zero. Working-gas deltas <code>d48</code>
+and <code>d49</code> may also be provided, and are also set to 0 otherwise.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>fileneme</code>: the path of the file to read</li>
+<li><code>sep</code>: csv separator delimiting the fields</li>
+</ul></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read(self, file, sep = &#39;,&#39;):
+<pre><code class="python">def read(self, filename, sep = &#39;,&#39;):
         &#39;&#39;&#39;
-        Read file in csv format to load analysis data into a D47data object.
-        Use &#39;sep&#39; argument to define the csv separator.
+        Read file in csv format to load data into a `D47data` object.
+        
+        In the csv file, spaces befor and after field separators (`&#39;,&#39;` by default)
+        are optional. Each line corresponds to a single analysis.
+        
+        The required fields are:
+        
+        + `UID`: a unique identifier
+        + `Session`: an identifier for the analytical session
+        + `Sample`: a sample identifier
+        + `d45`, `d46`, `d47`: the working-gas delta values
+
+        Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
+        VSMOW, λ = 0.528), and are otherwise assumed to be zero. Working-gas deltas `d48`
+        and `d49` may also be provided, and are also set to 0 otherwise.
+        
+        __Parameters__
+        
+        + `fileneme`: the path of the file to read
+        + `sep`: csv separator delimiting the fields
         &#39;&#39;&#39;
-        with open(file) as fid:
+        with open(filename) as fid:
                 self.input(fid.read(), sep = sep)</code></pre>
 </details>
 </dd>
@@ -2773,15 +3762,14 @@ Use 'sep' argument to define the csv separator.</p></section>
 <span>def <span class="ident">refresh</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><pre><code>&gt;&gt;&gt; Missing docstring
-</code></pre></section>
+<section class="desc"><p>Update <code>self.sessions</code>, <code>self.samples</code>, <code>self.anchors</code>, and <code>self.unknowns</code>.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def refresh(self):
         &#39;&#39;&#39;
-        &gt;&gt;&gt; Missing docstring
+        Update `self.sessions`, `self.samples`, `self.anchors`, and `self.unknowns`.
         &#39;&#39;&#39;
         self.refresh_sessions()
         self.refresh_samples()</code></pre>
@@ -2791,15 +3779,14 @@ Use 'sep' argument to define the csv separator.</p></section>
 <span>def <span class="ident">refresh_samples</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><pre><code>&gt;&gt;&gt; Missing docstring
-</code></pre></section>
+<section class="desc"><p>Define <code>self.samples</code>, <code>self.anchors</code>, and <code>self.unknowns</code>.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def refresh_samples(self):
         &#39;&#39;&#39;
-        &gt;&gt;&gt; Missing docstring
+        Define `self.samples`, `self.anchors`, and `self.unknowns`.
         &#39;&#39;&#39;
         self.samples = {
                 s: {&#39;data&#39;: [r for r in self if r[&#39;Sample&#39;] == s]}
@@ -2813,15 +3800,16 @@ Use 'sep' argument to define the csv separator.</p></section>
 <span>def <span class="ident">refresh_sessions</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><pre><code>&gt;&gt;&gt; Missing docstring
-</code></pre></section>
+<section class="desc"><p>Update <code>self.sessions</code> and set <code>scrambling_drift</code>, <code>slope_drift</code>, and <code>wg_drift</code>
+to <code>False</code> for all sessions.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def refresh_sessions(self):
         &#39;&#39;&#39;
-        &gt;&gt;&gt; Missing docstring
+        Update `self.sessions` and set `scrambling_drift`, `slope_drift`, and `wg_drift`
+        to `False` for all sessions.
         &#39;&#39;&#39;
         self.sessions = {
                 s: {&#39;data&#39;: [r for r in self if r[&#39;Session&#39;] == s]}
@@ -2850,31 +3838,28 @@ Use 'sep' argument to define the csv separator.</p></section>
 </details>
 </dd>
 <dt id="D47crunch.D47data.sample_D47_covar"><code class="name flex">
-<span>def <span class="ident">sample_D47_covar</span></span>(<span>self, sample_1, sample_2='')</span>
+<span>def <span class="ident">sample_D47_covar</span></span>(<span>self, sample1, sample2='')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Covariance between Δ47 values of samples</p>
-<p>Returns the covariance (or the variance, if sample_1 == sample_2)
-between the average Δ47 values of two samples. Also returns the
-variance if only sample_1 is specified.</p></section>
+<section class="desc"><pre><code>&gt;&gt;&gt; Missing docstring
+</code></pre></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def sample_D47_covar(self, sample_1, sample_2 = &#39;&#39;):
+<pre><code class="python">def sample_D47_covar(self, sample1, sample2 = &#39;&#39;):
         &#39;&#39;&#39;
-        Covariance between Δ47 values of samples
-        
-        Returns the covariance (or the variance, if sample_1 == sample_2)
-        between the average Δ47 values of two samples. Also returns the
-        variance if only sample_1 is specified.
+        &gt;&gt;&gt; Missing docstring
         &#39;&#39;&#39;
-        i = self.normalization.var_names.index(f&#39;D47_{pf(sample_1)}&#39;)
-        if sample_2 in [sample_1,&#39;&#39;]:
-                return self.normalization.covar[i,i]
-        else:
-                j = self.normalization.var_names.index(f&#39;D47_{pf(sample_2)}&#39;)
-                return self.normalization.covar[i,j]</code></pre>
+        if sample2 == &#39;&#39;:
+                sample2 = sample1
+        if self.normalization_method == &#39;integrated_fit&#39;:
+                i = self.normalization.var_names.index(f&#39;D47_{pf(sample1)}&#39;)
+                j = self.normalization.var_names.index(f&#39;D47_{pf(sample2)}&#39;)
+                return self.normalization.covar[i, j]           
+        elif self.normalization_method == &#39;independent_sessions&#39;:
+                if sample1 == sample2:
+                        return self.samples[sample1][&#39;SE_D47&#39;]**2</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.sample_average"><code class="name flex">
@@ -2885,14 +3870,15 @@ variance if only sample_1 is specified.</p></section>
 <p>Returns the (weighed, optionally) average Δ47 value and associated SE
 of a group of samples. Weights are equal by default. If normalize is
 True, weights will be rescaled so that their sum equals 1.</p>
-<h2 id="examples">Examples</h2>
-<p><code>sample_average(['X','Y'], [1, 2])</code></p>
-<p>will return the value and SE of (Δ47(X) + 2*Δ47(Y)/3, where Δ47(X)
-and Δ47(Y) are the average Δ47 of samples X and Y, respectively.</p>
-<blockquote>
-<p>sample_average(['X','Y'], [1, -1], normalize = False)</p>
-</blockquote>
-<p>will return the value and SE of the difference Δ47(X) - Δ47(Y)</p></section>
+<p><strong>Examples</strong></p>
+<pre><code class="python">self.sample_average(['X','Y'], [1, 2])
+</code></pre>
+<p>returns the value and SE of [Δ<sub>47</sub>(X) + 2 Δ<sub>47</sub>(Y)]/3,
+where Δ<sub>47</sub>(X) and Δ<sub>47</sub>(Y) are the average Δ<sub>47</sub>
+values of samples X and Y, respectively.</p>
+<pre><code class="python">self.sample_average(['X','Y'], [1, -1], normalize = False)
+</code></pre>
+<p>returns the value and SE of the difference Δ<sub>47</sub>(X) - Δ<sub>47</sub>(Y).</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2905,16 +3891,21 @@ and Δ47(Y) are the average Δ47 of samples X and Y, respectively.</p>
                 of a group of samples. Weights are equal by default. If normalize is
                 True, weights will be rescaled so that their sum equals 1.
                 
-                Examples
-                --------
-                ```sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])```
+                __Examples__
 
-                will return the value and SE of (Δ47(X) + 2*Δ47(Y)/3, where Δ47(X)
-                and Δ47(Y) are the average Δ47 of samples X and Y, respectively.
+                ```python
+                self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])
+                ```
 
-                &gt; sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)
-                
-                will return the value and SE of the difference Δ47(X) - Δ47(Y)
+                returns the value and SE of [Δ&lt;sub&gt;47&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;47&lt;/sub&gt;(Y)]/3,
+                where Δ&lt;sub&gt;47&lt;/sub&gt;(X) and Δ&lt;sub&gt;47&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;47&lt;/sub&gt;
+                values of samples X and Y, respectively.
+
+                ```python
+                self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)
+                ```
+
+                returns the value and SE of the difference Δ&lt;sub&gt;47&lt;/sub&gt;(X) - Δ&lt;sub&gt;47&lt;/sub&gt;(Y).
                 &#39;&#39;&#39;
                 if weights == &#39;equal&#39;:
                         weights = [1/len(samples)] * len(samples)
@@ -3067,6 +4058,7 @@ and Δ47(Y) are the average Δ47 of samples X and Y, respectively.</p>
         out += [[&#39;External reproducibility of Δ47 (unknowns)&#39;, f&#34;{1000 * self.repro[&#39;r_D47u&#39;]:.1f} ppm&#34;]]
         out += [[&#39;External reproducibility of Δ47 (all)&#39;, f&#34;{1000 * self.repro[&#39;r_D47&#39;]:.1f} ppm&#34;]]
         out += [[&#39;Degrees of freedom (Student\&#39;s 95% t-factor)&#39;, f&#34;{self.Nf} ({self.t95:.2f})&#34;]]
+        out += [[&#39;Standardization method&#39;, self.normalization_method]]
         print(pretty_table(out, header = 0)) 
         
         include_a2 = any([self.sessions[session][&#39;scrambling_drift&#39;] for session in self.sessions])
@@ -3182,21 +4174,21 @@ and Δ47(Y) are the average Δ47 of samples X and Y, respectively.</p>
 <span>def <span class="ident">vprint</span></span>(<span>self, txt)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Print log message to screen if D47data.verbose is true.</p></section>
+<section class="desc"><p>Print verbose message <code>txt</code> to screen if <code>self.verbose == True</code>.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def vprint(self, txt):
         &#39;&#39;&#39;
-        Print log message to screen if D47data.verbose is true.
+        Print verbose message `txt` to screen if `self.verbose == True`.
         &#39;&#39;&#39;
         if self.verbose:
                 print(f&#39;{self.msgcolor}[D47data]   {txt}\033[0m&#39;)</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.wg"><code class="name flex">
-<span>def <span class="ident">wg</span></span>(<span>self)</span>
+<span>def <span class="ident">wg</span></span>(<span>self, sample='', d13C_vpdb='', d18O_vpdb='', a18_acid='')</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Compute bulk composition of the working gas for each session
@@ -3206,7 +4198,7 @@ of a given sample.</p></section>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def wg(self):
+<pre><code class="python">def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
         &#39;&#39;&#39;
         Compute bulk composition of the working gas for each session
         based on the average composition, within each session,
@@ -3215,10 +4207,14 @@ of a given sample.</p></section>
 
         self.vprint(f&#34;Computing working gas composition:&#34;)
 
-        sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION
-        d13C_vpdb = self.d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION
-        d18O_vpdb = self.d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION
-        a18_acid = self.ALPHA_18O_ACID_REACTION
+        if sample == &#39;&#39;:
+                sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
+        if d13C_vpdb == &#39;&#39;:
+                d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
+        if d18O_vpdb == &#39;&#39;:
+                d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
+        if a18_acid == &#39;&#39;:
+                a18_acid = self.ALPHA_18O_ACID_REACTION
 
         R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
         R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
@@ -3294,7 +4290,7 @@ of a given sample.</p></section>
 <li><code><a title="D47crunch.D47data.R18_VPDB" href="#D47crunch.D47data.R18_VPDB">R18_VPDB</a></code></li>
 <li><code><a title="D47crunch.D47data.R18_VSMOW" href="#D47crunch.D47data.R18_VSMOW">R18_VSMOW</a></code></li>
 <li><code><a title="D47crunch.D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION" href="#D47crunch.D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION">SAMPLE_CONSTRAINING_WG_COMPOSITION</a></code></li>
-<li><code><a title="D47crunch.D47data.T_ACID" href="#D47crunch.D47data.T_ACID">T_ACID</a></code></li>
+<li><code><a title="D47crunch.D47data.assign_timestamps" href="#D47crunch.D47data.assign_timestamps">assign_timestamps</a></code></li>
 <li><code><a title="D47crunch.D47data.compute_bulk_and_clumping_deltas" href="#D47crunch.D47data.compute_bulk_and_clumping_deltas">compute_bulk_and_clumping_deltas</a></code></li>
 <li><code><a title="D47crunch.D47data.compute_bulk_deltas" href="#D47crunch.D47data.compute_bulk_deltas">compute_bulk_deltas</a></code></li>
 <li><code><a title="D47crunch.D47data.compute_isobar_ratios" href="#D47crunch.D47data.compute_isobar_ratios">compute_isobar_ratios</a></code></li>
@@ -3304,8 +4300,6 @@ of a given sample.</p></section>
 <li><code><a title="D47crunch.D47data.consolidate_samples" href="#D47crunch.D47data.consolidate_samples">consolidate_samples</a></code></li>
 <li><code><a title="D47crunch.D47data.consolidate_sessions" href="#D47crunch.D47data.consolidate_sessions">consolidate_sessions</a></code></li>
 <li><code><a title="D47crunch.D47data.crunch" href="#D47crunch.D47data.crunch">crunch</a></code></li>
-<li><code><a title="D47crunch.D47data.d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION" href="#D47crunch.D47data.d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION">d13C_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION</a></code></li>
-<li><code><a title="D47crunch.D47data.d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION" href="#D47crunch.D47data.d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION">d18O_VPDB_OF_SAMPLE_CONSTRAINING_WG_COMPOSITION</a></code></li>
 <li><code><a title="D47crunch.D47data.input" href="#D47crunch.D47data.input">input</a></code></li>
 <li><code><a title="D47crunch.D47data.lambda_17" href="#D47crunch.D47data.lambda_17">lambda_17</a></code></li>
 <li><code><a title="D47crunch.D47data.normalization_error" href="#D47crunch.D47data.normalization_error">normalization_error</a></code></li>
