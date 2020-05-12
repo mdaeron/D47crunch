@@ -5,6 +5,8 @@
 Process and standardize carbonate and/or CO<sub>2</sub> clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
 Δ<sub>47</sub> values with fully propagated analytical error estimates.
+
+.. include:: ./docs/documentation.md
 '''
 
 __author__    = 'Mathieu Daëron'
