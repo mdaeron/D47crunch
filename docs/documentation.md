@@ -134,7 +134,7 @@ for k in r:
 
 ### 4. Oxygen-17 correction parameters
 
-Note that this crunching step uses the IUPAC oxygen-17 correction parameters, as recommended by [Daëron et al. (2016)](https://dx.doi.org/10.1016/j.chemgeo.2016.08.014) and  [Schauer et al. (2016)](https://dx.doi.org/10.1002/rcm.7743):
+The crunching step performed by `foo.crunch()` uses the IUPAC oxygen-17 correction parameters, as recommended by [Daëron et al. (2016)](https://dx.doi.org/10.1016/j.chemgeo.2016.08.014) and  [Schauer et al. (2016)](https://dx.doi.org/10.1002/rcm.7743):
 
 ```python
 R13_VPDB = 0.01118  # (Chang & Li, 1990)
@@ -148,8 +148,7 @@ R17_VPDB = R17_VSMOW * 1.03092 ** lambda_17
 To use different numerical values for these parameters, change them before performing `foo.crunch()`:
 
 ```python
-# to change the lambda value to 0.5164,
-# leaving the other parameters unchanged:
+# to change the lambda value to 0.5164, leaving the other parameters unchanged:
 foo.lambda_17 = 0.5164
 ```
 
@@ -174,48 +173,55 @@ print(foo.Nominal_D47)
 # {'Foo-1': 0.232, 'Foo-2': 0.289, 'Foo-3': 0.455, 'Foo-4': 0.704}
 ```
 
-### 6. Standardization (`pooled`)
+### 6. Standardization
 
-#### 6.1 Default method (`pooled`)
+#### 6.1 Default approach (<span style="text-transform:lowercase">`pooled`</span>)
 
 The default standardization approach computes the best-fit standardization parameters (a,b,c) for each session, along with the best-fit Δ<sub>47</sub> values of unknown samples, using a pooled regression model taking into account the relative mapping of all samples (anchors and unknowns) in (δ<sub>47</sub>, Δ<sub>47</sub>) space.
 
 ```python
 foo.standardize()
+foo.table_of_sessions(verbose = True, save_to_file = False)
+foo.table_of_samples(verbose = True, save_to_file = False)
+
 ```
 
 The following text is output:
 
-```
---------------------------------  -----------
-N samples (anchors + unknowns)      5 (3 + 2)
-N analyses (anchors + unknowns)   20 (12 + 8)
-Repeatability of δ13C_VPDB           13.8 ppm
-Repeatability of δ18O_VSMOW          41.9 ppm
-Repeatability of Δ47 (anchors)       10.7 ppm
-Repeatability of Δ47 (unknowns)       3.4 ppm
-Repeatability of Δ47 (all)            8.6 ppm
-Model degrees of freedom                   12
-Student's 95% t-factor                   2.18
---------------------------------  -----------
+```csv
+[table_of_sessions]
+–––––––––––––––––––––––––––––––  –––––––––––
+N samples (anchors + unknowns)     5 (3 + 2)
+N analyses (anchors + unknowns)  20 (12 + 8)
+Repeatability of δ13C_VPDB          13.8 ppm
+Repeatability of δ18O_VSMOW         41.9 ppm
+Repeatability of Δ47 (anchors)      13.1 ppm
+Repeatability of Δ47 (unknowns)      3.4 ppm
+Repeatability of Δ47 (all)           9.6 ppm
+Model degrees of freedom                  12
+Student's 95% t-factor                  2.18
+Standardization method                pooled
+–––––––––––––––––––––––––––––––  –––––––––––
 
---------  --  --  -----------  ------------  ------  ------  ------  -------------  -------------  --------------
+[table_of_sessions]
+––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  –––––––––––––  ––––––––––––––
 Session   Na  Nu  d13Cwg_VPDB  d18Owg_VSMOW  r_d13C  r_d18O   r_D47         a ± SE   1e3 x b ± SE          c ± SE
---------  --  --  -----------  ------------  ------  ------  ------  -------------  -------------  --------------
+––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  –––––––––––––  ––––––––––––––
 Session1   6   4       -3.756        25.115  0.0035  0.0415  0.0066  0.838 ± 0.016  3.340 ± 0.247  -0.859 ± 0.007
-Session2   6   4       -3.743        25.117  0.0174  0.0490  0.0119  0.815 ± 0.015  4.601 ± 0.246  -0.847 ± 0.007
---------  --  --  -----------  ------------  ------  ------  ------  -------------  -------------  --------------
+Session2   6   4       -3.743        25.118  0.0174  0.0490  0.0119  0.815 ± 0.015  4.601 ± 0.246  -0.847 ± 0.007
+––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  –––––––––––––  ––––––––––––––
 
 
--------  -  ---------  ----------  ------  ------  --------  ------  --------
+[table_of_samples] 
+–––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
 Sample   N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
--------  -  ---------  ----------  ------  ------  --------  ------  --------
+–––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
 ETH-1    4       2.00       37.00  0.2580                    0.0096          
 ETH-2    4     -10.03       20.18  0.2560                    0.0154          
 ETH-3    4       1.71       37.45  0.6910                    0.0039          
 IAEA-C1  4       2.46       36.88  0.3624  0.0061  ± 0.0133  0.0031     0.901
-IAEA-C2  4      -8.04       30.18  0.7246  0.0082  ± 0.0178  0.0037     0.825
--------  -  ---------  ----------  ------  ------  --------  ------  --------
+IAEA-C2  4      -8.04       30.19  0.7246  0.0082  ± 0.0178  0.0037     0.825
+–––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
 ```
 
 #### 6.2 `D47data().sessions`
@@ -232,26 +238,31 @@ for k in foo.sessions['Session1']:
     else:
         print(f"{k:>16}: {foo.sessions['Session1'][k]}")
 # output:
-#             data: [...] (too large to print)
+#            data: [...] (too large to print)
 # scrambling_drift: False
 #      slope_drift: False
 #         wg_drift: False
-#      d13Cwg_VPDB: -3.7555729459832765
-#     d18Owg_VSMOW: 25.1145492463934
+#      d13Cwg_VPDB: -3.7555729339153743
+#     d18Owg_VSMOW: 25.11497520475171
 #               Na: 6
 #               Nu: 4
-#                a: 0.8381700022050721
-#             SE_a: 0.015603758280720111
-#                b: 0.0033401762623331823
-#             SE_b: 0.00024740622188942793
-#                c: -0.8586982120784981
-#             SE_c: 0.006737855778815339
+#      r_d13C_VPDB: 0.0035270930676685897
+#     r_d18O_VSMOW: 0.04146501520018946
+#            r_D47: 0.006638319178058144
+#               Np: 3
+#                a: 0.8381700110925523
+#             SE_a: 0.015603757788793743
+#                b: 0.003340175397346955
+#             SE_b: 0.0002474062198065805
+#                c: -0.8586981978192628
+#             SE_c: 0.006737855663518676
 #               a2: 0.0
+#            SE_a2: 0.0
 #               b2: 0.0
+#            SE_b2: 0.0
 #               c2: 0.0
-#      r_d13C_VPDB: 0.0035270933192414504
-#     r_d18O_VSMOW: 0.04146499779427257
-#            r_D47: 0.006638319347677248
+#            SE_c2: 0.0
+#               CM: [...] (6x6 numpy.Array())
 ```
 
 each element of `foo.sessions` has the following attributes:
@@ -261,11 +272,12 @@ each element of `foo.sessions` has the following attributes:
 + `d13Cwg_VPDB`, `d18Owg_VSMOW`: working gas composition
 + `Na`: number of anchor analyses in this session
 + `Nu`: number of unknown analyses in this session
++ `r_d13C_VPDB`, `r_d18O_VSMOW`, `r_D47`: repeatabilities for `d13C_VPDB`, `d18O_VSMOW`, `D47` in this session
 + `a`,`SE_a`: best-fit value and model SE of scrambling factor
 + `b`,`SE_b`: best-fit value and model SE of compositional slope
 + `c`,`SE_c`: best-fit value and model SE of working gas offset
 + `a2`,`b2`,`c2`: drift rates (per unit of `TimeTag`) of `a`,`b`, `c`. If `TimeTag` is one of the fields in the raw data, this will be used, otherwise `TimeTag` starts at 0 for each session and increases by 1 for each analysis, in the listed order (thus beware of datasets ordered by sample name).
-+ `r_d13C_VPDB`, `r_d18O_VSMOW`, `r_D47`: repeatabilities for `d13C_VPDB`, `d18O_VSMOW`, `D47` in this session
++ `CM`: the covariance matrix of (`a`, `b`, `c`, `a2`, `b2`, `c2`).
 
 #### 6.3 `D47data().samples`, `D47data().anchors`, and `D47data().unknowns`
 
@@ -284,12 +296,12 @@ for k in foo.samples['IAEA-C1']:
 # output:
 #         data: [...] (too large to print)
 #            N: 4
-#       SD_D47: 0.003120794222015294
-#    d13C_VPDB: 2.4606390899379327
-#   d18O_VSMOW: 36.87682448377142
-#          D47: 0.36241877475632883
-#       SE_D47: 0.006107113137661028
-#     p_Levene: 0.9011524351870661
+#       SD_D47: 0.0031207941052170305
+#    d13C_VPDB: 2.460639104889639
+#   d18O_VSMOW: 36.87725533010137
+#     p_Levene: 0.901152441112675
+#          D47: 0.3624187694150056
+#       SE_D47: 0.00610711296513016
 ```
 
 Each element of `foo.samples` has the following attributes:
@@ -298,7 +310,9 @@ Each element of `foo.samples` has the following attributes:
 + `SD_D47`: the sample SD of Δ<sub>47</sub> for this sample
 + `d13C_VPDB`, `d18O_VSMOW`: average δ<sup>13</sup>C, δ<sup>18</sup>Ο values for the analyte CO<sub>2</sub>.
 + `D47`, `SE_D47`: best-fit value and model SE for the Δ<sub>47</sub> of this sample
-+ `p_Levene`: p-value for a [Levene's test](https://en.wikipedia.org/wiki/Levene%27s_test) of whether the observed Δ<sub>47</sub> variance for this sample is significantly larger than that for ETH-3 (to change the reference sample to compare with, e.g. to ETH-1: `foo.LEVENE_REF_SAMPLE = 'ETH-1'`).
++ `p_Levene`: p-value for a [Levene test] of whether the observed Δ<sub>47</sub> variance for this sample is significantly larger than that for ETH-3 (to change the reference sample to compare with, e.g. to ETH-1: `foo.LEVENE_REF_SAMPLE = 'ETH-1'` before calling `foo.normalize()`).
+
+[Levene test]: https://en.wikipedia.org/wiki/Levene%27s_test
 
 #### 6.4 `D47data.()repeatability`
 
@@ -332,3 +346,12 @@ print(type(foo.normalization))
 # <class 'lmfit.minimizer.MinimizerResult'>
 ```
 
+#### 6.6 Legacy standardization approach (<span style="text-transform:lowercase">`indep_sessions`</span>)
+
+Following a more traditional approach, `foo.standardize(method = 'indep_sessions')` computes the best-fit standardization parameters (a,b,c) for each session using independent regression models (one per session) only taking into account the anchor samples (samples defined in `foo.Nominal_D47`), then computes the Δ<sub>47</sub> value for each analysis and  the weighted average Δ<sub>47</sub> value for each unknown sample.
+
+### 7. Viewing and saving the results
+
+> under construction
+
+***

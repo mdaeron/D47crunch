@@ -26,8 +26,22 @@ code .hljs-selector-tag,
 code .hljs-selector-class {
 font-weight: normal;
 }
+code.csv .hljs-string,
+code.csv .hljs-number {
+color: #333;
+}
+code.csv .hljs-keyword,
+code.csv .hljs-selector-tag,
+code.csv .hljs-subst {
+font-weight: normal;
+}
 h1, h2, h3, h4, h5 {
 font-weight: 600;
+}
+blockquote {
+border-left: 3px solid #DDD;
+padding: 1em;
+color : #AAA
 }
 </style>
 </head>
@@ -151,7 +165,7 @@ for k in r:
 # r[&quot;D49raw&quot;] = -27.690248970251407
 </code></pre>
 <h3 id="4-oxygen-17-correction-parameters">4. Oxygen-17 correction parameters</h3>
-<p>Note that this crunching step uses the IUPAC oxygen-17 correction parameters, as recommended by <a href="https://dx.doi.org/10.1016/j.chemgeo.2016.08.014">Daëron et al. (2016)</a> and
+<p>The crunching step performed by <code>foo.crunch()</code> uses the IUPAC oxygen-17 correction parameters, as recommended by <a href="https://dx.doi.org/10.1016/j.chemgeo.2016.08.014">Daëron et al. (2016)</a> and
 <a href="https://dx.doi.org/10.1002/rcm.7743">Schauer et al. (2016)</a>:</p>
 <pre><code class="python">R13_VPDB = 0.01118  # (Chang &amp; Li, 1990)
 R18_VSMOW = 0.0020052  # (Baertschi, 1976)
@@ -161,8 +175,7 @@ R18_VPDB = R18_VSMOW * 1.03092
 R17_VPDB = R17_VSMOW * 1.03092 ** lambda_17
 </code></pre>
 <p>To use different numerical values for these parameters, change them before performing <code>foo.crunch()</code>:</p>
-<pre><code class="python"># to change the lambda value to 0.5164,
-# leaving the other parameters unchanged:
+<pre><code class="python"># to change the lambda value to 0.5164, leaving the other parameters unchanged:
 foo.lambda_17 = 0.5164
 </code></pre>
 <h3 id="5-reference-frame">5. Reference frame</h3>
@@ -182,41 +195,48 @@ print(foo.Nominal_D47)
 # output:
 # {'Foo-1': 0.232, 'Foo-2': 0.289, 'Foo-3': 0.455, 'Foo-4': 0.704}
 </code></pre>
-<h3 id="6-standardization-pooled">6. Standardization (<code>pooled</code>)</h3>
-<h4 id="61-default-method-pooled">6.1 Default method (<code>pooled</code>)</h4>
+<h3 id="6-standardization">6. Standardization</h3>
+<h4 id="61-default-approach-pooled">6.1 Default approach (<span style="text-transform:lowercase"><code>pooled</code></span>)</h4>
 <p>The default standardization approach computes the best-fit standardization parameters (a,b,c) for each session, along with the best-fit Δ<sub>47</sub> values of unknown samples, using a pooled regression model taking into account the relative mapping of all samples (anchors and unknowns) in (δ<sub>47</sub>, Δ<sub>47</sub>) space.</p>
 <pre><code class="python">foo.standardize()
+foo.table_of_sessions(verbose = True, save_to_file = False)
+foo.table_of_samples(verbose = True, save_to_file = False)
+
 </code></pre>
 <p>The following text is output:</p>
-<pre><code>--------------------------------  -----------
-N samples (anchors + unknowns)      5 (3 + 2)
-N analyses (anchors + unknowns)   20 (12 + 8)
-Repeatability of δ13C_VPDB           13.8 ppm
-Repeatability of δ18O_VSMOW          41.9 ppm
-Repeatability of Δ47 (anchors)       10.7 ppm
-Repeatability of Δ47 (unknowns)       3.4 ppm
-Repeatability of Δ47 (all)            8.6 ppm
-Model degrees of freedom                   12
-Student's 95% t-factor                   2.18
---------------------------------  -----------
+<pre><code class="csv">[table_of_sessions]
+–––––––––––––––––––––––––––––––  –––––––––––
+N samples (anchors + unknowns)     5 (3 + 2)
+N analyses (anchors + unknowns)  20 (12 + 8)
+Repeatability of δ13C_VPDB          13.8 ppm
+Repeatability of δ18O_VSMOW         41.9 ppm
+Repeatability of Δ47 (anchors)      13.1 ppm
+Repeatability of Δ47 (unknowns)      3.4 ppm
+Repeatability of Δ47 (all)           9.6 ppm
+Model degrees of freedom                  12
+Student's 95% t-factor                  2.18
+Standardization method                pooled
+–––––––––––––––––––––––––––––––  –––––––––––
 
---------  --  --  -----------  ------------  ------  ------  ------  -------------  -------------  --------------
+[table_of_sessions]
+––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  –––––––––––––  ––––––––––––––
 Session   Na  Nu  d13Cwg_VPDB  d18Owg_VSMOW  r_d13C  r_d18O   r_D47         a ± SE   1e3 x b ± SE          c ± SE
---------  --  --  -----------  ------------  ------  ------  ------  -------------  -------------  --------------
+––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  –––––––––––––  ––––––––––––––
 Session1   6   4       -3.756        25.115  0.0035  0.0415  0.0066  0.838 ± 0.016  3.340 ± 0.247  -0.859 ± 0.007
-Session2   6   4       -3.743        25.117  0.0174  0.0490  0.0119  0.815 ± 0.015  4.601 ± 0.246  -0.847 ± 0.007
---------  --  --  -----------  ------------  ------  ------  ------  -------------  -------------  --------------
+Session2   6   4       -3.743        25.118  0.0174  0.0490  0.0119  0.815 ± 0.015  4.601 ± 0.246  -0.847 ± 0.007
+––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  –––––––––––––  ––––––––––––––
 
 
--------  -  ---------  ----------  ------  ------  --------  ------  --------
+[table_of_samples] 
+–––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
 Sample   N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
--------  -  ---------  ----------  ------  ------  --------  ------  --------
+–––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
 ETH-1    4       2.00       37.00  0.2580                    0.0096          
 ETH-2    4     -10.03       20.18  0.2560                    0.0154          
 ETH-3    4       1.71       37.45  0.6910                    0.0039          
 IAEA-C1  4       2.46       36.88  0.3624  0.0061  ± 0.0133  0.0031     0.901
-IAEA-C2  4      -8.04       30.18  0.7246  0.0082  ± 0.0178  0.0037     0.825
--------  -  ---------  ----------  ------  ------  --------  ------  --------
+IAEA-C2  4      -8.04       30.19  0.7246  0.0082  ± 0.0178  0.0037     0.825
+–––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
 </code></pre>
 <h4 id="62-d47datasessions">6.2 <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a>.sessions</code></h4>
 <p>Under the hood, the normalization step does many things. It stores session information in <code>foo.sessions</code>:</p>
@@ -229,26 +249,31 @@ for k in foo.sessions['Session1']:
     else:
         print(f&quot;{k:&gt;16}: {foo.sessions['Session1'][k]}&quot;)
 # output:
-#             data: [...] (too large to print)
+#            data: [...] (too large to print)
 # scrambling_drift: False
 #      slope_drift: False
 #         wg_drift: False
-#      d13Cwg_VPDB: -3.7555729459832765
-#     d18Owg_VSMOW: 25.1145492463934
+#      d13Cwg_VPDB: -3.7555729339153743
+#     d18Owg_VSMOW: 25.11497520475171
 #               Na: 6
 #               Nu: 4
-#                a: 0.8381700022050721
-#             SE_a: 0.015603758280720111
-#                b: 0.0033401762623331823
-#             SE_b: 0.00024740622188942793
-#                c: -0.8586982120784981
-#             SE_c: 0.006737855778815339
+#      r_d13C_VPDB: 0.0035270930676685897
+#     r_d18O_VSMOW: 0.04146501520018946
+#            r_D47: 0.006638319178058144
+#               Np: 3
+#                a: 0.8381700110925523
+#             SE_a: 0.015603757788793743
+#                b: 0.003340175397346955
+#             SE_b: 0.0002474062198065805
+#                c: -0.8586981978192628
+#             SE_c: 0.006737855663518676
 #               a2: 0.0
+#            SE_a2: 0.0
 #               b2: 0.0
+#            SE_b2: 0.0
 #               c2: 0.0
-#      r_d13C_VPDB: 0.0035270933192414504
-#     r_d18O_VSMOW: 0.04146499779427257
-#            r_D47: 0.006638319347677248
+#            SE_c2: 0.0
+#               CM: [...] (6x6 numpy.Array())
 </code></pre>
 <p>each element of <code>foo.sessions</code> has the following attributes:</p>
 <ul>
@@ -257,11 +282,12 @@ for k in foo.sessions['Session1']:
 <li><code>d13Cwg_VPDB</code>, <code>d18Owg_VSMOW</code>: working gas composition</li>
 <li><code>Na</code>: number of anchor analyses in this session</li>
 <li><code>Nu</code>: number of unknown analyses in this session</li>
+<li><code>r_d13C_VPDB</code>, <code>r_d18O_VSMOW</code>, <code>r_D47</code>: repeatabilities for <code>d13C_VPDB</code>, <code>d18O_VSMOW</code>, <code>D47</code> in this session</li>
 <li><code>a</code>,<code>SE_a</code>: best-fit value and model SE of scrambling factor</li>
 <li><code>b</code>,<code>SE_b</code>: best-fit value and model SE of compositional slope</li>
 <li><code>c</code>,<code>SE_c</code>: best-fit value and model SE of working gas offset</li>
 <li><code>a2</code>,<code>b2</code>,<code>c2</code>: drift rates (per unit of <code>TimeTag</code>) of <code>a</code>,<code>b</code>, <code>c</code>. If <code>TimeTag</code> is one of the fields in the raw data, this will be used, otherwise <code>TimeTag</code> starts at 0 for each session and increases by 1 for each analysis, in the listed order (thus beware of datasets ordered by sample name).</li>
-<li><code>r_d13C_VPDB</code>, <code>r_d18O_VSMOW</code>, <code>r_D47</code>: repeatabilities for <code>d13C_VPDB</code>, <code>d18O_VSMOW</code>, <code>D47</code> in this session</li>
+<li><code>CM</code>: the covariance matrix of (<code>a</code>, <code>b</code>, <code>c</code>, <code>a2</code>, <code>b2</code>, <code>c2</code>).</li>
 </ul>
 <h4 id="63-d47datasamples-d47dataanchors-and-d47dataunknowns">6.3 <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a>.samples</code>, <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a>.anchors</code>, and <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a>.unknowns</code></h4>
 <p>Additional information about the samples is stored in <code>foo.samples</code> (the same information can also be accessed via <code>foo.anchors</code> and <code>foo.unknowns</code>):</p>
@@ -277,12 +303,12 @@ for k in foo.samples['IAEA-C1']:
 # output:
 #         data: [...] (too large to print)
 #            N: 4
-#       SD_D47: 0.003120794222015294
-#    d13C_VPDB: 2.4606390899379327
-#   d18O_VSMOW: 36.87682448377142
-#          D47: 0.36241877475632883
-#       SE_D47: 0.006107113137661028
-#     p_Levene: 0.9011524351870661
+#       SD_D47: 0.0031207941052170305
+#    d13C_VPDB: 2.460639104889639
+#   d18O_VSMOW: 36.87725533010137
+#     p_Levene: 0.901152441112675
+#          D47: 0.3624187694150056
+#       SE_D47: 0.00610711296513016
 </code></pre>
 <p>Each element of <code>foo.samples</code> has the following attributes:</p>
 <ul>
@@ -290,7 +316,7 @@ for k in foo.samples['IAEA-C1']:
 <li><code>SD_D47</code>: the sample SD of Δ<sub>47</sub> for this sample</li>
 <li><code>d13C_VPDB</code>, <code>d18O_VSMOW</code>: average δ<sup>13</sup>C, δ<sup>18</sup>Ο values for the analyte CO<sub>2</sub>.</li>
 <li><code>D47</code>, <code>SE_D47</code>: best-fit value and model SE for the Δ<sub>47</sub> of this sample</li>
-<li><code>p_Levene</code>: p-value for a <a href="https://en.wikipedia.org/wiki/Levene%27s_test">Levene's test</a> of whether the observed Δ<sub>47</sub> variance for this sample is significantly larger than that for ETH-3 (to change the reference sample to compare with, e.g. to ETH-1: <code>foo.LEVENE_REF_SAMPLE = 'ETH-1'</code>).</li>
+<li><code>p_Levene</code>: p-value for a <a href="https://en.wikipedia.org/wiki/Levene%27s_test">Levene test</a> of whether the observed Δ<sub>47</sub> variance for this sample is significantly larger than that for ETH-3 (to change the reference sample to compare with, e.g. to ETH-1: <code>foo.LEVENE_REF_SAMPLE = 'ETH-1'</code> before calling <code>foo.normalize()</code>).</li>
 </ul>
 <h4 id="64-d47datarepeatability">6.4 <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a>.()repeatability</code></h4>
 <p>The overall analytical repeatabilities are now saved to <code>foo.repeatability</code>:</p>
@@ -317,6 +343,14 @@ for k in foo.samples['IAEA-C1']:
 # output:
 # &lt;class 'lmfit.minimizer.MinimizerResult'&gt;
 </code></pre>
+<h4 id="66-legacy-standardization-approach-indep_sessions">6.6 Legacy standardization approach (<span style="text-transform:lowercase"><code>indep_sessions</code></span>)</h4>
+<p>Following a more traditional approach, <code>foo.standardize(method = 'indep_sessions')</code> computes the best-fit standardization parameters (a,b,c) for each session using independent regression models (one per session) only taking into account the anchor samples (samples defined in <code>foo.Nominal_D47</code>), then computes the Δ<sub>47</sub> value for each analysis and
+the weighted average Δ<sub>47</sub> value for each unknown sample.</p>
+<h3 id="7-viewing-and-saving-the-results">7. Viewing and saving the results</h3>
+<blockquote>
+<p>under construction</p>
+</blockquote>
+<hr>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -350,6 +384,7 @@ from lmfit import Minimizer, Parameters, report_fit
 from matplotlib import pyplot as ppl
 from matplotlib import rcParams
 from datetime import datetime as dt
+from functools import wraps
 
 rcParams[&#39;font.family&#39;] = &#39;sans-serif&#39;
 rcParams[&#39;font.sans-serif&#39;] = &#39;Helvetica&#39;
@@ -692,8 +727,10 @@ class D47data(list):
 
         def make_verbal(oldfun):
                 &#39;&#39;&#39;
-                Decorator to change `self.prefix` and allow locally overriding `self.verbose`
+                Decorator to temporarily change `self.prefix`
+                and allow locally overriding `self.verbose`
                 &#39;&#39;&#39;
+                @wraps(oldfun)
                 def newfun(*args, verbose = &#39;&#39;, **kwargs):
                         myself = args[0]
                         oldprefix = myself.prefix
@@ -734,15 +771,7 @@ class D47data(list):
                         with open(self.logfile, &#39;a&#39;) as fid:
                                 for txt in txts:
                                         fid.write(f&#39;\n{dt.now().strftime(&#34;%Y-%m-%d %H:%M:%S&#34;)} {f&#34;[{self.prefix}]&#34;:&lt;16} {txt}&#39;)
-                
-
-        def vprint(self, txt):
-                &#39;&#39;&#39;
-                Print verbose message `txt` to screen if `self.verbose == True`.
-                &#39;&#39;&#39;
-                if self.verbose:
-                        print(f&#39;D47data.vprint()  -&gt;  {txt}&#39;)
-
+                                        
 
         def refresh(self, session = &#39;mySession&#39;):
                 &#39;&#39;&#39;
@@ -1222,9 +1251,9 @@ class D47data(list):
 
                         params = Parameters()
                         for k,session in enumerate(self.sessions):
-                                self.vprint(f&#34;Session {session}: scrambling_drift is {self.sessions[session][&#39;scrambling_drift&#39;]}.&#34;)
-                                self.vprint(f&#34;Session {session}: slope_drift is {self.sessions[session][&#39;slope_drift&#39;]}.&#34;)
-                                self.vprint(f&#34;Session {session}: wg_drift is {self.sessions[session][&#39;wg_drift&#39;]}.&#34;)
+                                self.msg(f&#34;Session {session}: scrambling_drift is {self.sessions[session][&#39;scrambling_drift&#39;]}.&#34;)
+                                self.msg(f&#34;Session {session}: slope_drift is {self.sessions[session][&#39;slope_drift&#39;]}.&#34;)
+                                self.msg(f&#34;Session {session}: wg_drift is {self.sessions[session][&#39;wg_drift&#39;]}.&#34;)
                                 s = pf(session)
                                 params.add(f&#39;a_{s}&#39;, value = 0.9)
                                 params.add(f&#39;b_{s}&#39;, value = 0.)
@@ -1290,65 +1319,6 @@ class D47data(list):
                                 self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
                         return result
 
-#               elif method == &#39;indep_sessions&#39;:
-#                       for session in self.sessions:
-#                               self.sessions[session][&#39;Np&#39;] = 3
-#                               self.vprint(&#39;&#39;)
-#                               self.vprint(f&#39;Standardizing session {session}.&#39;)
-#                               sdata = self.sessions[session][&#39;data&#39;]
-#                               A = np.array([
-#                                       [self.Nominal_D47[r[&#39;Sample&#39;]], r[&#39;d47&#39;], 1]
-#                                       for r in sdata if r[&#39;Sample&#39;] in self.anchors
-#                                       ])
-#                               Y = np.array([[r[&#39;D47raw&#39;]] for r in sdata if r[&#39;Sample&#39;] in self.anchors])
-#                               self.sessions[session][&#39;Na&#39;] = Y.size
-#                               CM = linalg.inv(A.T @ A)
-#                               a,b,c = (CM @ A.T @ Y).T[0,:3]
-# 
-#                               self.vprint(f&#39;a = {a:.4f}&#39;)
-#                               self.vprint(f&#39;b = {b:.2e}&#39;)
-#                               self.vprint(f&#39;c = {c:.4f}&#39;)
-#                               self.sessions[session][&#39;a&#39;] = a
-#                               self.sessions[session][&#39;b&#39;] = b
-#                               self.sessions[session][&#39;c&#39;] = c
-#                               self.sessions[session][&#39;a2&#39;] = 0.
-#                               self.sessions[session][&#39;b2&#39;] = 0.
-#                               self.sessions[session][&#39;c2&#39;] = 0.
-#                               self.sessions[session][&#39;CM&#39;] = np.zeros((6,6))
-#                               self.sessions[session][&#39;CM&#39;][:3,:3] = CM
-# 
-#                               for r in sdata :
-#                                       r[&#39;D47&#39;] = ( r[&#39;D47raw&#39;] - b * r[&#39;d47&#39;] - c ) / a
-#                       
-#                       Nss = len(self.sessions)
-#                       Na = len(self)
-#                       Ns = len(self.samples)
-#                       Nu = len(self.unknowns)
-#                       avgD47 = {
-#                               sample: np.mean([r[&#39;D47&#39;] for r in self if r[&#39;Sample&#39;] == sample])
-#                               for sample in self.samples
-#                               }
-#                       chi2 = np.sum([(r[&#39;D47&#39;] - avgD47[r[&#39;Sample&#39;]])**2 for r in self])
-#                       rD47 = (chi2/(Na-Nu-3*Nss))**.5
-#                       self.repeatability[&#39;sigma_47&#39;] = rD47
-# 
-#                       for session in self.sessions:
-#                               self.sessions[session][&#39;CM&#39;] *= a**2 * chi2 / (Na-Nu-3*Nss)
-#                               self.sessions[session][&#39;SE_a&#39;] = self.sessions[session][&#39;CM&#39;][0,0]**.5
-#                               self.sessions[session][&#39;SE_b&#39;] = self.sessions[session][&#39;CM&#39;][1,1]**.5
-#                               self.sessions[session][&#39;SE_c&#39;] = self.sessions[session][&#39;CM&#39;][2,2]**.5
-#                               self.sessions[session][&#39;SE_a2&#39;] = 0.
-#                               self.sessions[session][&#39;SE_b2&#39;] = 0.
-#                               self.sessions[session][&#39;SE_c2&#39;] = 0.
-#                       
-# #                     self.Nf = np.sum([self.sessions[s][&#39;Na&#39;] - self.sessions[s][&#39;Np&#39;] for s in self.sessions])
-#                       self.Nf = len(self) - len(self.unknowns) - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])
-#                       self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
-# 
-#                       if consolidate:
-#                               self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
-
-
 
                 elif method == &#39;indep_sessions&#39;:
 
@@ -1391,11 +1361,11 @@ class D47data(list):
                                 for n,a in zip(p_names, p_active):
                                         if a:
                                                 s[n] = bf[k]
-#                                               self.vprint(f&#39;{n} = {bf[k]}&#39;)
+#                                               self.msg(f&#39;{n} = {bf[k]}&#39;)
                                                 k += 1
                                         else:
                                                 s[n] = 0.
-#                                               self.vprint(f&#39;{n} = 0.0&#39;)
+#                                               self.msg(f&#39;{n} = 0.0&#39;)
 
                                 for r in sdata :
                                         a, b, c, a2, b2, c2 = s[&#39;a&#39;], s[&#39;b&#39;], s[&#39;c&#39;], s[&#39;a2&#39;], s[&#39;b2&#39;], s[&#39;c2&#39;]
@@ -1484,7 +1454,11 @@ class D47data(list):
 
 
         @make_verbal
-        def table_of_sessions(self, dir = &#39;results&#39;, filename = &#39;sessions.csv&#39;, save_to_file = True, print_out = True):
+        def table_of_sessions(self,
+                dir = &#39;results&#39;,
+                filename = &#39;sessions.csv&#39;,
+                save_to_file = True,
+                print_out = True):
                 &#39;&#39;&#39;
                 Print out an/or save to disk a table of sessions.
                 
@@ -1982,6 +1956,7 @@ class D47data(list):
                         )**.5
 
 
+        @make_verbal
         def consolidate(self, tables = True, plots = True):
                 &#39;&#39;&#39;
                 Collect information about samples, sessions and repeatabilities.
@@ -2658,8 +2633,10 @@ methods.</li>
 
         def make_verbal(oldfun):
                 &#39;&#39;&#39;
-                Decorator to change `self.prefix` and allow locally overriding `self.verbose`
+                Decorator to temporarily change `self.prefix`
+                and allow locally overriding `self.verbose`
                 &#39;&#39;&#39;
+                @wraps(oldfun)
                 def newfun(*args, verbose = &#39;&#39;, **kwargs):
                         myself = args[0]
                         oldprefix = myself.prefix
@@ -2700,15 +2677,7 @@ methods.</li>
                         with open(self.logfile, &#39;a&#39;) as fid:
                                 for txt in txts:
                                         fid.write(f&#39;\n{dt.now().strftime(&#34;%Y-%m-%d %H:%M:%S&#34;)} {f&#34;[{self.prefix}]&#34;:&lt;16} {txt}&#39;)
-                
-
-        def vprint(self, txt):
-                &#39;&#39;&#39;
-                Print verbose message `txt` to screen if `self.verbose == True`.
-                &#39;&#39;&#39;
-                if self.verbose:
-                        print(f&#39;D47data.vprint()  -&gt;  {txt}&#39;)
-
+                                        
 
         def refresh(self, session = &#39;mySession&#39;):
                 &#39;&#39;&#39;
@@ -3188,9 +3157,9 @@ methods.</li>
 
                         params = Parameters()
                         for k,session in enumerate(self.sessions):
-                                self.vprint(f&#34;Session {session}: scrambling_drift is {self.sessions[session][&#39;scrambling_drift&#39;]}.&#34;)
-                                self.vprint(f&#34;Session {session}: slope_drift is {self.sessions[session][&#39;slope_drift&#39;]}.&#34;)
-                                self.vprint(f&#34;Session {session}: wg_drift is {self.sessions[session][&#39;wg_drift&#39;]}.&#34;)
+                                self.msg(f&#34;Session {session}: scrambling_drift is {self.sessions[session][&#39;scrambling_drift&#39;]}.&#34;)
+                                self.msg(f&#34;Session {session}: slope_drift is {self.sessions[session][&#39;slope_drift&#39;]}.&#34;)
+                                self.msg(f&#34;Session {session}: wg_drift is {self.sessions[session][&#39;wg_drift&#39;]}.&#34;)
                                 s = pf(session)
                                 params.add(f&#39;a_{s}&#39;, value = 0.9)
                                 params.add(f&#39;b_{s}&#39;, value = 0.)
@@ -3256,65 +3225,6 @@ methods.</li>
                                 self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
                         return result
 
-#               elif method == &#39;indep_sessions&#39;:
-#                       for session in self.sessions:
-#                               self.sessions[session][&#39;Np&#39;] = 3
-#                               self.vprint(&#39;&#39;)
-#                               self.vprint(f&#39;Standardizing session {session}.&#39;)
-#                               sdata = self.sessions[session][&#39;data&#39;]
-#                               A = np.array([
-#                                       [self.Nominal_D47[r[&#39;Sample&#39;]], r[&#39;d47&#39;], 1]
-#                                       for r in sdata if r[&#39;Sample&#39;] in self.anchors
-#                                       ])
-#                               Y = np.array([[r[&#39;D47raw&#39;]] for r in sdata if r[&#39;Sample&#39;] in self.anchors])
-#                               self.sessions[session][&#39;Na&#39;] = Y.size
-#                               CM = linalg.inv(A.T @ A)
-#                               a,b,c = (CM @ A.T @ Y).T[0,:3]
-# 
-#                               self.vprint(f&#39;a = {a:.4f}&#39;)
-#                               self.vprint(f&#39;b = {b:.2e}&#39;)
-#                               self.vprint(f&#39;c = {c:.4f}&#39;)
-#                               self.sessions[session][&#39;a&#39;] = a
-#                               self.sessions[session][&#39;b&#39;] = b
-#                               self.sessions[session][&#39;c&#39;] = c
-#                               self.sessions[session][&#39;a2&#39;] = 0.
-#                               self.sessions[session][&#39;b2&#39;] = 0.
-#                               self.sessions[session][&#39;c2&#39;] = 0.
-#                               self.sessions[session][&#39;CM&#39;] = np.zeros((6,6))
-#                               self.sessions[session][&#39;CM&#39;][:3,:3] = CM
-# 
-#                               for r in sdata :
-#                                       r[&#39;D47&#39;] = ( r[&#39;D47raw&#39;] - b * r[&#39;d47&#39;] - c ) / a
-#                       
-#                       Nss = len(self.sessions)
-#                       Na = len(self)
-#                       Ns = len(self.samples)
-#                       Nu = len(self.unknowns)
-#                       avgD47 = {
-#                               sample: np.mean([r[&#39;D47&#39;] for r in self if r[&#39;Sample&#39;] == sample])
-#                               for sample in self.samples
-#                               }
-#                       chi2 = np.sum([(r[&#39;D47&#39;] - avgD47[r[&#39;Sample&#39;]])**2 for r in self])
-#                       rD47 = (chi2/(Na-Nu-3*Nss))**.5
-#                       self.repeatability[&#39;sigma_47&#39;] = rD47
-# 
-#                       for session in self.sessions:
-#                               self.sessions[session][&#39;CM&#39;] *= a**2 * chi2 / (Na-Nu-3*Nss)
-#                               self.sessions[session][&#39;SE_a&#39;] = self.sessions[session][&#39;CM&#39;][0,0]**.5
-#                               self.sessions[session][&#39;SE_b&#39;] = self.sessions[session][&#39;CM&#39;][1,1]**.5
-#                               self.sessions[session][&#39;SE_c&#39;] = self.sessions[session][&#39;CM&#39;][2,2]**.5
-#                               self.sessions[session][&#39;SE_a2&#39;] = 0.
-#                               self.sessions[session][&#39;SE_b2&#39;] = 0.
-#                               self.sessions[session][&#39;SE_c2&#39;] = 0.
-#                       
-# #                     self.Nf = np.sum([self.sessions[s][&#39;Na&#39;] - self.sessions[s][&#39;Np&#39;] for s in self.sessions])
-#                       self.Nf = len(self) - len(self.unknowns) - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])
-#                       self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
-# 
-#                       if consolidate:
-#                               self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
-
-
 
                 elif method == &#39;indep_sessions&#39;:
 
@@ -3357,11 +3267,11 @@ methods.</li>
                                 for n,a in zip(p_names, p_active):
                                         if a:
                                                 s[n] = bf[k]
-#                                               self.vprint(f&#39;{n} = {bf[k]}&#39;)
+#                                               self.msg(f&#39;{n} = {bf[k]}&#39;)
                                                 k += 1
                                         else:
                                                 s[n] = 0.
-#                                               self.vprint(f&#39;{n} = 0.0&#39;)
+#                                               self.msg(f&#39;{n} = 0.0&#39;)
 
                                 for r in sdata :
                                         a, b, c, a2, b2, c2 = s[&#39;a&#39;], s[&#39;b&#39;], s[&#39;c&#39;], s[&#39;a2&#39;], s[&#39;b2&#39;], s[&#39;c2&#39;]
@@ -3450,7 +3360,11 @@ methods.</li>
 
 
         @make_verbal
-        def table_of_sessions(self, dir = &#39;results&#39;, filename = &#39;sessions.csv&#39;, save_to_file = True, print_out = True):
+        def table_of_sessions(self,
+                dir = &#39;results&#39;,
+                filename = &#39;sessions.csv&#39;,
+                save_to_file = True,
+                print_out = True):
                 &#39;&#39;&#39;
                 Print out an/or save to disk a table of sessions.
                 
@@ -3948,6 +3862,7 @@ methods.</li>
                         )**.5
 
 
+        @make_verbal
         def consolidate(self, tables = True, plots = True):
                 &#39;&#39;&#39;
                 Collect information about samples, sessions and repeatabilities.
@@ -4131,7 +4046,7 @@ methods.</li>
 <dt id="D47crunch.D47data.ALPHA_18O_ACID_REACTION"><code class="name">var <span class="ident">ALPHA_18O_ACID_REACTION</span></code></dt>
 <dd>
 <div class="desc"><p>Specifies the <sup>18</sup>O/<sup>16</sup>O fractionation factor generally applicable
-to acid reactions in the dataset. Currently only used by <code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">D47data.make_verbal.<locals>.newfun()</a></code>.</p>
+to acid reactions in the dataset. Currently only used by <code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">D47data.wg()</a></code>.</p>
 <p>By default equal to 1.008129 (calcite reacted at 90 °C, <a href="https://dx.doi.org/10.1016/j.chemgeo.2007.08.005">Kim et al., 2007</a>).</p></div>
 </dd>
 <dt id="D47crunch.D47data.LEVENE_REF_SAMPLE"><code class="name">var <span class="ident">LEVENE_REF_SAMPLE</span></code></dt>
@@ -4147,7 +4062,7 @@ sample should be used as a reference for this test.</p></div>
 <dt id="D47crunch.D47data.Nominal_D47"><code class="name">var <span class="ident">Nominal_D47</span></code></dt>
 <dd>
 <div class="desc"><p>Nominal Δ<sub>47</sub> values assigned to the anchor samples, used by
-<code><a title="D47crunch.D47data.standardize" href="#D47crunch.D47data.standardize">D47data.make_verbal.<locals>.newfun()</a></code> to standardize unknown samples to an absolute Δ<sub>47</sub>
+<code><a title="D47crunch.D47data.standardize" href="#D47crunch.D47data.standardize">D47data.standardize()</a></code> to standardize unknown samples to an absolute Δ<sub>47</sub>
 reference frame.</p>
 <p>By default equal to <code>{'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691}</code> after
 <a href="https://doi.org/10.1029/2017GC007385">Bernasconi et al. (2018)</a>.</p></div>
@@ -4181,7 +4096,7 @@ By default equal to 0.0020052 (<a href="https://doi.org/10.1016/0012-821X(76&gt;
 <dt id="D47crunch.D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION"><code class="name">var <span class="ident">SAMPLE_CONSTRAINING_WG_COMPOSITION</span></code></dt>
 <dd>
 <div class="desc"><p>Specifies the name, δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub>
-of the carbonate standard used by <code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">D47data.make_verbal.<locals>.newfun()</a></code> to compute the isotopic composition
+of the carbonate standard used by <code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">D47data.wg()</a></code> to compute the isotopic composition
 of the working gas in each session.</p>
 <p>By default equal to <code>('ETH-3', 1.71, -1.78)</code> after <a href="https://doi.org/10.1029/2017GC007385">Bernasconi et al. (2018)</a>.</p></div>
 </dd>
@@ -4445,26 +4360,44 @@ anomalies (<code>D47</code>, <code>D48</code>, <code>D49</code>), all expressed 
 </details>
 </dd>
 <dt id="D47crunch.D47data.compute_r"><code class="name flex">
-<span>def <span class="ident">compute_r</span></span>(<span>*args, verbose='', **kwargs)</span>
+<span>def <span class="ident">compute_r</span></span>(<span>self, key, samples='all samples', sessions='all sessions')</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Compute the repeatability of <code>[r[key] for r in self]</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def newfun(*args, verbose = &#39;&#39;, **kwargs):
-        myself = args[0]
-        oldprefix = myself.prefix
-        myself.prefix = oldfun.__name__
-        if verbose != &#39;&#39;:
-                oldverbose = myself.verbose
-                myself.verbose = verbose
-        out = oldfun(*args, **kwargs)
-        myself.prefix = oldprefix
-        if verbose != &#39;&#39;:
-                myself.verbose = oldverbose
-        return out</code></pre>
+<pre><code class="python">@make_verbal
+def compute_r(self, key, samples = &#39;all samples&#39;, sessions = &#39;all sessions&#39;):
+        &#39;&#39;&#39;
+        Compute the repeatability of `[r[key] for r in self]`
+        &#39;&#39;&#39;
+        # NB: it&#39;s debatable whether rD47 should be computed
+        # with Nf = len(self)-len(self.samples) instead of
+        # Nf = len(self) - len(self.unknwons) - 3*len(self.sessions)
+
+        if samples == &#39;all samples&#39;:
+                mysamples = [k for k in self.samples]
+        elif samples == &#39;anchors&#39;:
+                mysamples = [k for k in self.anchors]
+        elif samples == &#39;unknowns&#39;:
+                mysamples = [k for k in self.unknowns]
+        else:
+                mysamples = samples
+
+        if sessions == &#39;all sessions&#39;:
+                sessions = [k for k in self.sessions]
+
+        chisq, Nf = 0, 0
+        for sample in mysamples :
+                X = [ r[key] for r in self if r[&#39;Sample&#39;] == sample and r[&#39;Session&#39;] in sessions ]
+                if len(X) &gt; 1 :
+                        Nf += len(X) - 1
+                        chisq += np.sum([ (x-np.mean(X))**2 for x in X ])
+        r = (chisq / Nf)**.5 if Nf &gt; 0 else 0
+        self.msg(f&#39;Repeatability of r[&#34;{key}&#34;] is {1000*r:.1f} ppm for {samples}.&#39;)
+        return r</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.consolidate"><code class="name flex">
@@ -4476,7 +4409,8 @@ anomalies (<code>D47</code>, <code>D48</code>, <code>D49</code>), all expressed 
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def consolidate(self, tables = True, plots = True):
+<pre><code class="python">@make_verbal
+def consolidate(self, tables = True, plots = True):
         &#39;&#39;&#39;
         Collect information about samples, sessions and repeatabilities.
         &#39;&#39;&#39;
@@ -4494,26 +4428,106 @@ anomalies (<code>D47</code>, <code>D48</code>, <code>D49</code>), all expressed 
 </details>
 </dd>
 <dt id="D47crunch.D47data.consolidate_samples"><code class="name flex">
-<span>def <span class="ident">consolidate_samples</span></span>(<span>*args, verbose='', **kwargs)</span>
+<span>def <span class="ident">consolidate_samples</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Compile various statistics for each sample.</p>
+<p>For each anchor sample:</p>
+<ul>
+<li><code>D47</code>: the nominal Δ<sub>47</sub> value for this anchor, specified by <code>self.Nominal_D47</code></li>
+<li><code>SE_D47</code>: set to zero by definition</li>
+</ul>
+<p>For each unknown sample:</p>
+<ul>
+<li><code>D47</code>: the standardized Δ<sub>47</sub> value for this unknown</li>
+<li><code>SE_D47</code>: the standard error of Δ<sub>47</sub> for this unknown</li>
+</ul>
+<p>For each anchor and unknown:</p>
+<ul>
+<li><code>N</code>: the total number of analyses of this sample</li>
+<li><code>SD_D47</code>: the “sample” (in the statistical sense) standard deviation for this sample</li>
+<li><code>d13C_VPDB</code>: the average δ<sup>13</sup>C<sub>VPDB</sub> value for this sample</li>
+<li><code>d18O_VSMOW</code>: the average δ<sup>18</sup>O<sub>VSMOW</sub> value for this sample (as CO<sub>2</sub>)</li>
+<li><code>p_Levene</code>: the p-value from a <a href="https://en.wikipedia.org/wiki/Levene%27s_test">Levene test</a> of equal variance, indicating whether
+the Δ<sub>47</sub> repeatability this sample differs significantly from that observed
+for the reference sample specified by <code>self.LEVENE_REF_SAMPLE</code>.</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def newfun(*args, verbose = &#39;&#39;, **kwargs):
-        myself = args[0]
-        oldprefix = myself.prefix
-        myself.prefix = oldfun.__name__
-        if verbose != &#39;&#39;:
-                oldverbose = myself.verbose
-                myself.verbose = verbose
-        out = oldfun(*args, **kwargs)
-        myself.prefix = oldprefix
-        if verbose != &#39;&#39;:
-                myself.verbose = oldverbose
-        return out</code></pre>
+<pre><code class="python">@make_verbal
+def consolidate_samples(self):
+        &#39;&#39;&#39;
+        Compile various statistics for each sample.
+        
+        For each anchor sample:
+
+        + `D47`: the nominal Δ&lt;sub&gt;47&lt;/sub&gt; value for this anchor, specified by `self.Nominal_D47`
+        + `SE_D47`: set to zero by definition
+
+        For each unknown sample:
+
+        + `D47`: the standardized Δ&lt;sub&gt;47&lt;/sub&gt; value for this unknown
+        + `SE_D47`: the standard error of Δ&lt;sub&gt;47&lt;/sub&gt; for this unknown
+        
+        For each anchor and unknown:
+        
+        + `N`: the total number of analyses of this sample
+        + `SD_D47`: the “sample” (in the statistical sense) standard deviation for this sample
+        + `d13C_VPDB`: the average δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; value for this sample
+        + `d18O_VSMOW`: the average δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; value for this sample (as CO&lt;sub&gt;2&lt;/sub&gt;)
+        + `p_Levene`: the p-value from a [Levene test] of equal variance, indicating whether
+        the Δ&lt;sub&gt;47&lt;/sub&gt; repeatability this sample differs significantly from that observed
+        for the reference sample specified by `self.LEVENE_REF_SAMPLE`.
+
+        [Levene test]: https://en.wikipedia.org/wiki/Levene%27s_test
+        &#39;&#39;&#39;
+        D47_ref_pop = [r[&#39;D47&#39;] for r in self.samples[self.LEVENE_REF_SAMPLE][&#39;data&#39;]]
+        for sample in self.samples:
+                self.samples[sample][&#39;N&#39;] = len(self.samples[sample][&#39;data&#39;])
+                if self.samples[sample][&#39;N&#39;] &gt; 1:
+                        self.samples[sample][&#39;SD_D47&#39;] = stdev([r[&#39;D47&#39;] for r in self.samples[sample][&#39;data&#39;]])
+
+                self.samples[sample][&#39;d13C_VPDB&#39;] = np.mean([r[&#39;d13C_VPDB&#39;] for r in self.samples[sample][&#39;data&#39;]])
+                self.samples[sample][&#39;d18O_VSMOW&#39;] = np.mean([r[&#39;d18O_VSMOW&#39;] for r in self.samples[sample][&#39;data&#39;]])
+
+                D47_pop = [r[&#39;D47&#39;] for r in self.samples[sample][&#39;data&#39;]]
+                if len(D47_pop) &gt; 2:
+                        self.samples[sample][&#39;p_Levene&#39;] = levene(D47_ref_pop, D47_pop, center = &#39;median&#39;)[1]
+
+        if self.standardization_method == &#39;pooled&#39;:
+                for sample in self.anchors:
+                        self.samples[sample][&#39;D47&#39;] = self.Nominal_D47[sample]
+                        self.samples[sample][&#39;SE_D47&#39;] = 0.
+                for sample in self.unknowns:
+                        self.samples[sample][&#39;D47&#39;] = self.standardization.params.valuesdict()[f&#39;D47_{pf(sample)}&#39;]
+                        self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
+
+        elif self.standardization_method == &#39;indep_sessions&#39;:
+                for sample in self.anchors:
+                        self.samples[sample][&#39;D47&#39;] = self.Nominal_D47[sample]
+                        self.samples[sample][&#39;SE_D47&#39;] = 0.
+                for sample in self.unknowns:
+                        self.msg(f&#39;Consolidating sample {sample}&#39;)
+                        self.unknowns[sample][&#39;session_D47&#39;] = {}
+                        session_avg = []
+                        for session in self.sessions:
+                                sdata = [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]
+                                if sdata:
+                                        self.msg(f&#39;{sample} found in session {session}&#39;)
+                                        avg_D47 = np.mean([r[&#39;D47&#39;] for r in sdata])
+                                        avg_d47 = np.mean([r[&#39;d47&#39;] for r in sdata])
+                                        # !! TODO: sigma_s below does not account for temporal changes in standardization error
+                                        sigma_s = self.standardization_error(session, avg_d47, avg_D47)
+                                        sigma_u = sdata[0][&#39;wD47raw&#39;] / self.sessions[session][&#39;a&#39;] / len(sdata)**.5
+                                        session_avg.append([avg_D47, (sigma_u**2 + sigma_s**2)**.5])
+                                        self.unknowns[sample][&#39;session_D47&#39;][session] = session_avg[-1]
+                        self.samples[sample][&#39;D47&#39;], self.samples[sample][&#39;SE_D47&#39;] = w_avg(*zip(*session_avg))
+                        weights = {s: self.unknowns[sample][&#39;session_D47&#39;][s][1]**-2 for s in self.unknowns[sample][&#39;session_D47&#39;]}
+                        wsum = sum([weights[s] for s in weights])
+                        for s in weights:
+                                self.unknowns[sample][&#39;session_D47&#39;][s] += [self.unknowns[sample][&#39;session_D47&#39;][s][1]**-2 / wsum]</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.consolidate_sessions"><code class="name flex">
@@ -4677,26 +4691,22 @@ anomalies (<code>D47</code>, <code>D48</code>, <code>D49</code>), all expressed 
 </details>
 </dd>
 <dt id="D47crunch.D47data.crunch"><code class="name flex">
-<span>def <span class="ident">crunch</span></span>(<span>*args, verbose='', **kwargs)</span>
+<span>def <span class="ident">crunch</span></span>(<span>self, verbose='')</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Compute bulk composition and raw clumped isotope anomalies for all analyses.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def newfun(*args, verbose = &#39;&#39;, **kwargs):
-        myself = args[0]
-        oldprefix = myself.prefix
-        myself.prefix = oldfun.__name__
-        if verbose != &#39;&#39;:
-                oldverbose = myself.verbose
-                myself.verbose = verbose
-        out = oldfun(*args, **kwargs)
-        myself.prefix = oldprefix
-        if verbose != &#39;&#39;:
-                myself.verbose = oldverbose
-        return out</code></pre>
+<pre><code class="python">@make_verbal
+def crunch(self, verbose = &#39;&#39;):
+        &#39;&#39;&#39;
+        Compute bulk composition and raw clumped isotope anomalies for all analyses.
+        &#39;&#39;&#39;
+        for r in self:
+                self.compute_bulk_and_clumping_deltas(r)
+        self.msg(f&#34;Crunched {len(self)} analyses.&#34;)</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.fill_in_missing_info"><code class="name flex">
@@ -4811,15 +4821,18 @@ whichever appers most often in <code>txt</code>.</li>
 <span>def <span class="ident">make_verbal</span></span>(<span>oldfun)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Decorator to change <code>self.prefix</code> and allow locally overriding <code>self.verbose</code></p></div>
+<div class="desc"><p>Decorator to temporarily change <code>self.prefix</code>
+and allow locally overriding <code>self.verbose</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def make_verbal(oldfun):
         &#39;&#39;&#39;
-        Decorator to change `self.prefix` and allow locally overriding `self.verbose`
+        Decorator to temporarily change `self.prefix`
+        and allow locally overriding `self.verbose`
         &#39;&#39;&#39;
+        @wraps(oldfun)
         def newfun(*args, verbose = &#39;&#39;, **kwargs):
                 myself = args[0]
                 oldprefix = myself.prefix
@@ -5075,26 +5088,40 @@ to <code>False</code> for all sessions.</p></div>
 </details>
 </dd>
 <dt id="D47crunch.D47data.repeatabilies"><code class="name flex">
-<span>def <span class="ident">repeatabilies</span></span>(<span>*args, verbose='', **kwargs)</span>
+<span>def <span class="ident">repeatabilies</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Compute analytical repeatabilities for δ<sup>13</sup>C<sub>VPDB</sub>,
+δ<sup>18</sup>O<sub>VSMOW</sub>, Δ<sub>47</sub> (for all samples, for anchors,
+and for unknowns).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def newfun(*args, verbose = &#39;&#39;, **kwargs):
-        myself = args[0]
-        oldprefix = myself.prefix
-        myself.prefix = oldfun.__name__
-        if verbose != &#39;&#39;:
-                oldverbose = myself.verbose
-                myself.verbose = verbose
-        out = oldfun(*args, **kwargs)
-        myself.prefix = oldprefix
-        if verbose != &#39;&#39;:
-                myself.verbose = oldverbose
-        return out</code></pre>
+<pre><code class="python">@make_verbal
+def repeatabilies(self):
+        &#39;&#39;&#39;
+        Compute analytical repeatabilities for δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;,
+        δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, Δ&lt;sub&gt;47&lt;/sub&gt; (for all samples, for anchors,
+        and for unknowns).
+        &#39;&#39;&#39;
+        self.msg(&#39;Computing reproducibilities for all sessions&#39;)
+        self.repeatability[&#39;r_d13C_VPDB&#39;] = self.compute_r(&#39;d13C_VPDB&#39;, samples = &#39;anchors&#39;)
+        self.repeatability[&#39;r_d18O_VSMOW&#39;] = self.compute_r(&#39;d18O_VSMOW&#39;, samples = &#39;anchors&#39;)
+
+        N_anchor_analyses = len([r for r in self if r[&#39;Sample&#39;] in self.anchors])
+
+        self.repeatability[&#39;r_D47a&#39;] = self.compute_r(&#39;D47&#39;, samples = &#39;anchors&#39;)
+        self.repeatability[&#39;r_D47a&#39;] /= (
+                (N_anchor_analyses - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])) / (N_anchor_analyses - len(self.anchors))
+                )**.5
+
+        self.repeatability[&#39;r_D47u&#39;] = self.compute_r(&#39;D47&#39;, samples = &#39;unknowns&#39;)
+
+        self.repeatability[&#39;r_D47&#39;] = self.compute_r(&#39;D47&#39;, samples = &#39;all samples&#39;)
+        self.repeatability[&#39;r_D47&#39;] /= (
+                (len(self) - len(self.unknowns) - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])) / (len(self) - len(self.samples))
+                )**.5</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.report"><code class="name flex">
@@ -5114,26 +5141,46 @@ to <code>False</code> for all sessions.</p></div>
 </details>
 </dd>
 <dt id="D47crunch.D47data.rmswd"><code class="name flex">
-<span>def <span class="ident">rmswd</span></span>(<span>*args, verbose='', **kwargs)</span>
+<span>def <span class="ident">rmswd</span></span>(<span>self, samples='all samples', sessions='all sessions')</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Compute the root mean squared weighted deviation, χ2 and
+corresponding degrees of freedom of <code>[r['D47'] for r in self]</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def newfun(*args, verbose = &#39;&#39;, **kwargs):
-        myself = args[0]
-        oldprefix = myself.prefix
-        myself.prefix = oldfun.__name__
-        if verbose != &#39;&#39;:
-                oldverbose = myself.verbose
-                myself.verbose = verbose
-        out = oldfun(*args, **kwargs)
-        myself.prefix = oldprefix
-        if verbose != &#39;&#39;:
-                myself.verbose = oldverbose
-        return out</code></pre>
+<pre><code class="python">@make_verbal
+def rmswd(self,
+        samples = &#39;all samples&#39;,
+        sessions = &#39;all sessions&#39;,
+        ):
+        &#39;&#39;&#39;
+        Compute the root mean squared weighted deviation, χ2 and
+        corresponding degrees of freedom of `[r[&#39;D47&#39;] for r in self]`
+        &#39;&#39;&#39;
+        if samples == &#39;all samples&#39;:
+                mysamples = [k for k in self.samples]
+        elif samples == &#39;anchors&#39;:
+                mysamples = [k for k in self.anchors]
+        elif samples == &#39;unknowns&#39;:
+                mysamples = [k for k in self.unknowns]
+        else:
+                mysamples = samples
+
+        if sessions == &#39;all sessions&#39;:
+                sessions = [k for k in self.sessions]
+
+        chisq, Nf = 0, 0
+        for sample in mysamples :
+                G = [ r for r in self if r[&#39;Sample&#39;] == sample and r[&#39;Session&#39;] in sessions ]
+                if len(G) &gt; 1 :
+                        X, sX = w_avg([r[&#39;D47&#39;] for r in G], [r[&#39;wD47&#39;] for r in G])
+                        Nf += (len(G) - 1)
+                        chisq += np.sum([ ((r[&#39;D47&#39;]-X)/r[&#39;wD47&#39;])**2 for r in G])
+        r = (chisq / Nf)**.5 if Nf &gt; 0 else 0
+        self.msg(f&#39;RMSWD of r[&#34;D47&#34;] is {r:.6f} for {samples}.&#39;)
+        return {&#39;rmswd&#39;: r, &#39;chisq&#39;: chisq, &#39;Nf&#39;: Nf}</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.sample_D47_correl"><code class="name flex">
@@ -5357,26 +5404,220 @@ different samples).</p>
 </details>
 </dd>
 <dt id="D47crunch.D47data.standardize"><code class="name flex">
-<span>def <span class="ident">standardize</span></span>(<span>*args, verbose='', **kwargs)</span>
+<span>def <span class="ident">standardize</span></span>(<span>self, method='pooled', weighted_sessions=[], consolidate=True, consolidate_tables=False, consolidate_plots=False)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Compute absolute Δ<sub>47</sub> values for all replicate analyses and for sample averages.
+If <code>method</code> argument is set to <code>'pooled'</code>, the standardization processes all sessions
+in a single step, assuming that all samples (anchors and unknowns alike) are
+homogeneous (i.e. that their true Δ<sub>47</sub> value does not change between sessions).
+If <code>method</code> argument is set to <code>'indep_sessions'</code>, the standardization processes each
+session independently, based only on anchors analyses.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def newfun(*args, verbose = &#39;&#39;, **kwargs):
-        myself = args[0]
-        oldprefix = myself.prefix
-        myself.prefix = oldfun.__name__
-        if verbose != &#39;&#39;:
-                oldverbose = myself.verbose
-                myself.verbose = verbose
-        out = oldfun(*args, **kwargs)
-        myself.prefix = oldprefix
-        if verbose != &#39;&#39;:
-                myself.verbose = oldverbose
-        return out</code></pre>
+<pre><code class="python">        @make_verbal
+        def standardize(self,
+                method = &#39;pooled&#39;,
+                weighted_sessions = [],
+                consolidate = True,
+                consolidate_tables = False,
+                consolidate_plots = False,
+                ):
+                &#39;&#39;&#39;
+                Compute absolute Δ&lt;sub&gt;47&lt;/sub&gt; values for all replicate analyses and for sample averages.
+                If `method` argument is set to `&#39;pooled&#39;`, the standardization processes all sessions
+                in a single step, assuming that all samples (anchors and unknowns alike) are
+                homogeneous (i.e. that their true Δ&lt;sub&gt;47&lt;/sub&gt; value does not change between sessions).
+                If `method` argument is set to `&#39;indep_sessions&#39;`, the standardization processes each
+                session independently, based only on anchors analyses.
+                &#39;&#39;&#39;
+
+                self.standardization_method = method
+                self.assign_timestamps()
+
+                if method == &#39;pooled&#39;:
+                        if weighted_sessions:
+                                for session_group in weighted_sessions:
+                                        X = D47data([r for r in self if r[&#39;Session&#39;] in session_group])
+                                        result = X.standardize(method = &#39;pooled&#39;, weighted_sessions = [], consolidate = False)
+                                        w = np.sqrt(result.redchi)
+                                        self.msg(f&#39;Session group {session_group} MRSWD = {w:.4f}&#39;)
+                                        for r in X:
+                                                r[&#39;wD47raw&#39;] *= w
+                        else:
+                                self.msg(&#39;All D47raw weights set to 1 ‰&#39;)
+                                for r in self:
+                                        r[&#39;wD47raw&#39;] = 1.
+
+                        params = Parameters()
+                        for k,session in enumerate(self.sessions):
+                                self.msg(f&#34;Session {session}: scrambling_drift is {self.sessions[session][&#39;scrambling_drift&#39;]}.&#34;)
+                                self.msg(f&#34;Session {session}: slope_drift is {self.sessions[session][&#39;slope_drift&#39;]}.&#34;)
+                                self.msg(f&#34;Session {session}: wg_drift is {self.sessions[session][&#39;wg_drift&#39;]}.&#34;)
+                                s = pf(session)
+                                params.add(f&#39;a_{s}&#39;, value = 0.9)
+                                params.add(f&#39;b_{s}&#39;, value = 0.)
+                                params.add(f&#39;c_{s}&#39;, value = -0.9)
+                                params.add(f&#39;a2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;scrambling_drift&#39;])
+                                params.add(f&#39;b2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;slope_drift&#39;])
+                                params.add(f&#39;c2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;wg_drift&#39;])
+                        for sample in self.unknowns:
+                                params.add(f&#39;D47_{pf(sample)}&#39;, value=0.6)
+
+                        def residuals(p):
+                                R = []
+                                for r in self:
+                                        session = pf(r[&#39;Session&#39;])
+                                        sample = pf(r[&#39;Sample&#39;])
+                                        if r[&#39;Sample&#39;] in self.Nominal_D47:
+                                                R += [ (
+                                                        r[&#39;D47raw&#39;] - (
+                                                                p[f&#39;a_{session}&#39;] * self.Nominal_D47[r[&#39;Sample&#39;]]
+                                                                + p[f&#39;b_{session}&#39;] * r[&#39;d47&#39;]
+                                                                +       p[f&#39;c_{session}&#39;]
+                                                                + r[&#39;t&#39;] * (
+                                                                        p[f&#39;a2_{session}&#39;] * self.Nominal_D47[r[&#39;Sample&#39;]]
+                                                                        + p[f&#39;b2_{session}&#39;] * r[&#39;d47&#39;]
+                                                                        +       p[f&#39;c2_{session}&#39;]
+                                                                        )
+                                                                )
+                                                        ) / r[&#39;wD47raw&#39;] ]
+                                        else:
+                                                R += [ (
+                                                        r[&#39;D47raw&#39;] - (
+                                                                p[f&#39;a_{session}&#39;] * p[f&#39;D47_{sample}&#39;]
+                                                                + p[f&#39;b_{session}&#39;] * r[&#39;d47&#39;]
+                                                                +       p[f&#39;c_{session}&#39;]
+                                                                + r[&#39;t&#39;] * (
+                                                                        p[f&#39;a2_{session}&#39;] * p[f&#39;D47_{sample}&#39;]
+                                                                        + p[f&#39;b2_{session}&#39;] * r[&#39;d47&#39;]
+                                                                        +       p[f&#39;c2_{session}&#39;]
+                                                                        )
+                                                                )
+                                                        ) / r[&#39;wD47raw&#39;] ]
+                                return R
+
+                        M = Minimizer(residuals, params)
+                        result = M.leastsq()
+                        self.Nf = result.nfree
+                        self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
+#                       if self.verbose:
+#                               report_fit(result)
+
+                        for r in self:
+                                s = pf(r[&#34;Session&#34;])
+                                a = result.params.valuesdict()[f&#39;a_{s}&#39;]
+                                b = result.params.valuesdict()[f&#39;b_{s}&#39;]
+                                c = result.params.valuesdict()[f&#39;c_{s}&#39;]
+                                a2 = result.params.valuesdict()[f&#39;a2_{s}&#39;]
+                                b2 = result.params.valuesdict()[f&#39;b2_{s}&#39;]
+                                c2 = result.params.valuesdict()[f&#39;c2_{s}&#39;]
+                                r[&#39;D47&#39;] = (r[&#39;D47raw&#39;] - c - b * r[&#39;d47&#39;] - c2 * r[&#39;t&#39;] - b2 * r[&#39;t&#39;] * r[&#39;d47&#39;]) / (a + a2 * r[&#39;t&#39;])
+
+                        self.standardization = result
+                        if consolidate:
+                                self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
+                        return result
+
+
+                elif method == &#39;indep_sessions&#39;:
+
+                        if weighted_sessions:
+                                for session_group in weighted_sessions:
+                                        X = D47data([r for r in self if r[&#39;Session&#39;] in session_group])
+                                        X.Nominal_D47 = self.Nominal_D47.copy()
+                                        X.refresh()
+                                        # This is only done to assign r[&#39;wD47raw&#39;] for r in X:
+                                        X.standardize(method = method, weighted_sessions = [], consolidate = False)
+                                        self.msg(f&#39;D47raw weights set to {1000*X[0][&#34;wD47raw&#34;]:.1f} ppm for sessions in {session_group}&#39;)
+                        else:
+                                self.msg(&#39;All weights set to 1 ‰&#39;)
+                                for r in self:
+                                        r[&#39;wD47raw&#39;] = 1
+
+                        for session in self.sessions:
+                                s = self.sessions[session]
+                                p_names = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;a2&#39;, &#39;b2&#39;, &#39;c2&#39;]
+                                p_active = [True, True, True, s[&#39;scrambling_drift&#39;], s[&#39;slope_drift&#39;], s[&#39;wg_drift&#39;]]                           
+                                s[&#39;Np&#39;] = sum(p_active)                         
+                                sdata = s[&#39;data&#39;]
+                                
+                                A = np.array([
+                                        [
+                                                self.Nominal_D47[r[&#39;Sample&#39;]] / r[&#39;wD47raw&#39;],
+                                                r[&#39;d47&#39;] / r[&#39;wD47raw&#39;],
+                                                1 / r[&#39;wD47raw&#39;],
+                                                self.Nominal_D47[r[&#39;Sample&#39;]] * r[&#39;t&#39;] / r[&#39;wD47raw&#39;],
+                                                r[&#39;d47&#39;] * r[&#39;t&#39;] / r[&#39;wD47raw&#39;],
+                                                r[&#39;t&#39;] / r[&#39;wD47raw&#39;]
+                                                ]
+                                        for r in sdata if r[&#39;Sample&#39;] in self.anchors
+                                        ])[:,p_active] # only keep columns for the active parameters
+                                Y = np.array([[r[&#39;D47raw&#39;] / r[&#39;wD47raw&#39;]] for r in sdata if r[&#39;Sample&#39;] in self.anchors])
+                                s[&#39;Na&#39;] = Y.size
+                                CM = linalg.inv(A.T @ A)
+                                bf = (CM @ A.T @ Y).T[0,:]
+                                k = 0
+                                for n,a in zip(p_names, p_active):
+                                        if a:
+                                                s[n] = bf[k]
+#                                               self.msg(f&#39;{n} = {bf[k]}&#39;)
+                                                k += 1
+                                        else:
+                                                s[n] = 0.
+#                                               self.msg(f&#39;{n} = 0.0&#39;)
+
+                                for r in sdata :
+                                        a, b, c, a2, b2, c2 = s[&#39;a&#39;], s[&#39;b&#39;], s[&#39;c&#39;], s[&#39;a2&#39;], s[&#39;b2&#39;], s[&#39;c2&#39;]
+                                        r[&#39;D47&#39;] = (r[&#39;D47raw&#39;] - c - b * r[&#39;d47&#39;] - c2 * r[&#39;t&#39;] - b2 * r[&#39;t&#39;] * r[&#39;d47&#39;]) / (a + a2 * r[&#39;t&#39;])
+                                        r[&#39;wD47&#39;] = r[&#39;wD47raw&#39;] / (a + a2 * r[&#39;t&#39;])
+
+                                s[&#39;CM&#39;] = np.zeros((6,6))
+                                i = 0
+                                k_active = [j for j,a in enumerate(p_active) if a]
+                                for j,a in enumerate(p_active):
+                                        if a:
+                                                s[&#39;CM&#39;][j,k_active] = CM[i,:]
+                                                i += 1
+
+                        if not weighted_sessions:
+                                w = self.rmswd()[&#39;rmswd&#39;]
+                                for r in self:
+                                                r[&#39;wD47&#39;] *= w
+                                                r[&#39;wD47raw&#39;] *= w
+                                for session in self.sessions:
+                                        self.sessions[session][&#39;CM&#39;] *= w**2
+
+                        for session in self.sessions:
+                                s = self.sessions[session]
+                                s[&#39;SE_a&#39;] = s[&#39;CM&#39;][0,0]**.5
+                                s[&#39;SE_b&#39;] = s[&#39;CM&#39;][1,1]**.5
+                                s[&#39;SE_c&#39;] = s[&#39;CM&#39;][2,2]**.5
+                                s[&#39;SE_a2&#39;] = s[&#39;CM&#39;][3,3]**.5
+                                s[&#39;SE_b2&#39;] = s[&#39;CM&#39;][4,4]**.5
+                                s[&#39;SE_c2&#39;] = s[&#39;CM&#39;][5,5]**.5
+
+                        if not weighted_sessions:
+                                self.Nf = len(self) - len(self.unknowns) - np.sum([self.sessions[s][&#39;Np&#39;] for s in self.sessions])
+                        else:
+                                self.Nf = 0
+                                for sg in weighted_sessions:
+                                        self.Nf += self.rmswd(sessions = sg)[&#39;Nf&#39;]                                      
+
+                        self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
+
+                        avgD47 = {
+                                sample: np.mean([r[&#39;D47&#39;] for r in self if r[&#39;Sample&#39;] == sample])
+                                for sample in self.samples
+                                }
+                        chi2 = np.sum([(r[&#39;D47&#39;] - avgD47[r[&#39;Sample&#39;]])**2 for r in self])
+                        rD47 = (chi2/self.Nf)**.5
+                        self.repeatability[&#39;sigma_47&#39;] = rD47
+                                                
+                        if consolidate:
+                                self.consolidate(tables = consolidate_tables, plots = consolidate_plots)</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.table_of_analyses"><code class="name flex">
@@ -5442,49 +5683,161 @@ different samples).</p>
 </details>
 </dd>
 <dt id="D47crunch.D47data.table_of_samples"><code class="name flex">
-<span>def <span class="ident">table_of_samples</span></span>(<span>*args, verbose='', **kwargs)</span>
+<span>def <span class="ident">table_of_samples</span></span>(<span>self, dir='results', filename='samples.csv', save_to_file=True, print_out=True)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Print out an/or save to disk a table of samples.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>dir</code>: the directory in which to save the table</li>
+<li><code>filename</code>: the name to the csv file to write to</li>
+<li><code>save_to_file</code>: whether to save the table to disk</li>
+<li><code>print_out</code>: whether to print out the table</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def newfun(*args, verbose = &#39;&#39;, **kwargs):
-        myself = args[0]
-        oldprefix = myself.prefix
-        myself.prefix = oldfun.__name__
-        if verbose != &#39;&#39;:
-                oldverbose = myself.verbose
-                myself.verbose = verbose
-        out = oldfun(*args, **kwargs)
-        myself.prefix = oldprefix
-        if verbose != &#39;&#39;:
-                myself.verbose = oldverbose
+<pre><code class="python">@make_verbal
+def table_of_samples(self, dir = &#39;results&#39;, filename = &#39;samples.csv&#39;, save_to_file = True, print_out = True):
+        &#39;&#39;&#39;
+        Print out an/or save to disk a table of samples.
+        
+        __Parameters__
+        
+        + `dir`: the directory in which to save the table
+        + `filename`: the name to the csv file to write to
+        + `save_to_file`: whether to save the table to disk
+        + `print_out`: whether to print out the table           
+        &#39;&#39;&#39;
+
+        out = [[&#39;Sample&#39;,&#39;N&#39;,&#39;d13C_VPDB&#39;,&#39;d18O_VSMOW&#39;,&#39;D47&#39;,&#39;SE&#39;,&#39;95% CL&#39;,&#39;SD&#39;,&#39;p_Levene&#39;]]
+        for sample in self.anchors:
+                out += [[
+                        f&#34;{sample}&#34;,
+                        f&#34;{self.samples[sample][&#39;N&#39;]}&#34;,
+                        f&#34;{self.samples[sample][&#39;d13C_VPDB&#39;]:.2f}&#34;,
+                        f&#34;{self.samples[sample][&#39;d18O_VSMOW&#39;]:.2f}&#34;,
+                        f&#34;{self.samples[sample][&#39;D47&#39;]:.4f}&#34;,&#39;&#39;,&#39;&#39;,
+                        f&#34;{self.samples[sample][&#39;SD_D47&#39;]:.4f}&#34; if self.samples[sample][&#39;N&#39;] &gt; 1 else &#39;&#39;, &#39;&#39;
+                        ]]
+        for sample in self.unknowns:
+                out += [[
+                        f&#34;{sample}&#34;,
+                        f&#34;{self.samples[sample][&#39;N&#39;]}&#34;,
+                        f&#34;{self.samples[sample][&#39;d13C_VPDB&#39;]:.2f}&#34;,
+                        f&#34;{self.samples[sample][&#39;d18O_VSMOW&#39;]:.2f}&#34;,
+                        f&#34;{self.samples[sample][&#39;D47&#39;]:.4f}&#34;,
+                        f&#34;{self.samples[sample][&#39;SE_D47&#39;]:.4f}&#34;,
+                        f&#34;± {self.samples[sample][&#39;SE_D47&#39;]*self.t95:.4f}&#34;,
+                        f&#34;{self.samples[sample][&#39;SD_D47&#39;]:.4f}&#34; if self.samples[sample][&#39;N&#39;] &gt; 1 else &#39;&#39;,
+                        f&#34;{self.samples[sample][&#39;p_Levene&#39;]:.3f}&#34; if self.samples[sample][&#39;N&#39;] &gt; 2 else &#39;&#39;
+                        ]]
+        if save_to_file:
+                if not os.path.exists(dir):
+                        os.makedirs(dir)
+                with open(f&#39;{dir}/{filename}&#39;, &#39;w&#39;) as fid:
+                        fid.write(make_csv(out))
+        if print_out:
+                self.msg(&#39;\n&#39;+pretty_table(out))
         return out</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.table_of_sessions"><code class="name flex">
-<span>def <span class="ident">table_of_sessions</span></span>(<span>*args, verbose='', **kwargs)</span>
+<span>def <span class="ident">table_of_sessions</span></span>(<span>self, dir='results', filename='sessions.csv', save_to_file=True, print_out=True)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Print out an/or save to disk a table of sessions.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>dir</code>: the directory in which to save the table</li>
+<li><code>filename</code>: the name to the csv file to write to</li>
+<li><code>save_to_file</code>: whether to save the table to disk</li>
+<li><code>print_out</code>: whether to print out the table</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def newfun(*args, verbose = &#39;&#39;, **kwargs):
-        myself = args[0]
-        oldprefix = myself.prefix
-        myself.prefix = oldfun.__name__
-        if verbose != &#39;&#39;:
-                oldverbose = myself.verbose
-                myself.verbose = verbose
-        out = oldfun(*args, **kwargs)
-        myself.prefix = oldprefix
-        if verbose != &#39;&#39;:
-                myself.verbose = oldverbose
-        return out</code></pre>
+<pre><code class="python">@make_verbal
+def table_of_sessions(self,
+        dir = &#39;results&#39;,
+        filename = &#39;sessions.csv&#39;,
+        save_to_file = True,
+        print_out = True):
+        &#39;&#39;&#39;
+        Print out an/or save to disk a table of sessions.
+        
+        __Parameters__
+        
+        + `dir`: the directory in which to save the table
+        + `filename`: the name to the csv file to write to
+        + `save_to_file`: whether to save the table to disk
+        + `print_out`: whether to print out the table           
+        &#39;&#39;&#39;
+
+        out = []
+        out += [[&#39;N samples (anchors + unknowns)&#39;, f&#34;{len(self.samples)} ({len(self.anchors)} + {len(self.unknowns)})&#34;]]
+        out += [[&#39;N analyses (anchors + unknowns)&#39;, f&#34;{len(self)} ({len([r for r in self if r[&#39;Sample&#39;] in self.anchors])} + {len([r for r in self if r[&#39;Sample&#39;] in self.unknowns])})&#34;]]
+        out += [[&#39;Repeatability of δ13C_VPDB&#39;, f&#34;{1000 * self.repeatability[&#39;r_d13C_VPDB&#39;]:.1f} ppm&#34;]]
+        out += [[&#39;Repeatability of δ18O_VSMOW&#39;, f&#34;{1000 * self.repeatability[&#39;r_d18O_VSMOW&#39;]:.1f} ppm&#34;]]
+        out += [[&#39;Repeatability of Δ47 (anchors)&#39;, f&#34;{1000 * self.repeatability[&#39;r_D47a&#39;]:.1f} ppm&#34;]]
+        out += [[&#39;Repeatability of Δ47 (unknowns)&#39;, f&#34;{1000 * self.repeatability[&#39;r_D47u&#39;]:.1f} ppm&#34;]]
+        out += [[&#39;Repeatability of Δ47 (all)&#39;, f&#34;{1000 * self.repeatability[&#39;r_D47&#39;]:.1f} ppm&#34;]]
+        out += [[&#39;Model degrees of freedom&#39;, f&#34;{self.Nf}&#34;]]
+        out += [[&#39;Student\&#39;s 95% t-factor&#39;, f&#34;{self.t95:.2f}&#34;]]
+        out += [[&#39;Standardization method&#39;, self.standardization_method]]
+        out1 = out
+        self.msg(&#39;\n&#39; + pretty_table(out1, header = 0)) 
+        
+        include_a2 = any([self.sessions[session][&#39;scrambling_drift&#39;] for session in self.sessions])
+        include_b2 = any([self.sessions[session][&#39;slope_drift&#39;] for session in self.sessions])
+        include_c2 = any([self.sessions[session][&#39;wg_drift&#39;] for session in self.sessions])
+        out = [[&#39;Session&#39;,&#39;Na&#39;,&#39;Nu&#39;,&#39;d13Cwg_VPDB&#39;,&#39;d18Owg_VSMOW&#39;,&#39;r_d13C&#39;,&#39;r_d18O&#39;,&#39;r_D47&#39;,&#39;a ± SE&#39;,&#39;1e3 x b ± SE&#39;,&#39;c ± SE&#39;]]
+        if include_a2:
+                out[-1] += [&#39;a2 ± SE&#39;]
+        if include_b2:
+                out[-1] += [&#39;b2 ± SE&#39;]
+        if include_c2:
+                out[-1] += [&#39;c2 ± SE&#39;]
+        for session in self.sessions:
+                out += [[
+                        session,
+                        f&#34;{self.sessions[session][&#39;Na&#39;]}&#34;,
+                        f&#34;{self.sessions[session][&#39;Nu&#39;]}&#34;,
+                        f&#34;{self.sessions[session][&#39;d13Cwg_VPDB&#39;]:.3f}&#34;,
+                        f&#34;{self.sessions[session][&#39;d18Owg_VSMOW&#39;]:.3f}&#34;,
+                        f&#34;{self.sessions[session][&#39;r_d13C_VPDB&#39;]:.4f}&#34;,
+                        f&#34;{self.sessions[session][&#39;r_d18O_VSMOW&#39;]:.4f}&#34;,
+                        f&#34;{self.sessions[session][&#39;r_D47&#39;]:.4f}&#34;,
+                        f&#34;{self.sessions[session][&#39;a&#39;]:.3f} ± {self.sessions[session][&#39;SE_a&#39;]:.3f}&#34;,
+                        f&#34;{1e3*self.sessions[session][&#39;b&#39;]:.3f} ± {1e3*self.sessions[session][&#39;SE_b&#39;]:.3f}&#34;,
+                        f&#34;{self.sessions[session][&#39;c&#39;]:.3f} ± {self.sessions[session][&#39;SE_c&#39;]:.3f}&#34;,
+                        ]]
+                if include_a2:
+                        if self.sessions[session][&#39;scrambling_drift&#39;]:
+                                out[-1] += [f&#34;{self.sessions[session][&#39;a2&#39;]:.1e} ± {self.sessions[session][&#39;SE_a2&#39;]:.1e}&#34;]
+                        else:
+                                out[-1] += [&#39;&#39;]
+                if include_b2:
+                        if self.sessions[session][&#39;slope_drift&#39;]:
+                                out[-1] += [f&#34;{self.sessions[session][&#39;b2&#39;]:.1e} ± {self.sessions[session][&#39;SE_b2&#39;]:.1e}&#34;]
+                        else:
+                                out[-1] += [&#39;&#39;]
+                if include_c2:
+                        if self.sessions[session][&#39;wg_drift&#39;]:
+                                out[-1] += [f&#34;{self.sessions[session][&#39;c2&#39;]:.1e} ± {self.sessions[session][&#39;SE_c2&#39;]:.1e}&#34;]
+                        else:
+                                out[-1] += [&#39;&#39;]
+
+        if save_to_file:
+                if not os.path.exists(dir):
+                        os.makedirs(dir)
+                with open(f&#39;{dir}/{filename}&#39;, &#39;w&#39;) as fid:
+                        fid.write(make_csv(out))
+        if print_out:
+                self.msg(&#39;\n&#39; + pretty_table(out))
+        return out1, out</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.unsplit_samples"><code class="name flex">
@@ -5565,44 +5918,75 @@ different samples).</p>
         print(txt)</code></pre>
 </details>
 </dd>
-<dt id="D47crunch.D47data.vprint"><code class="name flex">
-<span>def <span class="ident">vprint</span></span>(<span>self, txt)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Print verbose message <code>txt</code> to screen if <code>self.verbose == True</code>.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def vprint(self, txt):
-        &#39;&#39;&#39;
-        Print verbose message `txt` to screen if `self.verbose == True`.
-        &#39;&#39;&#39;
-        if self.verbose:
-                print(f&#39;D47data.vprint()  -&gt;  {txt}&#39;)</code></pre>
-</details>
-</dd>
 <dt id="D47crunch.D47data.wg"><code class="name flex">
-<span>def <span class="ident">wg</span></span>(<span>*args, verbose='', **kwargs)</span>
+<span>def <span class="ident">wg</span></span>(<span>self, sample='', d13C_vpdb='', d18O_vpdb='', a18_acid='')</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Compute bulk composition of the working gas for each session
+based on the average composition, within each session,
+of a given sample.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def newfun(*args, verbose = &#39;&#39;, **kwargs):
-        myself = args[0]
-        oldprefix = myself.prefix
-        myself.prefix = oldfun.__name__
-        if verbose != &#39;&#39;:
-                oldverbose = myself.verbose
-                myself.verbose = verbose
-        out = oldfun(*args, **kwargs)
-        myself.prefix = oldprefix
-        if verbose != &#39;&#39;:
-                myself.verbose = oldverbose
-        return out</code></pre>
+<pre><code class="python">@make_verbal
+def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
+        &#39;&#39;&#39;
+        Compute bulk composition of the working gas for each session
+        based on the average composition, within each session,
+        of a given sample.
+        &#39;&#39;&#39;
+
+        self.msg(&#39;Computing WG composition:&#39;)
+
+        if sample == &#39;&#39;:
+                sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
+        if d13C_vpdb == &#39;&#39;:
+                d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
+        if d18O_vpdb == &#39;&#39;:
+                d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
+        if a18_acid == &#39;&#39;:
+                a18_acid = self.ALPHA_18O_ACID_REACTION
+
+        assert a18_acid, f&#39;Acid fractionation value should differ from zero.&#39;
+
+        R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
+        R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
+        R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
+
+        C12_s = 1 / (1 + R13_s)
+        C13_s = R13_s / (1 + R13_s)
+        C16_s = 1 / (1 + R17_s + R18_s)
+        C17_s = R17_s / (1 + R17_s + R18_s)
+        C18_s = R18_s / (1 + R17_s + R18_s)
+
+        C626_s = C12_s * C16_s ** 2
+        C627_s = 2 * C12_s * C16_s * C17_s
+        C628_s = 2 * C12_s * C16_s * C18_s
+        C636_s = C13_s * C16_s ** 2
+        C637_s = 2 * C13_s * C16_s * C17_s
+        C727_s = C12_s * C17_s ** 2
+
+        R45_s = (C627_s + C636_s) / C626_s
+        R46_s = (C628_s + C637_s + C727_s) / C626_s
+
+        for s in self.sessions:
+                db = [r for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]
+                assert db, f&#39;Sample &#34;{sample}&#34; not found in session &#34;{s}&#34;.&#39;
+                d45_s = np.mean([r[&#39;d45&#39;] for r in db])
+                d46_s = np.mean([r[&#39;d46&#39;] for r in db])
+                R45_wg = R45_s / (1 + d45_s / 1000)
+                R46_wg = R46_s / (1 + d46_s / 1000)
+
+                d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_deltas(R45_wg, R46_wg)
+
+                self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
+
+                self.sessions[s][&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+                self.sessions[s][&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
+                for r in self.sessions[s][&#39;data&#39;]:
+                        r[&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+                        r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW</code></pre>
 </details>
 </dd>
 </dl>
@@ -5624,14 +6008,16 @@ different samples).</p>
 <li><a href="#3-crunch-the-data">3. Crunch the data</a></li>
 <li><a href="#4-oxygen-17-correction-parameters">4. Oxygen-17 correction parameters</a></li>
 <li><a href="#5-reference-frame">5. Reference frame</a></li>
-<li><a href="#6-standardization-pooled">6. Standardization (pooled)</a><ul>
-<li><a href="#61-default-method-pooled">6.1 Default method (pooled)</a></li>
+<li><a href="#6-standardization">6. Standardization</a><ul>
+<li><a href="#61-default-approach-pooled">6.1 Default approach (pooled)</a></li>
 <li><a href="#62-d47datasessions">6.2 D47data().sessions</a></li>
 <li><a href="#63-d47datasamples-d47dataanchors-and-d47dataunknowns">6.3 D47data().samples, D47data().anchors, and D47data().unknowns</a></li>
 <li><a href="#64-d47datarepeatability">6.4 D47data.()repeatability</a></li>
 <li><a href="#65-d47dataresult">6.5 D47data.()result</a></li>
+<li><a href="#66-legacy-standardization-approach-indep_sessions">6.6 Legacy standardization approach (indep_sessions)</a></li>
 </ul>
 </li>
+<li><a href="#7-viewing-and-saving-the-results">7. Viewing and saving the results</a></li>
 </ul>
 </li>
 </ul>
@@ -5699,7 +6085,6 @@ different samples).</p>
 <li><code><a title="D47crunch.D47data.table_of_sessions" href="#D47crunch.D47data.table_of_sessions">table_of_sessions</a></code></li>
 <li><code><a title="D47crunch.D47data.unsplit_samples" href="#D47crunch.D47data.unsplit_samples">unsplit_samples</a></code></li>
 <li><code><a title="D47crunch.D47data.vmsg" href="#D47crunch.D47data.vmsg">vmsg</a></code></li>
-<li><code><a title="D47crunch.D47data.vprint" href="#D47crunch.D47data.vprint">vprint</a></code></li>
 <li><code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">wg</a></code></li>
 </ul>
 </li>

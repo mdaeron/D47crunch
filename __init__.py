@@ -27,6 +27,7 @@ from lmfit import Minimizer, Parameters, report_fit
 from matplotlib import pyplot as ppl
 from matplotlib import rcParams
 from datetime import datetime as dt
+from functools import wraps
 
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = 'Helvetica'
@@ -369,8 +370,10 @@ class D47data(list):
 
 	def make_verbal(oldfun):
 		'''
-		Decorator to change `self.prefix` and allow locally overriding `self.verbose`
+		Decorator to temporarily change `self.prefix`
+		and allow locally overriding `self.verbose`
 		'''
+		@wraps(oldfun)
 		def newfun(*args, verbose = '', **kwargs):
 			myself = args[0]
 			oldprefix = myself.prefix
@@ -411,15 +414,7 @@ class D47data(list):
 			with open(self.logfile, 'a') as fid:
 				for txt in txts:
 					fid.write(f'\n{dt.now().strftime("%Y-%m-%d %H:%M:%S")} {f"[{self.prefix}]":<16} {txt}')
-		
-
-	def vprint(self, txt):
-		'''
-		Print verbose message `txt` to screen if `self.verbose == True`.
-		'''
-		if self.verbose:
-			print(f'D47data.vprint()  ->  {txt}')
-
+					
 
 	def refresh(self, session = 'mySession'):
 		'''
@@ -899,9 +894,9 @@ class D47data(list):
 
 			params = Parameters()
 			for k,session in enumerate(self.sessions):
-				self.vprint(f"Session {session}: scrambling_drift is {self.sessions[session]['scrambling_drift']}.")
-				self.vprint(f"Session {session}: slope_drift is {self.sessions[session]['slope_drift']}.")
-				self.vprint(f"Session {session}: wg_drift is {self.sessions[session]['wg_drift']}.")
+				self.msg(f"Session {session}: scrambling_drift is {self.sessions[session]['scrambling_drift']}.")
+				self.msg(f"Session {session}: slope_drift is {self.sessions[session]['slope_drift']}.")
+				self.msg(f"Session {session}: wg_drift is {self.sessions[session]['wg_drift']}.")
 				s = pf(session)
 				params.add(f'a_{s}', value = 0.9)
 				params.add(f'b_{s}', value = 0.)
@@ -967,65 +962,6 @@ class D47data(list):
 				self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
 			return result
 
-# 		elif method == 'indep_sessions':
-# 			for session in self.sessions:
-# 				self.sessions[session]['Np'] = 3
-# 				self.vprint('')
-# 				self.vprint(f'Standardizing session {session}.')
-# 				sdata = self.sessions[session]['data']
-# 				A = np.array([
-# 					[self.Nominal_D47[r['Sample']], r['d47'], 1]
-# 					for r in sdata if r['Sample'] in self.anchors
-# 					])
-# 				Y = np.array([[r['D47raw']] for r in sdata if r['Sample'] in self.anchors])
-# 				self.sessions[session]['Na'] = Y.size
-# 				CM = linalg.inv(A.T @ A)
-# 				a,b,c = (CM @ A.T @ Y).T[0,:3]
-# 
-# 				self.vprint(f'a = {a:.4f}')
-# 				self.vprint(f'b = {b:.2e}')
-# 				self.vprint(f'c = {c:.4f}')
-# 				self.sessions[session]['a'] = a
-# 				self.sessions[session]['b'] = b
-# 				self.sessions[session]['c'] = c
-# 				self.sessions[session]['a2'] = 0.
-# 				self.sessions[session]['b2'] = 0.
-# 				self.sessions[session]['c2'] = 0.
-# 				self.sessions[session]['CM'] = np.zeros((6,6))
-# 				self.sessions[session]['CM'][:3,:3] = CM
-# 
-# 				for r in sdata :
-# 					r['D47'] = ( r['D47raw'] - b * r['d47'] - c ) / a
-# 			
-# 			Nss = len(self.sessions)
-# 			Na = len(self)
-# 			Ns = len(self.samples)
-# 			Nu = len(self.unknowns)
-# 			avgD47 = {
-# 				sample: np.mean([r['D47'] for r in self if r['Sample'] == sample])
-# 				for sample in self.samples
-# 				}
-# 			chi2 = np.sum([(r['D47'] - avgD47[r['Sample']])**2 for r in self])
-# 			rD47 = (chi2/(Na-Nu-3*Nss))**.5
-# 			self.repeatability['sigma_47'] = rD47
-# 
-# 			for session in self.sessions:
-# 				self.sessions[session]['CM'] *= a**2 * chi2 / (Na-Nu-3*Nss)
-# 				self.sessions[session]['SE_a'] = self.sessions[session]['CM'][0,0]**.5
-# 				self.sessions[session]['SE_b'] = self.sessions[session]['CM'][1,1]**.5
-# 				self.sessions[session]['SE_c'] = self.sessions[session]['CM'][2,2]**.5
-# 				self.sessions[session]['SE_a2'] = 0.
-# 				self.sessions[session]['SE_b2'] = 0.
-# 				self.sessions[session]['SE_c2'] = 0.
-# 			
-# # 			self.Nf = np.sum([self.sessions[s]['Na'] - self.sessions[s]['Np'] for s in self.sessions])
-# 			self.Nf = len(self) - len(self.unknowns) - np.sum([self.sessions[s]['Np'] for s in self.sessions])
-# 			self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
-# 
-# 			if consolidate:
-# 				self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
-
-
 
 		elif method == 'indep_sessions':
 
@@ -1068,11 +1004,11 @@ class D47data(list):
 				for n,a in zip(p_names, p_active):
 					if a:
 						s[n] = bf[k]
-# 						self.vprint(f'{n} = {bf[k]}')
+# 						self.msg(f'{n} = {bf[k]}')
 						k += 1
 					else:
 						s[n] = 0.
-# 						self.vprint(f'{n} = 0.0')
+# 						self.msg(f'{n} = 0.0')
 
 				for r in sdata :
 					a, b, c, a2, b2, c2 = s['a'], s['b'], s['c'], s['a2'], s['b2'], s['c2']
@@ -1161,7 +1097,11 @@ class D47data(list):
 
 
 	@make_verbal
-	def table_of_sessions(self, dir = 'results', filename = 'sessions.csv', save_to_file = True, print_out = True):
+	def table_of_sessions(self,
+		dir = 'results',
+		filename = 'sessions.csv',
+		save_to_file = True,
+		print_out = True):
 		'''
 		Print out an/or save to disk a table of sessions.
 		
@@ -1659,6 +1599,7 @@ class D47data(list):
 			)**.5
 
 
+	@make_verbal
 	def consolidate(self, tables = True, plots = True):
 		'''
 		Collect information about samples, sessions and repeatabilities.
