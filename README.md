@@ -42,6 +42,6 @@ Having done any of the above you should now be able to `import D47crunch`.
 
 ## Documentation
 
-For a short tutorial and the full API, see [https://github.com/mdaeron/D47crunch/docs/index.html].
+For a short tutorial and the full API, see [https://mdaeron.github.io/D47crunch].
 
-[https://github.com/mdaeron/D47crunch/docs/index.html]: https://github.com/mdaeron/D47crunch/docs/index.html
+[https://mdaeron.github.io/D47crunch]: https://mdaeron.github.io/D47crunch
