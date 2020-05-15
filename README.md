@@ -33,7 +33,7 @@ Having done any of the above you should now be able to `import D47crunch`, with 
 [matplotlib]: https://matplotlib.org
 [scipy]: https://www.scipy.org
 [current branch]: https://github.com/mdaeron/D47crunch/archive/master.zip
-[latest release]: https://github.com/mdaeron/D47crunch/archive/v0.3.2.zip
+[latest release]: https://github.com/mdaeron/D47crunch/releases/latest
 
 ## Documentation
 
