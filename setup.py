@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="D47crunch",
-    version="0.3",
+    version="0.3.1",
     author="Mathieu Daëron",
     author_email="daeron@lsce.ipsl.fr",
     description="Standardization of Δ47 clumped-isotope measurements",
@@ -19,4 +19,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
+    install_requires='lmfit>=1.0.1',
 )
