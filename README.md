@@ -16,13 +16,13 @@ All questions and suggestions are welcome and should be directed at [Mathieu Da√
 
 ## Installation
 
-At some point in the near future, this should do the trick:
+This should do the trick:
 
 ```bash
 pip install D47crunch
 ```
 
-For now:
+Alternatively:
 
 1. download the [current branch] or the [latest release] and unzip it
 2. rename the resulting directory to `D47crunch`
