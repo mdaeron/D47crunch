@@ -4,16 +4,6 @@ Python library for processing and standardizing carbonate clumped-isotope analys
 
 All questions and suggestions are welcome and should be directed at [Mathieu Daëron](mailto:daeron@lsce.ipsl.fr?subject=[D47crunch]).
 
-## Requirements
-
-[Python 3], [numpy], [matplotlib], and [lmfit]. For the first three we recommend installing the [Anaconda] distribution. Installing [lmfit] should be a simple as `pip install lmfit`.
-
-[Python 3]: https://www.python.org
-[numpy]: https://numpy.org
-[lmfit]: https://lmfit.github.io
-[Anaconda]: https://www.anaconda.com/distribution
-[matplotlib]: https://matplotlib.org
-
 ## Installation
 
 This should do the trick:
@@ -35,10 +25,15 @@ Alternatively:
 import sys
 sys.path.append('/foo/bar')
 ```
-Having done any of the above you should now be able to `import D47crunch`.
+Having done any of the above you should now be able to `import D47crunch`, with the following requirements: [Python 3], [numpy], [matplotlib], [scipy], and [lmfit].
 
+[Python 3]: https://www.python.org
+[numpy]: https://numpy.org
+[lmfit]: https://lmfit.github.io
+[matplotlib]: https://matplotlib.org
+[scipy]: https://www.scipy.org
 [current branch]: https://github.com/mdaeron/D47crunch/archive/master.zip
-[latest release]: https://github.com/mdaeron/D47crunch/archive/v0.1.zip
+[latest release]: https://github.com/mdaeron/D47crunch/archive/v0.3.2.zip
 
 ## Documentation
 
