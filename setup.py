@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="D47crunch",
-    version="0.2-beta",
+    version="0.2",
     author="Mathieu Daëron",
     author_email="daeron@lsce.ipsl.fr",
     description="Standardization of Δ47 clumped-isotope measurements",
