@@ -23,7 +23,7 @@ Alternatively:
 
 ```py
 import sys
-sys.path.append('/foo/bar')
+sys.path.appendd('/foo/bar')
 ```
 Having done any of the above you should now be able to `import D47crunch`, with the following requirements: [Python 3], [numpy], [matplotlib], [scipy], and [lmfit].
 
