@@ -1,20 +1,20 @@
 #! /usr/bin/env python3
 '''
-Δ<sub>47</sub> data processing and error propagation
+Standardization and analytical error propagation of Δ47 clumped-isotope measurements
 
 Process and standardize carbonate and/or CO<sub>2</sub> clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
 Δ<sub>47</sub> values with fully propagated analytical error estimates.
 
-.. include:: ./docs/documentation.md
+.. include:: ../docs/documentation.md
 '''
 
 __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2020 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2020-05-11'
-__version__   = '0.3.2'
+__date__      = '2020-05-16'
+__version__   = '0.4.dev3'
 
 import os
 import numpy as np

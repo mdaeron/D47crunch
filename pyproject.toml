@@ -1,0 +1,27 @@
+[build-system]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "D47crunch"
+author = "Mathieu Daëron"
+author-email = "daeron@lsce.ipsl.fr"
+home-page = "https://github.com/mdaeron/D47crunch"
+requires = [
+	"lmfit >= 1.0.1",
+	"matplotlib >= 3.1.3",
+	"numpy >= 1.18.1",
+	"scipy >= 1.4.1",
+	]
+description-file = "README.md"
+requires-python = ">=3.6"
+keywords = "geochemistry, clumped isotopes"
+license = "BSD-3-Clause"
+classifiers = [
+	"Programming Language :: Python :: 3",
+	"License :: OSI Approved :: BSD License",
+	"Operating System :: OS Independent",
+	]
+
+[tool.flit.metadata.urls]
+Documentation = "https://mdaeron.github.io/D47crunch"
