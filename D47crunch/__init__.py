@@ -66,9 +66,9 @@ _fCO2eqD47_Wang = interp1d(Wang_etal_CO2eqD47[:,0] - 0.15, Wang_etal_CO2eqD47[:,
 def fCO2eqD47_Wang(T):
 	'''
 	CO<sub>2</sub> equilibrium Δ<sub>47</sub> value as a function of `T` (in degrees C)
-	according to [Wang et al. (2019)] (supplementary data of [Dennis et al., 2011]).
+	according to [Wang et al. (2004)] (supplementary data of [Dennis et al., 2011]).
 
-	[Wang et al. (2019)]: https://doi.org/10.1016/j.gca.2004.05.039
+	[Wang et al. (2004)]: https://doi.org/10.1016/j.gca.2004.05.039
 	[Dennis et al., 2011]: https://doi.org/10.1016/j.gca.2011.09.025
 	'''
 	return float(_fCO2eqD47_Wang(T))
