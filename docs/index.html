@@ -382,9 +382,9 @@ from scipy.interpolate import interp1d
 from numpy import linalg
 from lmfit import Minimizer, Parameters, report_fit
 from matplotlib import pyplot as ppl
-from matplotlib import rcParams
 from datetime import datetime as dt
 from functools import wraps
+from matplotlib import rcParams
 
 rcParams[&#39;font.family&#39;] = &#39;sans-serif&#39;
 rcParams[&#39;font.sans-serif&#39;] = &#39;Helvetica&#39;
@@ -678,12 +678,14 @@ class D47data(list):
         ALPHA_18O_ACID_REACTION = round(np.exp(3.59 / (90 + 273.15) - 1.79e-3), 6)  # (Kim et al., 2007, calcite)
         &#39;&#39;&#39;
         Specifies the &lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;O fractionation factor generally applicable
-        to acid reactions in the dataset. Currently only used by `D47data.wg()`.
+        to acid reactions in the dataset. Currently used by `D47data.wg()`,
+        `D47data.standardize_d13C`, and `D47data.standardize_d18O`.
 
         By default equal to 1.008129 (calcite reacted at 90 °C, [Kim et al., 2007]).
 
         [Kim et al., 2007]: https://dx.doi.org/10.1016/j.chemgeo.2007.08.005
         &#39;&#39;&#39;
+
 
         Nominal_D47 = {
                 &#39;ETH-1&#39;: 0.258,
@@ -701,6 +703,63 @@ class D47data(list):
         [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
         &#39;&#39;&#39;
 
+        Nominal_d13C_VPDB = {
+                &#39;ETH-1&#39;: 2.02,
+                &#39;ETH-2&#39;: -10.17,
+                &#39;ETH-3&#39;: 1.71,
+                }       # (Bernasconi et al., 2018)
+        &#39;&#39;&#39;
+        Nominal δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; values assigned to carbonate standards, used by
+        `D47data.standardize_d13C()`.
+
+        By default equal to `{&#39;ETH-1&#39;: 2.02, &#39;ETH-2&#39;: -10.17, &#39;ETH-3&#39;: 1.71}` after
+        [Bernasconi et al. (2018)].
+
+        [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+        &#39;&#39;&#39;
+
+        Nominal_d18O_VPDB = {
+                &#39;ETH-1&#39;: -2.19,
+                &#39;ETH-2&#39;: -18.69,
+                &#39;ETH-3&#39;: -1.78,
+                }       # (Bernasconi et al., 2018)
+        &#39;&#39;&#39;
+        Nominal δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt; values assigned to carbonate standards, used by
+        `D47data.standardize_d18O()`.
+
+        By default equal to `{&#39;ETH-1&#39;: -2.19, &#39;ETH-2&#39;: -18.69, &#39;ETH-3&#39;: -1.78}` after
+        [Bernasconi et al. (2018)].
+
+        [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+        &#39;&#39;&#39;
+
+        d13C_STANDARDIZATION_METHOD = &#39;none&#39;
+        &#39;&#39;&#39;
+        Method by which to standardize δ&lt;sup&gt;13&lt;/sup&gt;C values:
+        
+        + `none`: do not apply any δ&lt;sup&gt;13&lt;/sup&gt;C standardization.
+        + `&#39;1pt&#39;`: within each session, offset all initial δ&lt;sup&gt;13&lt;/sup&gt;C values so as to
+        minimize the difference between final δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; values and
+        `Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB` is defined).
+        + `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ&lt;sup&gt;13&lt;/sup&gt;C
+        values so as to minimize the difference between final δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;
+        values and `Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB`
+        is defined).
+        &#39;&#39;&#39;
+
+        d18O_STANDARDIZATION_METHOD = &#39;none&#39;
+        &#39;&#39;&#39;
+        Method by which to standardize δ&lt;sup&gt;18&lt;/sup&gt;O values:
+        
+        + `none`: do not apply any δ&lt;sup&gt;18&lt;/sup&gt;O standardization.
+        + `&#39;1pt&#39;`: within each session, offset all initial δ&lt;sup&gt;18&lt;/sup&gt;O values so as to
+        minimize the difference between final δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt; values and
+        `Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB` is defined).
+        + `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ&lt;sup&gt;18&lt;/sup&gt;O
+        values so as to minimize the difference between final δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt;
+        values and `Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB`
+        is defined).
+        &#39;&#39;&#39;
 
         def __init__(self, l = [], logfile = &#39;&#39;, session = &#39;mySession&#39;, verbose = False):
                 &#39;&#39;&#39;
@@ -795,6 +854,8 @@ class D47data(list):
                         self.sessions[s][&#39;scrambling_drift&#39;] = False
                         self.sessions[s][&#39;slope_drift&#39;] = False
                         self.sessions[s][&#39;wg_drift&#39;] = False
+                        self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] = self.d13C_STANDARDIZATION_METHOD
+                        self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] = self.d18O_STANDARDIZATION_METHOD
 
 
         def refresh_samples(self):
@@ -924,7 +985,7 @@ class D47data(list):
                         R45_wg = R45_s / (1 + d45_s / 1000)
                         R46_wg = R46_s / (1 + d46_s / 1000)
 
-                        d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_deltas(R45_wg, R46_wg)
+                        d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
 
                         self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
 
@@ -935,7 +996,7 @@ class D47data(list):
                                 r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
 
 
-        def compute_bulk_deltas(self, R45, R46, D17O = 0):
+        def compute_bulk_delta(self, R45, R46, D17O = 0):
                 &#39;&#39;&#39;
                 Compute δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;,
                 by solving the generalized form of equation (17) from [Brand et al. (2010)],
@@ -1016,9 +1077,14 @@ class D47data(list):
                 &#39;&#39;&#39;
                 for r in self:
                         self.compute_bulk_and_clumping_deltas(r)
+                self.standardize_d13C()
+                self.standardize_d18O()
                 self.msg(f&#34;Crunched {len(self)} analyses.&#34;)
 
         def fill_in_missing_info(self, session = &#39;mySession&#39;):
+                &#39;&#39;&#39;
+                Fill in optional fields with default values
+                &#39;&#39;&#39;
                 for i,r in enumerate(self):
                         if &#39;D17O&#39; not in r:
                                 r[&#39;D17O&#39;] = 0.
@@ -1029,6 +1095,49 @@ class D47data(list):
                         for k in [&#39;d48&#39;, &#39;d49&#39;]:
                                 if k not in r:
                                         r[k] = np.nan
+        
+
+        def standardize_d13C(self):
+                &#39;&#39;&#39;
+                Perform δ&lt;sup&gt;13&lt;/sup&gt;C standadization within each session `s` according to
+                `self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;]`, which is defined by default
+                by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but
+                may be redefined abitrarily at a later stage.
+                &#39;&#39;&#39;
+                for s in self.sessions:
+                        if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                                XY = [(r[&#39;d13C_VPDB&#39;], self.Nominal_d13C_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d13C_VPDB]
+                                X,Y = zip(*XY)
+                                if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                                        offset = np.mean(Y) - np.mean(X)
+                                        for r in self.sessions[s][&#39;data&#39;]:
+                                                r[&#39;d13C_VPDB&#39;] += offset                                
+                                elif self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                                        a,b = np.polyfit(X,Y,1)
+                                        for r in self.sessions[s][&#39;data&#39;]:
+                                                r[&#39;d13C_VPDB&#39;] = a * r[&#39;d13C_VPDB&#39;] + b
+
+        def standardize_d18O(self):
+                &#39;&#39;&#39;
+                Perform δ&lt;sup&gt;18&lt;/sup&gt;O standadization within each session `s` according to
+                `self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;]`,
+                which is defined by default by `D47data.refresh_sessions()`as equal to
+                `self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.
+                &#39;&#39;&#39;
+                for s in self.sessions:
+                        if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                                XY = [(r[&#39;d18O_VSMOW&#39;], self.Nominal_d18O_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d18O_VPDB]
+                                X,Y = zip(*XY)
+                                Y = [(1000+y) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000 for y in Y]
+                                if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                                        offset = np.mean(Y) - np.mean(X)
+                                        for r in self.sessions[s][&#39;data&#39;]:
+                                                r[&#39;d18O_VSMOW&#39;] += offset                               
+                                elif self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                                        a,b = np.polyfit(X,Y,1)
+                                        for r in self.sessions[s][&#39;data&#39;]:
+                                                r[&#39;d18O_VSMOW&#39;] = a * r[&#39;d18O_VSMOW&#39;] + b
+        
 
         def compute_bulk_and_clumping_deltas(self, r):
                 &#39;&#39;&#39;
@@ -1048,7 +1157,7 @@ class D47data(list):
                 R48 = (1 + r[&#39;d48&#39;] / 1000) * R48_wg
                 R49 = (1 + r[&#39;d49&#39;] / 1000) * R49_wg
 
-                r[&#39;d13C_VPDB&#39;], r[&#39;d18O_VSMOW&#39;] = self.compute_bulk_deltas(R45, R46, D17O = r[&#39;D17O&#39;])
+                r[&#39;d13C_VPDB&#39;], r[&#39;d18O_VSMOW&#39;] = self.compute_bulk_delta(R45, R46, D17O = r[&#39;D17O&#39;])
                 R13 = (1 + r[&#39;d13C_VPDB&#39;] / 1000) * self.R13_VPDB
                 R18 = (1 + r[&#39;d18O_VSMOW&#39;] / 1000) * self.R18_VSMOW
 
@@ -2584,12 +2693,14 @@ methods.</li>
         ALPHA_18O_ACID_REACTION = round(np.exp(3.59 / (90 + 273.15) - 1.79e-3), 6)  # (Kim et al., 2007, calcite)
         &#39;&#39;&#39;
         Specifies the &lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;O fractionation factor generally applicable
-        to acid reactions in the dataset. Currently only used by `D47data.wg()`.
+        to acid reactions in the dataset. Currently used by `D47data.wg()`,
+        `D47data.standardize_d13C`, and `D47data.standardize_d18O`.
 
         By default equal to 1.008129 (calcite reacted at 90 °C, [Kim et al., 2007]).
 
         [Kim et al., 2007]: https://dx.doi.org/10.1016/j.chemgeo.2007.08.005
         &#39;&#39;&#39;
+
 
         Nominal_D47 = {
                 &#39;ETH-1&#39;: 0.258,
@@ -2607,6 +2718,63 @@ methods.</li>
         [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
         &#39;&#39;&#39;
 
+        Nominal_d13C_VPDB = {
+                &#39;ETH-1&#39;: 2.02,
+                &#39;ETH-2&#39;: -10.17,
+                &#39;ETH-3&#39;: 1.71,
+                }       # (Bernasconi et al., 2018)
+        &#39;&#39;&#39;
+        Nominal δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; values assigned to carbonate standards, used by
+        `D47data.standardize_d13C()`.
+
+        By default equal to `{&#39;ETH-1&#39;: 2.02, &#39;ETH-2&#39;: -10.17, &#39;ETH-3&#39;: 1.71}` after
+        [Bernasconi et al. (2018)].
+
+        [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+        &#39;&#39;&#39;
+
+        Nominal_d18O_VPDB = {
+                &#39;ETH-1&#39;: -2.19,
+                &#39;ETH-2&#39;: -18.69,
+                &#39;ETH-3&#39;: -1.78,
+                }       # (Bernasconi et al., 2018)
+        &#39;&#39;&#39;
+        Nominal δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt; values assigned to carbonate standards, used by
+        `D47data.standardize_d18O()`.
+
+        By default equal to `{&#39;ETH-1&#39;: -2.19, &#39;ETH-2&#39;: -18.69, &#39;ETH-3&#39;: -1.78}` after
+        [Bernasconi et al. (2018)].
+
+        [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+        &#39;&#39;&#39;
+
+        d13C_STANDARDIZATION_METHOD = &#39;none&#39;
+        &#39;&#39;&#39;
+        Method by which to standardize δ&lt;sup&gt;13&lt;/sup&gt;C values:
+        
+        + `none`: do not apply any δ&lt;sup&gt;13&lt;/sup&gt;C standardization.
+        + `&#39;1pt&#39;`: within each session, offset all initial δ&lt;sup&gt;13&lt;/sup&gt;C values so as to
+        minimize the difference between final δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; values and
+        `Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB` is defined).
+        + `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ&lt;sup&gt;13&lt;/sup&gt;C
+        values so as to minimize the difference between final δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;
+        values and `Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB`
+        is defined).
+        &#39;&#39;&#39;
+
+        d18O_STANDARDIZATION_METHOD = &#39;none&#39;
+        &#39;&#39;&#39;
+        Method by which to standardize δ&lt;sup&gt;18&lt;/sup&gt;O values:
+        
+        + `none`: do not apply any δ&lt;sup&gt;18&lt;/sup&gt;O standardization.
+        + `&#39;1pt&#39;`: within each session, offset all initial δ&lt;sup&gt;18&lt;/sup&gt;O values so as to
+        minimize the difference between final δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt; values and
+        `Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB` is defined).
+        + `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ&lt;sup&gt;18&lt;/sup&gt;O
+        values so as to minimize the difference between final δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt;
+        values and `Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB`
+        is defined).
+        &#39;&#39;&#39;
 
         def __init__(self, l = [], logfile = &#39;&#39;, session = &#39;mySession&#39;, verbose = False):
                 &#39;&#39;&#39;
@@ -2701,6 +2869,8 @@ methods.</li>
                         self.sessions[s][&#39;scrambling_drift&#39;] = False
                         self.sessions[s][&#39;slope_drift&#39;] = False
                         self.sessions[s][&#39;wg_drift&#39;] = False
+                        self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] = self.d13C_STANDARDIZATION_METHOD
+                        self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] = self.d18O_STANDARDIZATION_METHOD
 
 
         def refresh_samples(self):
@@ -2830,7 +3000,7 @@ methods.</li>
                         R45_wg = R45_s / (1 + d45_s / 1000)
                         R46_wg = R46_s / (1 + d46_s / 1000)
 
-                        d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_deltas(R45_wg, R46_wg)
+                        d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
 
                         self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
 
@@ -2841,7 +3011,7 @@ methods.</li>
                                 r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
 
 
-        def compute_bulk_deltas(self, R45, R46, D17O = 0):
+        def compute_bulk_delta(self, R45, R46, D17O = 0):
                 &#39;&#39;&#39;
                 Compute δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;,
                 by solving the generalized form of equation (17) from [Brand et al. (2010)],
@@ -2922,9 +3092,14 @@ methods.</li>
                 &#39;&#39;&#39;
                 for r in self:
                         self.compute_bulk_and_clumping_deltas(r)
+                self.standardize_d13C()
+                self.standardize_d18O()
                 self.msg(f&#34;Crunched {len(self)} analyses.&#34;)
 
         def fill_in_missing_info(self, session = &#39;mySession&#39;):
+                &#39;&#39;&#39;
+                Fill in optional fields with default values
+                &#39;&#39;&#39;
                 for i,r in enumerate(self):
                         if &#39;D17O&#39; not in r:
                                 r[&#39;D17O&#39;] = 0.
@@ -2935,6 +3110,49 @@ methods.</li>
                         for k in [&#39;d48&#39;, &#39;d49&#39;]:
                                 if k not in r:
                                         r[k] = np.nan
+        
+
+        def standardize_d13C(self):
+                &#39;&#39;&#39;
+                Perform δ&lt;sup&gt;13&lt;/sup&gt;C standadization within each session `s` according to
+                `self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;]`, which is defined by default
+                by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but
+                may be redefined abitrarily at a later stage.
+                &#39;&#39;&#39;
+                for s in self.sessions:
+                        if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                                XY = [(r[&#39;d13C_VPDB&#39;], self.Nominal_d13C_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d13C_VPDB]
+                                X,Y = zip(*XY)
+                                if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                                        offset = np.mean(Y) - np.mean(X)
+                                        for r in self.sessions[s][&#39;data&#39;]:
+                                                r[&#39;d13C_VPDB&#39;] += offset                                
+                                elif self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                                        a,b = np.polyfit(X,Y,1)
+                                        for r in self.sessions[s][&#39;data&#39;]:
+                                                r[&#39;d13C_VPDB&#39;] = a * r[&#39;d13C_VPDB&#39;] + b
+
+        def standardize_d18O(self):
+                &#39;&#39;&#39;
+                Perform δ&lt;sup&gt;18&lt;/sup&gt;O standadization within each session `s` according to
+                `self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;]`,
+                which is defined by default by `D47data.refresh_sessions()`as equal to
+                `self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.
+                &#39;&#39;&#39;
+                for s in self.sessions:
+                        if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                                XY = [(r[&#39;d18O_VSMOW&#39;], self.Nominal_d18O_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d18O_VPDB]
+                                X,Y = zip(*XY)
+                                Y = [(1000+y) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000 for y in Y]
+                                if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                                        offset = np.mean(Y) - np.mean(X)
+                                        for r in self.sessions[s][&#39;data&#39;]:
+                                                r[&#39;d18O_VSMOW&#39;] += offset                               
+                                elif self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                                        a,b = np.polyfit(X,Y,1)
+                                        for r in self.sessions[s][&#39;data&#39;]:
+                                                r[&#39;d18O_VSMOW&#39;] = a * r[&#39;d18O_VSMOW&#39;] + b
+        
 
         def compute_bulk_and_clumping_deltas(self, r):
                 &#39;&#39;&#39;
@@ -2954,7 +3172,7 @@ methods.</li>
                 R48 = (1 + r[&#39;d48&#39;] / 1000) * R48_wg
                 R49 = (1 + r[&#39;d49&#39;] / 1000) * R49_wg
 
-                r[&#39;d13C_VPDB&#39;], r[&#39;d18O_VSMOW&#39;] = self.compute_bulk_deltas(R45, R46, D17O = r[&#39;D17O&#39;])
+                r[&#39;d13C_VPDB&#39;], r[&#39;d18O_VSMOW&#39;] = self.compute_bulk_delta(R45, R46, D17O = r[&#39;D17O&#39;])
                 R13 = (1 + r[&#39;d13C_VPDB&#39;] / 1000) * self.R13_VPDB
                 R18 = (1 + r[&#39;d18O_VSMOW&#39;] / 1000) * self.R18_VSMOW
 
@@ -4046,7 +4264,8 @@ methods.</li>
 <dt id="D47crunch.D47data.ALPHA_18O_ACID_REACTION"><code class="name">var <span class="ident">ALPHA_18O_ACID_REACTION</span></code></dt>
 <dd>
 <div class="desc"><p>Specifies the <sup>18</sup>O/<sup>16</sup>O fractionation factor generally applicable
-to acid reactions in the dataset. Currently only used by <code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">D47data.wg()</a></code>.</p>
+to acid reactions in the dataset. Currently used by <code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">D47data.wg()</a></code>,
+<code><a title="D47crunch.D47data.standardize_d13C" href="#D47crunch.D47data.standardize_d13C">D47data.standardize_d13C()</a></code>, and <code><a title="D47crunch.D47data.standardize_d18O" href="#D47crunch.D47data.standardize_d18O">D47data.standardize_d18O()</a></code>.</p>
 <p>By default equal to 1.008129 (calcite reacted at 90 °C, <a href="https://dx.doi.org/10.1016/j.chemgeo.2007.08.005">Kim et al., 2007</a>).</p></div>
 </dd>
 <dt id="D47crunch.D47data.LEVENE_REF_SAMPLE"><code class="name">var <span class="ident">LEVENE_REF_SAMPLE</span></code></dt>
@@ -4065,6 +4284,20 @@ sample should be used as a reference for this test.</p></div>
 <code><a title="D47crunch.D47data.standardize" href="#D47crunch.D47data.standardize">D47data.standardize()</a></code> to standardize unknown samples to an absolute Δ<sub>47</sub>
 reference frame.</p>
 <p>By default equal to <code>{'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691}</code> after
+<a href="https://doi.org/10.1029/2017GC007385">Bernasconi et al. (2018)</a>.</p></div>
+</dd>
+<dt id="D47crunch.D47data.Nominal_d13C_VPDB"><code class="name">var <span class="ident">Nominal_d13C_VPDB</span></code></dt>
+<dd>
+<div class="desc"><p>Nominal δ<sup>13</sup>C<sub>VPDB</sub> values assigned to carbonate standards, used by
+<code><a title="D47crunch.D47data.standardize_d13C" href="#D47crunch.D47data.standardize_d13C">D47data.standardize_d13C()</a></code>.</p>
+<p>By default equal to <code>{'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71}</code> after
+<a href="https://doi.org/10.1029/2017GC007385">Bernasconi et al. (2018)</a>.</p></div>
+</dd>
+<dt id="D47crunch.D47data.Nominal_d18O_VPDB"><code class="name">var <span class="ident">Nominal_d18O_VPDB</span></code></dt>
+<dd>
+<div class="desc"><p>Nominal δ<sup>18</sup>O<sub>VPDB</sub> values assigned to carbonate standards, used by
+<code><a title="D47crunch.D47data.standardize_d18O" href="#D47crunch.D47data.standardize_d18O">D47data.standardize_d18O()</a></code>.</p>
+<p>By default equal to <code>{'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78}</code> after
 <a href="https://doi.org/10.1029/2017GC007385">Bernasconi et al. (2018)</a>.</p></div>
 </dd>
 <dt id="D47crunch.D47data.R13_VPDB"><code class="name">var <span class="ident">R13_VPDB</span></code></dt>
@@ -4099,6 +4332,34 @@ By default equal to 0.0020052 (<a href="https://doi.org/10.1016/0012-821X(76&gt;
 of the carbonate standard used by <code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">D47data.wg()</a></code> to compute the isotopic composition
 of the working gas in each session.</p>
 <p>By default equal to <code>('ETH-3', 1.71, -1.78)</code> after <a href="https://doi.org/10.1029/2017GC007385">Bernasconi et al. (2018)</a>.</p></div>
+</dd>
+<dt id="D47crunch.D47data.d13C_STANDARDIZATION_METHOD"><code class="name">var <span class="ident">d13C_STANDARDIZATION_METHOD</span></code></dt>
+<dd>
+<div class="desc"><p>Method by which to standardize δ<sup>13</sup>C values:</p>
+<ul>
+<li><code>none</code>: do not apply any δ<sup>13</sup>C standardization.</li>
+<li><code>'1pt'</code>: within each session, offset all initial δ<sup>13</sup>C values so as to
+minimize the difference between final δ<sup>13</sup>C<sub>VPDB</sub> values and
+<code>Nominal_d13C_VPDB</code> (averaged over all analyses for which <code>Nominal_d13C_VPDB</code> is defined).</li>
+<li><code>'2pt'</code>: within each session, apply a affine trasformation to all δ<sup>13</sup>C
+values so as to minimize the difference between final δ<sup>13</sup>C<sub>VPDB</sub>
+values and <code>Nominal_d13C_VPDB</code> (averaged over all analyses for which <code>Nominal_d13C_VPDB</code>
+is defined).</li>
+</ul></div>
+</dd>
+<dt id="D47crunch.D47data.d18O_STANDARDIZATION_METHOD"><code class="name">var <span class="ident">d18O_STANDARDIZATION_METHOD</span></code></dt>
+<dd>
+<div class="desc"><p>Method by which to standardize δ<sup>18</sup>O values:</p>
+<ul>
+<li><code>none</code>: do not apply any δ<sup>18</sup>O standardization.</li>
+<li><code>'1pt'</code>: within each session, offset all initial δ<sup>18</sup>O values so as to
+minimize the difference between final δ<sup>18</sup>O<sub>VPDB</sub> values and
+<code>Nominal_d18O_VPDB</code> (averaged over all analyses for which <code>Nominal_d18O_VPDB</code> is defined).</li>
+<li><code>'2pt'</code>: within each session, apply a affine trasformation to all δ<sup>18</sup>O
+values so as to minimize the difference between final δ<sup>18</sup>O<sub>VPDB</sub>
+values and <code>Nominal_d18O_VPDB</code> (averaged over all analyses for which <code>Nominal_d18O_VPDB</code>
+is defined).</li>
+</ul></div>
 </dd>
 <dt id="D47crunch.D47data.lambda_17"><code class="name">var <span class="ident">lambda_17</span></code></dt>
 <dd>
@@ -4232,7 +4493,7 @@ raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values for an analysis <co
         R48 = (1 + r[&#39;d48&#39;] / 1000) * R48_wg
         R49 = (1 + r[&#39;d49&#39;] / 1000) * R49_wg
 
-        r[&#39;d13C_VPDB&#39;], r[&#39;d18O_VSMOW&#39;] = self.compute_bulk_deltas(R45, R46, D17O = r[&#39;D17O&#39;])
+        r[&#39;d13C_VPDB&#39;], r[&#39;d18O_VSMOW&#39;] = self.compute_bulk_delta(R45, R46, D17O = r[&#39;D17O&#39;])
         R13 = (1 + r[&#39;d13C_VPDB&#39;] / 1000) * self.R13_VPDB
         R18 = (1 + r[&#39;d18O_VSMOW&#39;] / 1000) * self.R18_VSMOW
 
@@ -4254,8 +4515,8 @@ raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values for an analysis <co
         r[&#39;D49raw&#39;] = 1000 * (R49 / R49stoch - 1)</code></pre>
 </details>
 </dd>
-<dt id="D47crunch.D47data.compute_bulk_deltas"><code class="name flex">
-<span>def <span class="ident">compute_bulk_deltas</span></span>(<span>self, R45, R46, D17O=0)</span>
+<dt id="D47crunch.D47data.compute_bulk_delta"><code class="name flex">
+<span>def <span class="ident">compute_bulk_delta</span></span>(<span>self, R45, R46, D17O=0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VSMOW</sub>,
@@ -4267,7 +4528,7 @@ solving the corresponding second-order Taylor polynomial.
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def compute_bulk_deltas(self, R45, R46, D17O = 0):
+<pre><code class="python">def compute_bulk_delta(self, R45, R46, D17O = 0):
         &#39;&#39;&#39;
         Compute δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;,
         by solving the generalized form of equation (17) from [Brand et al. (2010)],
@@ -4706,6 +4967,8 @@ def crunch(self, verbose = &#39;&#39;):
         &#39;&#39;&#39;
         for r in self:
                 self.compute_bulk_and_clumping_deltas(r)
+        self.standardize_d13C()
+        self.standardize_d18O()
         self.msg(f&#34;Crunched {len(self)} analyses.&#34;)</code></pre>
 </details>
 </dd>
@@ -4713,12 +4976,15 @@ def crunch(self, verbose = &#39;&#39;):
 <span>def <span class="ident">fill_in_missing_info</span></span>(<span>self, session='mySession')</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Fill in optional fields with default values</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def fill_in_missing_info(self, session = &#39;mySession&#39;):
+        &#39;&#39;&#39;
+        Fill in optional fields with default values
+        &#39;&#39;&#39;
         for i,r in enumerate(self):
                 if &#39;D17O&#39; not in r:
                         r[&#39;D17O&#39;] = 0.
@@ -5084,7 +5350,9 @@ to <code>False</code> for all sessions.</p></div>
         for s in self.sessions:
                 self.sessions[s][&#39;scrambling_drift&#39;] = False
                 self.sessions[s][&#39;slope_drift&#39;] = False
-                self.sessions[s][&#39;wg_drift&#39;] = False</code></pre>
+                self.sessions[s][&#39;wg_drift&#39;] = False
+                self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] = self.d13C_STANDARDIZATION_METHOD
+                self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] = self.d18O_STANDARDIZATION_METHOD</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.repeatabilies"><code class="name flex">
@@ -5620,6 +5888,73 @@ session independently, based only on anchors analyses.</p></div>
                                 self.consolidate(tables = consolidate_tables, plots = consolidate_plots)</code></pre>
 </details>
 </dd>
+<dt id="D47crunch.D47data.standardize_d13C"><code class="name flex">
+<span>def <span class="ident">standardize_d13C</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Perform δ<sup>13</sup>C standadization within each session <code>s</code> according to
+<code>self.sessions[s]['d13C_STANDARDIZATION_METHOD']</code>, which is defined by default
+by <code><a title="D47crunch.D47data.refresh_sessions" href="#D47crunch.D47data.refresh_sessions">D47data.refresh_sessions()</a></code>as equal to <code>self.d13C_STANDARDIZATION_METHOD</code>, but
+may be redefined abitrarily at a later stage.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def standardize_d13C(self):
+        &#39;&#39;&#39;
+        Perform δ&lt;sup&gt;13&lt;/sup&gt;C standadization within each session `s` according to
+        `self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;]`, which is defined by default
+        by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but
+        may be redefined abitrarily at a later stage.
+        &#39;&#39;&#39;
+        for s in self.sessions:
+                if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                        XY = [(r[&#39;d13C_VPDB&#39;], self.Nominal_d13C_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d13C_VPDB]
+                        X,Y = zip(*XY)
+                        if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                                offset = np.mean(Y) - np.mean(X)
+                                for r in self.sessions[s][&#39;data&#39;]:
+                                        r[&#39;d13C_VPDB&#39;] += offset                                
+                        elif self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                                a,b = np.polyfit(X,Y,1)
+                                for r in self.sessions[s][&#39;data&#39;]:
+                                        r[&#39;d13C_VPDB&#39;] = a * r[&#39;d13C_VPDB&#39;] + b</code></pre>
+</details>
+</dd>
+<dt id="D47crunch.D47data.standardize_d18O"><code class="name flex">
+<span>def <span class="ident">standardize_d18O</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Perform δ<sup>18</sup>O standadization within each session <code>s</code> according to
+<code>self.ALPHA_18O_ACID_REACTION</code> and <code>self.sessions[s]['d18O_STANDARDIZATION_METHOD']</code>,
+which is defined by default by <code><a title="D47crunch.D47data.refresh_sessions" href="#D47crunch.D47data.refresh_sessions">D47data.refresh_sessions()</a></code>as equal to
+<code>self.d18O_STANDARDIZATION_METHOD</code>, but may be redefined abitrarily at a later stage.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def standardize_d18O(self):
+        &#39;&#39;&#39;
+        Perform δ&lt;sup&gt;18&lt;/sup&gt;O standadization within each session `s` according to
+        `self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;]`,
+        which is defined by default by `D47data.refresh_sessions()`as equal to
+        `self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.
+        &#39;&#39;&#39;
+        for s in self.sessions:
+                if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                        XY = [(r[&#39;d18O_VSMOW&#39;], self.Nominal_d18O_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d18O_VPDB]
+                        X,Y = zip(*XY)
+                        Y = [(1000+y) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000 for y in Y]
+                        if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                                offset = np.mean(Y) - np.mean(X)
+                                for r in self.sessions[s][&#39;data&#39;]:
+                                        r[&#39;d18O_VSMOW&#39;] += offset                               
+                        elif self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                                a,b = np.polyfit(X,Y,1)
+                                for r in self.sessions[s][&#39;data&#39;]:
+                                        r[&#39;d18O_VSMOW&#39;] = a * r[&#39;d18O_VSMOW&#39;] + b</code></pre>
+</details>
+</dd>
 <dt id="D47crunch.D47data.table_of_analyses"><code class="name flex">
 <span>def <span class="ident">table_of_analyses</span></span>(<span>self, dir='results', filename='analyses.csv', save_to_file=True, print_out=True)</span>
 </code></dt>
@@ -5978,7 +6313,7 @@ def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;
                 R45_wg = R45_s / (1 + d45_s / 1000)
                 R46_wg = R46_s / (1 + d46_s / 1000)
 
-                d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_deltas(R45_wg, R46_wg)
+                d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
 
                 self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
 
@@ -6045,6 +6380,8 @@ def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;
 <li><code><a title="D47crunch.D47data.D47fromTeq" href="#D47crunch.D47data.D47fromTeq">D47fromTeq</a></code></li>
 <li><code><a title="D47crunch.D47data.LEVENE_REF_SAMPLE" href="#D47crunch.D47data.LEVENE_REF_SAMPLE">LEVENE_REF_SAMPLE</a></code></li>
 <li><code><a title="D47crunch.D47data.Nominal_D47" href="#D47crunch.D47data.Nominal_D47">Nominal_D47</a></code></li>
+<li><code><a title="D47crunch.D47data.Nominal_d13C_VPDB" href="#D47crunch.D47data.Nominal_d13C_VPDB">Nominal_d13C_VPDB</a></code></li>
+<li><code><a title="D47crunch.D47data.Nominal_d18O_VPDB" href="#D47crunch.D47data.Nominal_d18O_VPDB">Nominal_d18O_VPDB</a></code></li>
 <li><code><a title="D47crunch.D47data.R13_VPDB" href="#D47crunch.D47data.R13_VPDB">R13_VPDB</a></code></li>
 <li><code><a title="D47crunch.D47data.R17_VPDB" href="#D47crunch.D47data.R17_VPDB">R17_VPDB</a></code></li>
 <li><code><a title="D47crunch.D47data.R17_VSMOW" href="#D47crunch.D47data.R17_VSMOW">R17_VSMOW</a></code></li>
@@ -6053,13 +6390,15 @@ def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;
 <li><code><a title="D47crunch.D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION" href="#D47crunch.D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION">SAMPLE_CONSTRAINING_WG_COMPOSITION</a></code></li>
 <li><code><a title="D47crunch.D47data.assign_timestamps" href="#D47crunch.D47data.assign_timestamps">assign_timestamps</a></code></li>
 <li><code><a title="D47crunch.D47data.compute_bulk_and_clumping_deltas" href="#D47crunch.D47data.compute_bulk_and_clumping_deltas">compute_bulk_and_clumping_deltas</a></code></li>
-<li><code><a title="D47crunch.D47data.compute_bulk_deltas" href="#D47crunch.D47data.compute_bulk_deltas">compute_bulk_deltas</a></code></li>
+<li><code><a title="D47crunch.D47data.compute_bulk_delta" href="#D47crunch.D47data.compute_bulk_delta">compute_bulk_delta</a></code></li>
 <li><code><a title="D47crunch.D47data.compute_isobar_ratios" href="#D47crunch.D47data.compute_isobar_ratios">compute_isobar_ratios</a></code></li>
 <li><code><a title="D47crunch.D47data.compute_r" href="#D47crunch.D47data.compute_r">compute_r</a></code></li>
 <li><code><a title="D47crunch.D47data.consolidate" href="#D47crunch.D47data.consolidate">consolidate</a></code></li>
 <li><code><a title="D47crunch.D47data.consolidate_samples" href="#D47crunch.D47data.consolidate_samples">consolidate_samples</a></code></li>
 <li><code><a title="D47crunch.D47data.consolidate_sessions" href="#D47crunch.D47data.consolidate_sessions">consolidate_sessions</a></code></li>
 <li><code><a title="D47crunch.D47data.crunch" href="#D47crunch.D47data.crunch">crunch</a></code></li>
+<li><code><a title="D47crunch.D47data.d13C_STANDARDIZATION_METHOD" href="#D47crunch.D47data.d13C_STANDARDIZATION_METHOD">d13C_STANDARDIZATION_METHOD</a></code></li>
+<li><code><a title="D47crunch.D47data.d18O_STANDARDIZATION_METHOD" href="#D47crunch.D47data.d18O_STANDARDIZATION_METHOD">d18O_STANDARDIZATION_METHOD</a></code></li>
 <li><code><a title="D47crunch.D47data.fill_in_missing_info" href="#D47crunch.D47data.fill_in_missing_info">fill_in_missing_info</a></code></li>
 <li><code><a title="D47crunch.D47data.input" href="#D47crunch.D47data.input">input</a></code></li>
 <li><code><a title="D47crunch.D47data.lambda_17" href="#D47crunch.D47data.lambda_17">lambda_17</a></code></li>
@@ -6080,6 +6419,8 @@ def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;
 <li><code><a title="D47crunch.D47data.split_samples" href="#D47crunch.D47data.split_samples">split_samples</a></code></li>
 <li><code><a title="D47crunch.D47data.standardization_error" href="#D47crunch.D47data.standardization_error">standardization_error</a></code></li>
 <li><code><a title="D47crunch.D47data.standardize" href="#D47crunch.D47data.standardize">standardize</a></code></li>
+<li><code><a title="D47crunch.D47data.standardize_d13C" href="#D47crunch.D47data.standardize_d13C">standardize_d13C</a></code></li>
+<li><code><a title="D47crunch.D47data.standardize_d18O" href="#D47crunch.D47data.standardize_d18O">standardize_d18O</a></code></li>
 <li><code><a title="D47crunch.D47data.table_of_analyses" href="#D47crunch.D47data.table_of_analyses">table_of_analyses</a></code></li>
 <li><code><a title="D47crunch.D47data.table_of_samples" href="#D47crunch.D47data.table_of_samples">table_of_samples</a></code></li>
 <li><code><a title="D47crunch.D47data.table_of_sessions" href="#D47crunch.D47data.table_of_sessions">table_of_sessions</a></code></li>

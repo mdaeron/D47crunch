@@ -321,12 +321,14 @@ class D47data(list):
 	ALPHA_18O_ACID_REACTION = round(np.exp(3.59 / (90 + 273.15) - 1.79e-3), 6)  # (Kim et al., 2007, calcite)
 	'''
 	Specifies the <sup>18</sup>O/<sup>16</sup>O fractionation factor generally applicable
-	to acid reactions in the dataset. Currently only used by `D47data.wg()`.
+	to acid reactions in the dataset. Currently used by `D47data.wg()`,
+	`D47data.standardize_d13C`, and `D47data.standardize_d18O`.
 
 	By default equal to 1.008129 (calcite reacted at 90 °C, [Kim et al., 2007]).
 
 	[Kim et al., 2007]: https://dx.doi.org/10.1016/j.chemgeo.2007.08.005
 	'''
+
 
 	Nominal_D47 = {
 		'ETH-1': 0.258,
@@ -344,6 +346,63 @@ class D47data(list):
 	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
 	'''
 
+	Nominal_d13C_VPDB = {
+		'ETH-1': 2.02,
+		'ETH-2': -10.17,
+		'ETH-3': 1.71,
+		}	# (Bernasconi et al., 2018)
+	'''
+	Nominal δ<sup>13</sup>C<sub>VPDB</sub> values assigned to carbonate standards, used by
+	`D47data.standardize_d13C()`.
+
+	By default equal to `{'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71}` after
+	[Bernasconi et al. (2018)].
+
+	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+	'''
+
+	Nominal_d18O_VPDB = {
+		'ETH-1': -2.19,
+		'ETH-2': -18.69,
+		'ETH-3': -1.78,
+		}	# (Bernasconi et al., 2018)
+	'''
+	Nominal δ<sup>18</sup>O<sub>VPDB</sub> values assigned to carbonate standards, used by
+	`D47data.standardize_d18O()`.
+
+	By default equal to `{'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78}` after
+	[Bernasconi et al. (2018)].
+
+	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+	'''
+
+	d13C_STANDARDIZATION_METHOD = 'none'
+	'''
+	Method by which to standardize δ<sup>13</sup>C values:
+	
+	+ `none`: do not apply any δ<sup>13</sup>C standardization.
+	+ `'1pt'`: within each session, offset all initial δ<sup>13</sup>C values so as to
+	minimize the difference between final δ<sup>13</sup>C<sub>VPDB</sub> values and
+	`Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB` is defined).
+	+ `'2pt'`: within each session, apply a affine trasformation to all δ<sup>13</sup>C
+	values so as to minimize the difference between final δ<sup>13</sup>C<sub>VPDB</sub>
+	values and `Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB`
+	is defined).
+	'''
+
+	d18O_STANDARDIZATION_METHOD = 'none'
+	'''
+	Method by which to standardize δ<sup>18</sup>O values:
+	
+	+ `none`: do not apply any δ<sup>18</sup>O standardization.
+	+ `'1pt'`: within each session, offset all initial δ<sup>18</sup>O values so as to
+	minimize the difference between final δ<sup>18</sup>O<sub>VPDB</sub> values and
+	`Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB` is defined).
+	+ `'2pt'`: within each session, apply a affine trasformation to all δ<sup>18</sup>O
+	values so as to minimize the difference between final δ<sup>18</sup>O<sub>VPDB</sub>
+	values and `Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB`
+	is defined).
+	'''
 
 	def __init__(self, l = [], logfile = '', session = 'mySession', verbose = False):
 		'''
@@ -438,6 +497,8 @@ class D47data(list):
 			self.sessions[s]['scrambling_drift'] = False
 			self.sessions[s]['slope_drift'] = False
 			self.sessions[s]['wg_drift'] = False
+			self.sessions[s]['d13C_STANDARDIZATION_METHOD'] = self.d13C_STANDARDIZATION_METHOD
+			self.sessions[s]['d18O_STANDARDIZATION_METHOD'] = self.d18O_STANDARDIZATION_METHOD
 
 
 	def refresh_samples(self):
@@ -567,7 +628,7 @@ class D47data(list):
 			R45_wg = R45_s / (1 + d45_s / 1000)
 			R46_wg = R46_s / (1 + d46_s / 1000)
 
-			d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_deltas(R45_wg, R46_wg)
+			d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
 
 			self.msg(f'Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}')
 
@@ -578,7 +639,7 @@ class D47data(list):
 				r['d18Owg_VSMOW'] = d18Owg_VSMOW
 
 
-	def compute_bulk_deltas(self, R45, R46, D17O = 0):
+	def compute_bulk_delta(self, R45, R46, D17O = 0):
 		'''
 		Compute δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VSMOW</sub>,
 		by solving the generalized form of equation (17) from [Brand et al. (2010)],
@@ -659,9 +720,14 @@ class D47data(list):
 		'''
 		for r in self:
 			self.compute_bulk_and_clumping_deltas(r)
+		self.standardize_d13C()
+		self.standardize_d18O()
 		self.msg(f"Crunched {len(self)} analyses.")
 
 	def fill_in_missing_info(self, session = 'mySession'):
+		'''
+		Fill in optional fields with default values
+		'''
 		for i,r in enumerate(self):
 			if 'D17O' not in r:
 				r['D17O'] = 0.
@@ -672,13 +738,54 @@ class D47data(list):
 			for k in ['d48', 'd49']:
 				if k not in r:
 					r[k] = np.nan
+	
+
+	def standardize_d13C(self):
+		'''
+		Perform δ<sup>13</sup>C standadization within each session `s` according to
+		`self.sessions[s]['d13C_STANDARDIZATION_METHOD']`, which is defined by default
+		by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but
+		may be redefined abitrarily at a later stage.
+		'''
+		for s in self.sessions:
+			if self.sessions[s]['d13C_STANDARDIZATION_METHOD'] in ['1pt', '2pt']:
+				XY = [(r['d13C_VPDB'], self.Nominal_d13C_VPDB[r['Sample']]) for r in self.sessions[s]['data'] if r['Sample'] in self.Nominal_d13C_VPDB]
+				X,Y = zip(*XY)
+				if self.sessions[s]['d13C_STANDARDIZATION_METHOD'] == '1pt':
+					offset = np.mean(Y) - np.mean(X)
+					for r in self.sessions[s]['data']:
+						r['d13C_VPDB'] += offset				
+				elif self.sessions[s]['d13C_STANDARDIZATION_METHOD'] == '2pt':
+					a,b = np.polyfit(X,Y,1)
+					for r in self.sessions[s]['data']:
+						r['d13C_VPDB'] = a * r['d13C_VPDB'] + b
+
+	def standardize_d18O(self):
+		'''
+		Perform δ<sup>18</sup>O standadization within each session `s` according to
+		`self.ALPHA_18O_ACID_REACTION` and `self.sessions[s]['d18O_STANDARDIZATION_METHOD']`,
+		which is defined by default by `D47data.refresh_sessions()`as equal to
+		`self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.
+		'''
+		for s in self.sessions:
+			if self.sessions[s]['d18O_STANDARDIZATION_METHOD'] in ['1pt', '2pt']:
+				XY = [(r['d18O_VSMOW'], self.Nominal_d18O_VPDB[r['Sample']]) for r in self.sessions[s]['data'] if r['Sample'] in self.Nominal_d18O_VPDB]
+				X,Y = zip(*XY)
+				Y = [(1000+y) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000 for y in Y]
+				if self.sessions[s]['d18O_STANDARDIZATION_METHOD'] == '1pt':
+					offset = np.mean(Y) - np.mean(X)
+					for r in self.sessions[s]['data']:
+						r['d18O_VSMOW'] += offset				
+				elif self.sessions[s]['d18O_STANDARDIZATION_METHOD'] == '2pt':
+					a,b = np.polyfit(X,Y,1)
+					for r in self.sessions[s]['data']:
+						r['d18O_VSMOW'] = a * r['d18O_VSMOW'] + b
+	
 
 	def compute_bulk_and_clumping_deltas(self, r):
 		'''
 		Compute δ<sup>13</sup>C<sub>VPDB</sub>, δ<sup>18</sup>O<sub>VSMOW</sub>, and
 		raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values for an analysis `r`.
-		
-		> todo: 2-pt stdz
 		'''
 
 		# Compute working gas R13, R18, and isobar ratios
@@ -693,7 +800,7 @@ class D47data(list):
 		R48 = (1 + r['d48'] / 1000) * R48_wg
 		R49 = (1 + r['d49'] / 1000) * R49_wg
 
-		r['d13C_VPDB'], r['d18O_VSMOW'] = self.compute_bulk_deltas(R45, R46, D17O = r['D17O'])
+		r['d13C_VPDB'], r['d18O_VSMOW'] = self.compute_bulk_delta(R45, R46, D17O = r['D17O'])
 		R13 = (1 + r['d13C_VPDB'] / 1000) * self.R13_VPDB
 		R18 = (1 + r['d18O_VSMOW'] / 1000) * self.R18_VSMOW
 
