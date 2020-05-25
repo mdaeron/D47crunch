@@ -25,9 +25,9 @@ from scipy.interpolate import interp1d
 from numpy import linalg
 from lmfit import Minimizer, Parameters, report_fit
 from matplotlib import pyplot as ppl
-from matplotlib import rcParams
 from datetime import datetime as dt
 from functools import wraps
+from matplotlib import rcParams
 
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = 'Helvetica'
@@ -677,6 +677,8 @@ class D47data(list):
 		'''
 		Compute δ<sup>13</sup>C<sub>VPDB</sub>, δ<sup>18</sup>O<sub>VSMOW</sub>, and
 		raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values for an analysis `r`.
+		
+		> todo: 2-pt stdz
 		'''
 
 		# Compute working gas R13, R18, and isobar ratios
