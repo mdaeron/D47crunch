@@ -580,7 +580,80 @@ class D47data(list):
 
 
 	@make_verbal
-	def wg(self, sample = '', d13C_vpdb = '', d18O_vpdb = '', a18_acid = ''):
+	def wg(self, samples = '', a18_acid = ''):
+		'''
+		Compute bulk composition of the working gas for each session
+		based on the carbonate standards defined both in `self.Nominal_d13C_VPDB`
+		and in `self.Nominal_d18O_VPDB`.
+		'''
+
+		self.msg('Computing WG composition:')
+
+		if a18_acid == '':
+			a18_acid = self.ALPHA_18O_ACID_REACTION
+		if samples == '':
+			samples = [s for s in self.Nominal_d13C_VPDB if s in self.Nominal_d18O_VPDB]
+
+		assert a18_acid, f'Acid fractionation value should differ from zero.'
+
+		samples = [s for s in samples if s in self.Nominal_d13C_VPDB and s in self.Nominal_d18O_VPDB]
+		R45R46_standards = {}
+		for sample in samples:
+			d13C_vpdb = self.Nominal_d13C_VPDB[sample]
+			d18O_vpdb = self.Nominal_d18O_VPDB[sample]
+			R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
+			R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
+			R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
+
+			C12_s = 1 / (1 + R13_s)
+			C13_s = R13_s / (1 + R13_s)
+			C16_s = 1 / (1 + R17_s + R18_s)
+			C17_s = R17_s / (1 + R17_s + R18_s)
+			C18_s = R18_s / (1 + R17_s + R18_s)
+
+			C626_s = C12_s * C16_s ** 2
+			C627_s = 2 * C12_s * C16_s * C17_s
+			C628_s = 2 * C12_s * C16_s * C18_s
+			C636_s = C13_s * C16_s ** 2
+			C637_s = 2 * C13_s * C16_s * C17_s
+			C727_s = C12_s * C17_s ** 2
+
+			R45_s = (C627_s + C636_s) / C626_s
+			R46_s = (C628_s + C637_s + C727_s) / C626_s
+			R45R46_standards[sample] = (R45_s, R46_s)
+		
+		for s in self.sessions:
+			db = [r for r in self.sessions[s]['data'] if r['Sample'] in samples]
+			assert db, f'No sample from {samples} found in session "{s}".'
+			dbsamples = sorted({r['Sample'] for r in db})
+			if len(dbsamples) > 1:
+				X = [r['d45'] for r in db]
+				Y = [R45R46_standards[r['Sample']][0] for r in db]
+				R45_wg = np.polyfit(X, Y, 1)[1]
+
+				X = [r['d46'] for r in db]
+				Y = [R45R46_standards[r['Sample']][1] for r in db]
+				R46_wg = np.polyfit(X, Y, 1)[1]
+			elif len(dbsamples) == 1:
+				sample =  dbsamples[0]
+				d45_s = np.mean([r['d45'] for r in db])
+				d46_s = np.mean([r['d46'] for r in db])
+				R45_wg = R45R46_standards[sample][0] / (1 + d45_s / 1000)
+				R46_wg = R45R46_standards[sample][1] / (1 + d46_s / 1000)
+
+			d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
+
+			self.msg(f'Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}')
+
+			self.sessions[s]['d13Cwg_VPDB'] = d13Cwg_VPDB
+			self.sessions[s]['d18Owg_VSMOW'] = d18Owg_VSMOW
+			for r in self.sessions[s]['data']:
+				r['d13Cwg_VPDB'] = d13Cwg_VPDB
+				r['d18Owg_VSMOW'] = d18Owg_VSMOW
+		
+
+	@make_verbal
+	def wg_old(self, sample = '', d13C_vpdb = '', d18O_vpdb = '', a18_acid = ''):
 		'''
 		Compute bulk composition of the working gas for each session
 		based on the average composition, within each session,
