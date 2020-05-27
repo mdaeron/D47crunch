@@ -625,21 +625,29 @@ class D47data(list):
 		for s in self.sessions:
 			db = [r for r in self.sessions[s]['data'] if r['Sample'] in samples]
 			assert db, f'No sample from {samples} found in session "{s}".'
-			dbsamples = sorted({r['Sample'] for r in db})
-			if len(dbsamples) > 1:
-				X = [r['d45'] for r in db]
-				Y = [R45R46_standards[r['Sample']][0] for r in db]
+# 			dbsamples = sorted({r['Sample'] for r in db})
+
+			X = [r['d45'] for r in db]
+			Y = [R45R46_standards[r['Sample']][0] for r in db]
+			x1, x2 = np.min(X), np.max(X)
+			wgcoord = x1/(x1-x2)
+			if wgcoord < -.5 or wgcoord > 1.5:
+				# unreasonable to extrapolate to d45 = 0
+				R45_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
+			else :
+				# d45 = 0 is reasonably well bracketed
 				R45_wg = np.polyfit(X, Y, 1)[1]
 
-				X = [r['d46'] for r in db]
-				Y = [R45R46_standards[r['Sample']][1] for r in db]
+			X = [r['d46'] for r in db]
+			Y = [R45R46_standards[r['Sample']][1] for r in db]
+			x1, x2 = np.min(X), np.max(X)
+			wgcoord = x1/(x1-x2)
+			if wgcoord < -.5 or wgcoord > 1.5:
+				# unreasonable to extrapolate to d46 = 0
+				R46_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
+			else :
+				# d46 = 0 is reasonably well bracketed
 				R46_wg = np.polyfit(X, Y, 1)[1]
-			elif len(dbsamples) == 1:
-				sample =  dbsamples[0]
-				d45_s = np.mean([r['d45'] for r in db])
-				d46_s = np.mean([r['d46'] for r in db])
-				R45_wg = R45R46_standards[sample][0] / (1 + d45_s / 1000)
-				R46_wg = R45R46_standards[sample][1] / (1 + d46_s / 1000)
 
 			d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
 
