@@ -1287,13 +1287,13 @@ class D47data(list):
 
 
 	@make_verbal
-	def table_of_sessions(self,
+	def summary(self,
 		dir = 'results',
-		filename = 'sessions.csv',
+		filename = 'summary.csv',
 		save_to_file = True,
 		print_out = True):
 		'''
-		Print out an/or save to disk a table of sessions.
+		Print out an/or save to disk a summary of the standardization results.
 
 		__Parameters__
 
@@ -1314,12 +1314,37 @@ class D47data(list):
 		out += [['Model degrees of freedom', f"{self.Nf}"]]
 		out += [['Student\'s 95% t-factor', f"{self.t95:.2f}"]]
 		out += [['Standardization method', self.standardization_method]]
-		out1 = out
-		self.msg('\n' + pretty_table(out1, header = 0))
 
+		if save_to_file:
+			if not os.path.exists(dir):
+				os.makedirs(dir)
+			with open(f'{dir}/{filename}', 'w') as fid:
+				fid.write(make_csv(out))
+		if print_out:
+			self.msg('\n' + pretty_table(out, header = 0))
+		return out
+
+
+	@make_verbal
+	def table_of_sessions(self,
+		dir = 'results',
+		filename = 'sessions.csv',
+		save_to_file = True,
+		print_out = True):
+		'''
+		Print out an/or save to disk a table of sessions.
+
+		__Parameters__
+
+		+ `dir`: the directory in which to save the table
+		+ `filename`: the name to the csv file to write to
+		+ `save_to_file`: whether to save the table to disk
+		+ `print_out`: whether to print out the table
+		'''
 		include_a2 = any([self.sessions[session]['scrambling_drift'] for session in self.sessions])
 		include_b2 = any([self.sessions[session]['slope_drift'] for session in self.sessions])
 		include_c2 = any([self.sessions[session]['wg_drift'] for session in self.sessions])
+
 		out = [['Session','Na','Nu','d13Cwg_VPDB','d18Owg_VSMOW','r_d13C','r_d18O','r_D47','a ± SE','1e3 x b ± SE','c ± SE']]
 		if include_a2:
 			out[-1] += ['a2 ± SE']
@@ -1364,9 +1389,10 @@ class D47data(list):
 				fid.write(make_csv(out))
 		if print_out:
 			self.msg('\n' + pretty_table(out))
-		return out1, out
+		return out
 
 
+	@make_verbal
 	def table_of_analyses(self, dir = 'results', filename = 'analyses.csv', save_to_file = True, print_out = True):
 		'''
 		Print out an/or save to disk a table of analyses.
@@ -1409,7 +1435,7 @@ class D47data(list):
 			with open(f'{dir}/{filename}', 'w') as fid:
 				fid.write(make_csv(out))
 		if print_out:
-			print(pretty_table(out))
+			self.msg('\n' + pretty_table(out))
 		return out
 
 
@@ -1799,6 +1825,7 @@ class D47data(list):
 		self.repeatabilies()
 
 		if tables:
+			self.summary()
 			self.table_of_sessions()
 			self.table_of_analyses()
 			self.table_of_samples()
