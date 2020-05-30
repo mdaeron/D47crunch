@@ -25,6 +25,7 @@ from scipy.interpolate import interp1d
 from numpy import linalg
 from lmfit import Minimizer, Parameters, report_fit
 from matplotlib import pyplot as ppl
+
 from datetime import datetime as dt
 from functools import wraps
 from matplotlib import rcParams
@@ -376,7 +377,7 @@ class D47data(list):
 	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
 	'''
 
-	d13C_STANDARDIZATION_METHOD = 'none'
+	d13C_STANDARDIZATION_METHOD = '2pt'
 	'''
 	Method by which to standardize δ<sup>13</sup>C values:
 	
@@ -390,7 +391,7 @@ class D47data(list):
 	is defined).
 	'''
 
-	d18O_STANDARDIZATION_METHOD = 'none'
+	d18O_STANDARDIZATION_METHOD = '2pt'
 	'''
 	Method by which to standardize δ<sup>18</sup>O values:
 	
@@ -497,8 +498,8 @@ class D47data(list):
 			self.sessions[s]['scrambling_drift'] = False
 			self.sessions[s]['slope_drift'] = False
 			self.sessions[s]['wg_drift'] = False
-			self.sessions[s]['d13C_STANDARDIZATION_METHOD'] = self.d13C_STANDARDIZATION_METHOD
-			self.sessions[s]['d18O_STANDARDIZATION_METHOD'] = self.d18O_STANDARDIZATION_METHOD
+			self.sessions[s]['d13C_standardization_method'] = self.d13C_STANDARDIZATION_METHOD
+			self.sessions[s]['d18O_standardization_method'] = self.d18O_STANDARDIZATION_METHOD
 
 
 	def refresh_samples(self):
@@ -824,19 +825,19 @@ class D47data(list):
 	def standardize_d13C(self):
 		'''
 		Perform δ<sup>13</sup>C standadization within each session `s` according to
-		`self.sessions[s]['d13C_STANDARDIZATION_METHOD']`, which is defined by default
+		`self.sessions[s]['d13C_standardization_method']`, which is defined by default
 		by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but
 		may be redefined abitrarily at a later stage.
 		'''
 		for s in self.sessions:
-			if self.sessions[s]['d13C_STANDARDIZATION_METHOD'] in ['1pt', '2pt']:
+			if self.sessions[s]['d13C_standardization_method'] in ['1pt', '2pt']:
 				XY = [(r['d13C_VPDB'], self.Nominal_d13C_VPDB[r['Sample']]) for r in self.sessions[s]['data'] if r['Sample'] in self.Nominal_d13C_VPDB]
 				X,Y = zip(*XY)
-				if self.sessions[s]['d13C_STANDARDIZATION_METHOD'] == '1pt':
+				if self.sessions[s]['d13C_standardization_method'] == '1pt':
 					offset = np.mean(Y) - np.mean(X)
 					for r in self.sessions[s]['data']:
 						r['d13C_VPDB'] += offset				
-				elif self.sessions[s]['d13C_STANDARDIZATION_METHOD'] == '2pt':
+				elif self.sessions[s]['d13C_standardization_method'] == '2pt':
 					a,b = np.polyfit(X,Y,1)
 					for r in self.sessions[s]['data']:
 						r['d13C_VPDB'] = a * r['d13C_VPDB'] + b
@@ -844,20 +845,20 @@ class D47data(list):
 	def standardize_d18O(self):
 		'''
 		Perform δ<sup>18</sup>O standadization within each session `s` according to
-		`self.ALPHA_18O_ACID_REACTION` and `self.sessions[s]['d18O_STANDARDIZATION_METHOD']`,
+		`self.ALPHA_18O_ACID_REACTION` and `self.sessions[s]['d18O_standardization_method']`,
 		which is defined by default by `D47data.refresh_sessions()`as equal to
 		`self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.
 		'''
 		for s in self.sessions:
-			if self.sessions[s]['d18O_STANDARDIZATION_METHOD'] in ['1pt', '2pt']:
+			if self.sessions[s]['d18O_standardization_method'] in ['1pt', '2pt']:
 				XY = [(r['d18O_VSMOW'], self.Nominal_d18O_VPDB[r['Sample']]) for r in self.sessions[s]['data'] if r['Sample'] in self.Nominal_d18O_VPDB]
 				X,Y = zip(*XY)
 				Y = [(1000+y) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000 for y in Y]
-				if self.sessions[s]['d18O_STANDARDIZATION_METHOD'] == '1pt':
+				if self.sessions[s]['d18O_standardization_method'] == '1pt':
 					offset = np.mean(Y) - np.mean(X)
 					for r in self.sessions[s]['data']:
 						r['d18O_VSMOW'] += offset				
-				elif self.sessions[s]['d18O_STANDARDIZATION_METHOD'] == '2pt':
+				elif self.sessions[s]['d18O_standardization_method'] == '2pt':
 					a,b = np.polyfit(X,Y,1)
 					for r in self.sessions[s]['data']:
 						r['d18O_VSMOW'] = a * r['d18O_VSMOW'] + b
@@ -1990,3 +1991,12 @@ class D47data(list):
 			/ self.unknowns[sample1]['SE_D47']
 			/ self.unknowns[sample2]['SE_D47']
 			)
+
+	def plot_single_session(self,
+		session,
+		kw_plot_anchors = dict(ls='None', marker='x', mec=(.75, 0, 0), mew = .75),
+		kw_plot_unknowns = dict(ls='None', marker='x', mec=(0, 0, .75), mew = .75),
+		kw_contour_error = dict(colors = (0, 0, 0), alpha = .5, lw = 0.75)
+		)
+
+
