@@ -430,8 +430,8 @@ __author__    = &#39;Mathieu Daëron&#39;
 __contact__   = &#39;daeron@lsce.ipsl.fr&#39;
 __copyright__ = &#39;Copyright (c) 2020 Mathieu Daëron&#39;
 __license__   = &#39;Modified BSD License - https://opensource.org/licenses/BSD-3-Clause&#39;
-__date__      = &#39;2020-05-16&#39;
-__version__   = &#39;0.5.dev3&#39;
+__date__      = &#39;2020-09-30&#39;
+__version__   = &#39;0.6&#39;
 
 import os
 import numpy as np
@@ -444,6 +444,7 @@ from lmfit import Minimizer, Parameters, report_fit
 from matplotlib import pyplot as ppl
 from datetime import datetime as dt
 from functools import wraps
+from colorsys import hls_to_rgb
 from matplotlib import rcParams
 
 rcParams[&#39;font.family&#39;] = &#39;sans-serif&#39;
@@ -1918,110 +1919,6 @@ class D47data(list):
                         ppl.close(sp.fig)
 
 
-#       def plot_sessions_old(self, dir = &#39;plots&#39;, figsize = (8,8)):
-#               &#39;&#39;&#39;
-#               Generate session plots and save them to disk.
-# 
-#               __Parameters__
-# 
-#               + `dir`: the directory in which to save the plots
-#               + `figsize`: the width and height (in inches) of each plot
-#               &#39;&#39;&#39;
-#               if not os.path.exists(dir):
-#                       os.makedirs(dir)
-#               anchor_color = &#39;r&#39;
-#               unknown_color = &#39;b&#39;
-# 
-#               xmin = min([r[&#39;d47&#39;] for r in self])
-#               xmax = max([r[&#39;d47&#39;] for r in self])
-#               xmin -= (xmax - xmin)/10
-#               xmax += (xmax - xmin)/11
-# 
-#               ymin = min([r[&#39;D47&#39;] for r in self])
-#               ymax = max([r[&#39;D47&#39;] for r in self])
-#               ymin -= (ymax - ymin)/10
-#               ymax += (ymax - ymin)/11
-# 
-#               repl_kw = dict(ls = &#39;None&#39;, marker = &#39;x&#39;, mfc = &#39;None&#39;, ms = 4, mew = .67, alpha = 1)
-#               avg_kw = dict(ls = &#39;-&#39;, marker = &#39;None&#39;, lw = .67, alpha = .67)
-#               for session in self.sessions:
-#                       fig = ppl.figure( figsize = figsize)
-#                       for sample in self.anchors:
-#                               db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
-#                               if len(db):
-#                                       repl_kw[&#39;mec&#39;] = anchor_color
-#                                       X = [r[&#39;d47&#39;] for r in db]
-#                                       Y = [r[&#39;D47&#39;] for r in db]
-#                                       ppl.plot(X, Y, **repl_kw)
-# 
-#                                       avg_kw[&#39;color&#39;] = anchor_color
-#                                       X = [min(X)-.5, max(X)+.5]
-#                                       Y = [self.samples[sample][&#39;D47&#39;]] * 2
-#                                       ppl.plot(X, Y, **avg_kw)
-# 
-#                                       outliers = [r for r in db if abs(r[&#39;D47&#39;] - self.Nominal_D47[r[&#39;Sample&#39;]])&gt;.1]
-#                                       for r in outliers:
-#                                               print(r[&#39;UID&#39;], r[&#39;Sample&#39;], r[&#39;D47&#39;])
-#                                       X = [r[&#39;d47&#39;] for r in outliers]
-#                                       Y = [r[&#39;D47&#39;] for r in outliers]
-#                                       ppl.plot(X, Y, &#39;o&#39;, mfc = &#39;None&#39;, mec = (1,0,1), mew = 2)
-# 
-#                       for sample in self.unknowns:
-# 
-#                               db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
-#                               if len(db):
-#                                       repl_kw[&#39;mec&#39;] = unknown_color
-#                                       X = [r[&#39;d47&#39;] for r in db]
-#                                       Y = [r[&#39;D47&#39;] for r in db]
-#                                       ppl.plot(X, Y, **repl_kw)
-# 
-#                                       avg_kw[&#39;color&#39;] = unknown_color
-#                                       X = [min(X)-.19, max(X)+.19]
-#                                       Y = [self.samples[sample][&#39;D47&#39;]] * 2
-#                                       ppl.plot(X, Y, **avg_kw)
-# 
-#                       XI,YI = np.meshgrid(np.linspace(xmin, xmax), np.linspace(ymin, ymax))
-#                       SI = np.array([[self.standardization_error(session, xi, yi) for xi in XI[0,:]] for yi in YI[:,0]])
-#                       rng = np.max(SI) - np.min(SI)
-#                       if rng &lt;= 0.01:
-#                               cinterval = 0.001
-#                       elif rng &lt;= 0.03:
-#                               cinterval = 0.004
-#                       elif rng &lt;= 0.1:
-#                               cinterval = 0.01
-#                       elif rng &lt;= 0.3:
-#                               cinterval = 0.03
-#                       else:
-#                               cinterval = 0.1
-#                       cval = [np.ceil(SI.min() / .001) * .001 + k * cinterval for k in range(int(np.ceil((SI.max() - SI.min()) / cinterval)))]
-#                       cs = ppl.contour(XI, YI, SI, cval, colors = anchor_color, alpha = .5)
-#                       ppl.clabel(cs)
-# 
-#                       ppl.axis([xmin, xmax, ymin, ymax])
-#                       ppl.xlabel(&#39;δ$_{47}$ (‰ WG)&#39;)
-#                       ppl.ylabel(&#39;Δ$_{47}$ (‰)&#39;)
-#                       ppl.grid(alpha = .15)
-#                       ppl.title(session, weight = &#39;bold&#39;)
-#                       ppl.savefig(f&#39;{dir}/D47model_{session}.pdf&#39;)
-#                       ppl.close(fig)
-
-
-#       def sample_D47_covar(self, sample_1, sample_2 = &#39;&#39;):
-#               &#39;&#39;&#39;
-#               Covariance between Δ47 values of samples
-#
-#               Returns the covariance (or the variance, if sample_1 == sample_2)
-#               between the average Δ47 values of two samples. Also returns the
-#               variance if only sample_1 is specified.
-#               &#39;&#39;&#39;
-#               i = self.standardization.var_names.index(f&#39;D47_{pf(sample_1)}&#39;)
-#               if sample_2 in [sample_1,&#39;&#39;]:
-#                       return self.standardization.covar[i,i]
-#               else:
-#                       j = self.standardization.var_names.index(f&#39;D47_{pf(sample_2)}&#39;)
-#                       return self.standardization.covar[i,j]
-#
-
         @make_verbal
         def consolidate_samples(self):
                 &#39;&#39;&#39;
@@ -2512,21 +2409,77 @@ class D47data(list):
 
                 return out
 
+        def plot_residuals(self, dir = &#39;plots&#39;):
+                &#39;&#39;&#39;
+                Plot residuals of each analysis as a function of time (actually, as a function of
+                the order of analyses in the D47data() object)
+
+                + `dir`: the directory in which to save the plot
+                &#39;&#39;&#39;
+                fig = ppl.figure(figsize = (8,3))
+                ppl.subplots_adjust(.1,.05,.78,.9)
+                N = len(self.anchors)
+                colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+                session = self[0][&#39;Session&#39;]
+                x1 = 0
+#               ymax = np.max([1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]) for r in self])
+                x_sessions = {}
+                one_or_more_singlets = False
+                for k,r in enumerate(self):
+                        if r[&#39;Session&#39;] != session:
+                                x2 = k-1
+                                x_sessions[session] = (x1+x2)/2
+                                ppl.axvline(k - 0.5, color = &#39;k&#39;, lw = .5)
+                                session = r[&#39;Session&#39;]
+                                x1 = k
+                        singlet = len(self.samples[r[&#39;Sample&#39;]][&#39;data&#39;]) == 1
+                        if singlet:
+                                one_or_more_singlets = True
+                        kw = dict(
+                                marker = &#39;x&#39; if singlet else &#39;+&#39;,
+                                ms = 4 if singlet else 5,
+                                ls = &#39;None&#39;,
+                                mec = colorz[r[&#39;Sample&#39;]] if r[&#39;Sample&#39;] in colorz else (0,0,0),
+                                mew = 1,
+                                alpha = 0.2 if singlet else 1,
+                                )
+                        ppl.plot(k, 1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]), **kw)
+                x2 = k
+                x_sessions[session] = (x1+x2)/2
+
+                ppl.axhspan(-self.repeatability[&#39;r_D47&#39;]*1000, self.repeatability[&#39;r_D47&#39;]*1000, color = &#39;k&#39;, alpha = .05, lw = 1)
+                ppl.text(len(self), self.repeatability[&#39;r_D47&#39;]*1000, f&#34;   SD = {self.repeatability[&#39;r_D47&#39;]*1000:.1f} ppm&#34;, size = 9, alpha = .75, va = &#39;center&#39;)
+                ppl.axhspan(-self.repeatability[&#39;r_D47&#39;]*1000*self.t95, self.repeatability[&#39;r_D47&#39;]*1000*self.t95, color = &#39;k&#39;, alpha = .05, lw = 1)
+                ppl.text(len(self), self.repeatability[&#39;r_D47&#39;]*1000*self.t95, f&#34;   95% CL: ± {self.repeatability[&#39;r_D47&#39;]*1000*self.t95:.1f} ppm&#34;, size = 9, alpha = .75, va = &#39;center&#39;)
+
+                ymax = ppl.axis()[3]
+                for s in x_sessions:
+                        ppl.text(x_sessions[s], ymax +1, s, va = &#39;bottom&#39;, ha = &#39;center&#39;)
+                for s in self.anchors:
+                        kw[&#39;marker&#39;] = &#39;+&#39;
+                        kw[&#39;ms&#39;] = 5
+                        kw[&#39;mec&#39;] = colorz[s]
+                        kw[&#39;label&#39;] = s
+                        ppl.plot([], [], **kw)
+                kw[&#39;mec&#39;] = (0,0,0)
+                kw[&#39;label&#39;] = &#39;unknowns (N$\\,$&gt;$\\,$1)&#39; if one_or_more_singlets else &#39;unknowns&#39;
+                ppl.plot([], [], **kw)
+                if one_or_more_singlets:
+                        kw[&#39;marker&#39;] = &#39;x&#39;
+                        kw[&#39;ms&#39;] = 4
+                        kw[&#39;alpha&#39;] = .2
+                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$=$\\,$1)&#39;
+                        ppl.plot([], [], **kw)
+                ppl.legend(loc = &#39;lower left&#39;, bbox_to_anchor = (1.03, 0), borderaxespad = 0)
+                ppl.xticks([])
+                ppl.ylabel(&#39;Δ$_{47}$ residuals (ppm)&#39;)
+                ppl.axis([-1, len(self), None, None])
+                ppl.savefig(f&#39;{dir}/D47_residuals.pdf&#39;)
+                ppl.close(fig)
+
 class SessionPlot():
         def __init__(self):
-                pass
-
-#                       rng = np.max(SI) - np.min(SI)
-#                       if rng &lt;= 0.01:
-#                               cinterval = 0.001
-#                       elif rng &lt;= 0.03:
-#                               cinterval = 0.004
-#                       elif rng &lt;= 0.1:
-#                               cinterval = 0.01
-#                       elif rng &lt;= 0.3:
-#                               cinterval = 0.03
-#                       else:
-#                               cinterval = 0.1</code></pre>
+                pass</code></pre>
 </details>
 </section>
 <section>
@@ -4161,110 +4114,6 @@ methods.</li>
                         ppl.close(sp.fig)
 
 
-#       def plot_sessions_old(self, dir = &#39;plots&#39;, figsize = (8,8)):
-#               &#39;&#39;&#39;
-#               Generate session plots and save them to disk.
-# 
-#               __Parameters__
-# 
-#               + `dir`: the directory in which to save the plots
-#               + `figsize`: the width and height (in inches) of each plot
-#               &#39;&#39;&#39;
-#               if not os.path.exists(dir):
-#                       os.makedirs(dir)
-#               anchor_color = &#39;r&#39;
-#               unknown_color = &#39;b&#39;
-# 
-#               xmin = min([r[&#39;d47&#39;] for r in self])
-#               xmax = max([r[&#39;d47&#39;] for r in self])
-#               xmin -= (xmax - xmin)/10
-#               xmax += (xmax - xmin)/11
-# 
-#               ymin = min([r[&#39;D47&#39;] for r in self])
-#               ymax = max([r[&#39;D47&#39;] for r in self])
-#               ymin -= (ymax - ymin)/10
-#               ymax += (ymax - ymin)/11
-# 
-#               repl_kw = dict(ls = &#39;None&#39;, marker = &#39;x&#39;, mfc = &#39;None&#39;, ms = 4, mew = .67, alpha = 1)
-#               avg_kw = dict(ls = &#39;-&#39;, marker = &#39;None&#39;, lw = .67, alpha = .67)
-#               for session in self.sessions:
-#                       fig = ppl.figure( figsize = figsize)
-#                       for sample in self.anchors:
-#                               db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
-#                               if len(db):
-#                                       repl_kw[&#39;mec&#39;] = anchor_color
-#                                       X = [r[&#39;d47&#39;] for r in db]
-#                                       Y = [r[&#39;D47&#39;] for r in db]
-#                                       ppl.plot(X, Y, **repl_kw)
-# 
-#                                       avg_kw[&#39;color&#39;] = anchor_color
-#                                       X = [min(X)-.5, max(X)+.5]
-#                                       Y = [self.samples[sample][&#39;D47&#39;]] * 2
-#                                       ppl.plot(X, Y, **avg_kw)
-# 
-#                                       outliers = [r for r in db if abs(r[&#39;D47&#39;] - self.Nominal_D47[r[&#39;Sample&#39;]])&gt;.1]
-#                                       for r in outliers:
-#                                               print(r[&#39;UID&#39;], r[&#39;Sample&#39;], r[&#39;D47&#39;])
-#                                       X = [r[&#39;d47&#39;] for r in outliers]
-#                                       Y = [r[&#39;D47&#39;] for r in outliers]
-#                                       ppl.plot(X, Y, &#39;o&#39;, mfc = &#39;None&#39;, mec = (1,0,1), mew = 2)
-# 
-#                       for sample in self.unknowns:
-# 
-#                               db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
-#                               if len(db):
-#                                       repl_kw[&#39;mec&#39;] = unknown_color
-#                                       X = [r[&#39;d47&#39;] for r in db]
-#                                       Y = [r[&#39;D47&#39;] for r in db]
-#                                       ppl.plot(X, Y, **repl_kw)
-# 
-#                                       avg_kw[&#39;color&#39;] = unknown_color
-#                                       X = [min(X)-.19, max(X)+.19]
-#                                       Y = [self.samples[sample][&#39;D47&#39;]] * 2
-#                                       ppl.plot(X, Y, **avg_kw)
-# 
-#                       XI,YI = np.meshgrid(np.linspace(xmin, xmax), np.linspace(ymin, ymax))
-#                       SI = np.array([[self.standardization_error(session, xi, yi) for xi in XI[0,:]] for yi in YI[:,0]])
-#                       rng = np.max(SI) - np.min(SI)
-#                       if rng &lt;= 0.01:
-#                               cinterval = 0.001
-#                       elif rng &lt;= 0.03:
-#                               cinterval = 0.004
-#                       elif rng &lt;= 0.1:
-#                               cinterval = 0.01
-#                       elif rng &lt;= 0.3:
-#                               cinterval = 0.03
-#                       else:
-#                               cinterval = 0.1
-#                       cval = [np.ceil(SI.min() / .001) * .001 + k * cinterval for k in range(int(np.ceil((SI.max() - SI.min()) / cinterval)))]
-#                       cs = ppl.contour(XI, YI, SI, cval, colors = anchor_color, alpha = .5)
-#                       ppl.clabel(cs)
-# 
-#                       ppl.axis([xmin, xmax, ymin, ymax])
-#                       ppl.xlabel(&#39;δ$_{47}$ (‰ WG)&#39;)
-#                       ppl.ylabel(&#39;Δ$_{47}$ (‰)&#39;)
-#                       ppl.grid(alpha = .15)
-#                       ppl.title(session, weight = &#39;bold&#39;)
-#                       ppl.savefig(f&#39;{dir}/D47model_{session}.pdf&#39;)
-#                       ppl.close(fig)
-
-
-#       def sample_D47_covar(self, sample_1, sample_2 = &#39;&#39;):
-#               &#39;&#39;&#39;
-#               Covariance between Δ47 values of samples
-#
-#               Returns the covariance (or the variance, if sample_1 == sample_2)
-#               between the average Δ47 values of two samples. Also returns the
-#               variance if only sample_1 is specified.
-#               &#39;&#39;&#39;
-#               i = self.standardization.var_names.index(f&#39;D47_{pf(sample_1)}&#39;)
-#               if sample_2 in [sample_1,&#39;&#39;]:
-#                       return self.standardization.covar[i,i]
-#               else:
-#                       j = self.standardization.var_names.index(f&#39;D47_{pf(sample_2)}&#39;)
-#                       return self.standardization.covar[i,j]
-#
-
         @make_verbal
         def consolidate_samples(self):
                 &#39;&#39;&#39;
@@ -4753,7 +4602,75 @@ methods.</li>
                 ppl.grid(alpha = .2)
                 out.ax = ppl.gca()              
 
-                return out</code></pre>
+                return out
+
+        def plot_residuals(self, dir = &#39;plots&#39;):
+                &#39;&#39;&#39;
+                Plot residuals of each analysis as a function of time (actually, as a function of
+                the order of analyses in the D47data() object)
+
+                + `dir`: the directory in which to save the plot
+                &#39;&#39;&#39;
+                fig = ppl.figure(figsize = (8,3))
+                ppl.subplots_adjust(.1,.05,.78,.9)
+                N = len(self.anchors)
+                colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+                session = self[0][&#39;Session&#39;]
+                x1 = 0
+#               ymax = np.max([1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]) for r in self])
+                x_sessions = {}
+                one_or_more_singlets = False
+                for k,r in enumerate(self):
+                        if r[&#39;Session&#39;] != session:
+                                x2 = k-1
+                                x_sessions[session] = (x1+x2)/2
+                                ppl.axvline(k - 0.5, color = &#39;k&#39;, lw = .5)
+                                session = r[&#39;Session&#39;]
+                                x1 = k
+                        singlet = len(self.samples[r[&#39;Sample&#39;]][&#39;data&#39;]) == 1
+                        if singlet:
+                                one_or_more_singlets = True
+                        kw = dict(
+                                marker = &#39;x&#39; if singlet else &#39;+&#39;,
+                                ms = 4 if singlet else 5,
+                                ls = &#39;None&#39;,
+                                mec = colorz[r[&#39;Sample&#39;]] if r[&#39;Sample&#39;] in colorz else (0,0,0),
+                                mew = 1,
+                                alpha = 0.2 if singlet else 1,
+                                )
+                        ppl.plot(k, 1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]), **kw)
+                x2 = k
+                x_sessions[session] = (x1+x2)/2
+
+                ppl.axhspan(-self.repeatability[&#39;r_D47&#39;]*1000, self.repeatability[&#39;r_D47&#39;]*1000, color = &#39;k&#39;, alpha = .05, lw = 1)
+                ppl.text(len(self), self.repeatability[&#39;r_D47&#39;]*1000, f&#34;   SD = {self.repeatability[&#39;r_D47&#39;]*1000:.1f} ppm&#34;, size = 9, alpha = .75, va = &#39;center&#39;)
+                ppl.axhspan(-self.repeatability[&#39;r_D47&#39;]*1000*self.t95, self.repeatability[&#39;r_D47&#39;]*1000*self.t95, color = &#39;k&#39;, alpha = .05, lw = 1)
+                ppl.text(len(self), self.repeatability[&#39;r_D47&#39;]*1000*self.t95, f&#34;   95% CL: ± {self.repeatability[&#39;r_D47&#39;]*1000*self.t95:.1f} ppm&#34;, size = 9, alpha = .75, va = &#39;center&#39;)
+
+                ymax = ppl.axis()[3]
+                for s in x_sessions:
+                        ppl.text(x_sessions[s], ymax +1, s, va = &#39;bottom&#39;, ha = &#39;center&#39;)
+                for s in self.anchors:
+                        kw[&#39;marker&#39;] = &#39;+&#39;
+                        kw[&#39;ms&#39;] = 5
+                        kw[&#39;mec&#39;] = colorz[s]
+                        kw[&#39;label&#39;] = s
+                        ppl.plot([], [], **kw)
+                kw[&#39;mec&#39;] = (0,0,0)
+                kw[&#39;label&#39;] = &#39;unknowns (N$\\,$&gt;$\\,$1)&#39; if one_or_more_singlets else &#39;unknowns&#39;
+                ppl.plot([], [], **kw)
+                if one_or_more_singlets:
+                        kw[&#39;marker&#39;] = &#39;x&#39;
+                        kw[&#39;ms&#39;] = 4
+                        kw[&#39;alpha&#39;] = .2
+                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$=$\\,$1)&#39;
+                        ppl.plot([], [], **kw)
+                ppl.legend(loc = &#39;lower left&#39;, bbox_to_anchor = (1.03, 0), borderaxespad = 0)
+                ppl.xticks([])
+                ppl.ylabel(&#39;Δ$_{47}$ residuals (ppm)&#39;)
+                ppl.axis([-1, len(self), None, None])
+                ppl.savefig(f&#39;{dir}/D47_residuals.pdf&#39;)
+                ppl.close(fig)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -5631,6 +5548,88 @@ and allow locally overriding <code>self.verbose</code></p></div>
         self.log(txt)
         if self.verbose:
                 print(f&#39;{f&#34;[{self.prefix}]&#34;:&lt;16} {txt}&#39;)</code></pre>
+</details>
+</dd>
+<dt id="D47crunch.D47data.plot_residuals"><code class="name flex">
+<span>def <span class="ident">plot_residuals</span></span>(<span>self, dir='plots')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot residuals of each analysis as a function of time (actually, as a function of
+the order of analyses in the D47data() object)</p>
+<ul>
+<li><code>dir</code>: the directory in which to save the plot</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">        def plot_residuals(self, dir = &#39;plots&#39;):
+                &#39;&#39;&#39;
+                Plot residuals of each analysis as a function of time (actually, as a function of
+                the order of analyses in the D47data() object)
+
+                + `dir`: the directory in which to save the plot
+                &#39;&#39;&#39;
+                fig = ppl.figure(figsize = (8,3))
+                ppl.subplots_adjust(.1,.05,.78,.9)
+                N = len(self.anchors)
+                colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+                session = self[0][&#39;Session&#39;]
+                x1 = 0
+#               ymax = np.max([1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]) for r in self])
+                x_sessions = {}
+                one_or_more_singlets = False
+                for k,r in enumerate(self):
+                        if r[&#39;Session&#39;] != session:
+                                x2 = k-1
+                                x_sessions[session] = (x1+x2)/2
+                                ppl.axvline(k - 0.5, color = &#39;k&#39;, lw = .5)
+                                session = r[&#39;Session&#39;]
+                                x1 = k
+                        singlet = len(self.samples[r[&#39;Sample&#39;]][&#39;data&#39;]) == 1
+                        if singlet:
+                                one_or_more_singlets = True
+                        kw = dict(
+                                marker = &#39;x&#39; if singlet else &#39;+&#39;,
+                                ms = 4 if singlet else 5,
+                                ls = &#39;None&#39;,
+                                mec = colorz[r[&#39;Sample&#39;]] if r[&#39;Sample&#39;] in colorz else (0,0,0),
+                                mew = 1,
+                                alpha = 0.2 if singlet else 1,
+                                )
+                        ppl.plot(k, 1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]), **kw)
+                x2 = k
+                x_sessions[session] = (x1+x2)/2
+
+                ppl.axhspan(-self.repeatability[&#39;r_D47&#39;]*1000, self.repeatability[&#39;r_D47&#39;]*1000, color = &#39;k&#39;, alpha = .05, lw = 1)
+                ppl.text(len(self), self.repeatability[&#39;r_D47&#39;]*1000, f&#34;   SD = {self.repeatability[&#39;r_D47&#39;]*1000:.1f} ppm&#34;, size = 9, alpha = .75, va = &#39;center&#39;)
+                ppl.axhspan(-self.repeatability[&#39;r_D47&#39;]*1000*self.t95, self.repeatability[&#39;r_D47&#39;]*1000*self.t95, color = &#39;k&#39;, alpha = .05, lw = 1)
+                ppl.text(len(self), self.repeatability[&#39;r_D47&#39;]*1000*self.t95, f&#34;   95% CL: ± {self.repeatability[&#39;r_D47&#39;]*1000*self.t95:.1f} ppm&#34;, size = 9, alpha = .75, va = &#39;center&#39;)
+
+                ymax = ppl.axis()[3]
+                for s in x_sessions:
+                        ppl.text(x_sessions[s], ymax +1, s, va = &#39;bottom&#39;, ha = &#39;center&#39;)
+                for s in self.anchors:
+                        kw[&#39;marker&#39;] = &#39;+&#39;
+                        kw[&#39;ms&#39;] = 5
+                        kw[&#39;mec&#39;] = colorz[s]
+                        kw[&#39;label&#39;] = s
+                        ppl.plot([], [], **kw)
+                kw[&#39;mec&#39;] = (0,0,0)
+                kw[&#39;label&#39;] = &#39;unknowns (N$\\,$&gt;$\\,$1)&#39; if one_or_more_singlets else &#39;unknowns&#39;
+                ppl.plot([], [], **kw)
+                if one_or_more_singlets:
+                        kw[&#39;marker&#39;] = &#39;x&#39;
+                        kw[&#39;ms&#39;] = 4
+                        kw[&#39;alpha&#39;] = .2
+                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$=$\\,$1)&#39;
+                        ppl.plot([], [], **kw)
+                ppl.legend(loc = &#39;lower left&#39;, bbox_to_anchor = (1.03, 0), borderaxespad = 0)
+                ppl.xticks([])
+                ppl.ylabel(&#39;Δ$_{47}$ residuals (ppm)&#39;)
+                ppl.axis([-1, len(self), None, None])
+                ppl.savefig(f&#39;{dir}/D47_residuals.pdf&#39;)
+                ppl.close(fig)</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.plot_sessions"><code class="name flex">
@@ -7089,6 +7088,7 @@ def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&
 <li><code><a title="D47crunch.D47data.log" href="#D47crunch.D47data.log">log</a></code></li>
 <li><code><a title="D47crunch.D47data.make_verbal" href="#D47crunch.D47data.make_verbal">make_verbal</a></code></li>
 <li><code><a title="D47crunch.D47data.msg" href="#D47crunch.D47data.msg">msg</a></code></li>
+<li><code><a title="D47crunch.D47data.plot_residuals" href="#D47crunch.D47data.plot_residuals">plot_residuals</a></code></li>
 <li><code><a title="D47crunch.D47data.plot_sessions" href="#D47crunch.D47data.plot_sessions">plot_sessions</a></code></li>
 <li><code><a title="D47crunch.D47data.plot_single_session" href="#D47crunch.D47data.plot_single_session">plot_single_session</a></code></li>
 <li><code><a title="D47crunch.D47data.read" href="#D47crunch.D47data.read">read</a></code></li>
