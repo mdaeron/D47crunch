@@ -1993,6 +1993,12 @@ class D47data(list):
 		return out
 
 	def plot_residuals(self, dir = 'plots'):
+		'''
+		Plot residuals of each analysis as a function of time (actually, as a function of
+		the order of analyses in the D47data() object)
+
+		+ `dir`: the directory in which to save the plot
+		'''
 		fig = ppl.figure(figsize = (8,3))
 		ppl.subplots_adjust(.1,.05,.78,.9)
 		N = len(self.anchors)
