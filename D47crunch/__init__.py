@@ -2019,7 +2019,7 @@ class D47data(list):
 		xylimits = 'free', # | 'constant'
 		x_label = 'δ$_{47}$ (‰)',
 		y_label = 'Δ$_{47}$ (‰)',
-		error_contour_interval = 0.002,
+		error_contour_interval = 'auto',
 		fig = 'new',
 		):
 		'''
@@ -2062,12 +2062,30 @@ class D47data(list):
 		else:
 			x1, x2, y1, y2 = ppl.axis(xylimits)
 
-		xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
-		XI,YI = np.meshgrid(xi, yi)
-		SI = np.array([[self.standardization_error(session, x, y) for x in xi] for y in yi])
-		cval = np.arange(np.ceil(SI.min() / .001) * .001, np.ceil(SI.max() / .001 + 1) * .001, error_contour_interval)
-		out.contour = ppl.contour(XI, YI, SI, cval, **kw_contour_error)
-		out.clabel = ppl.clabel(out.contour)
+		if error_contour_interval != 'none':
+			xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
+			XI,YI = np.meshgrid(xi, yi)
+			SI = np.array([[self.standardization_error(session, x, y) for x in xi] for y in yi])
+			if error_contour_interval == 'auto':
+				rng = np.max(SI) - np.min(SI)
+				if rng <= 0.01:
+					cinterval = 0.001
+				elif rng <= 0.03:
+					cinterval = 0.004
+				elif rng <= 0.1:
+					cinterval = 0.01
+				elif rng <= 0.3:
+					cinterval = 0.03
+				elif rng <= 1.:
+					cinterval = 0.1
+				else:
+					cinterval = 0.5
+			else:
+				cinterval = error_contour_interval
+
+			cval = np.arange(np.ceil(SI.min() / .001) * .001, np.ceil(SI.max() / .001 + 1) * .001, cinterval)
+			out.contour = ppl.contour(XI, YI, SI, cval, **kw_contour_error)
+			out.clabel = ppl.clabel(out.contour)
 
 		ppl.xlabel(x_label)
 		ppl.ylabel(y_label)
