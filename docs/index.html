@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.8.1" />
+<meta name="generator" content="pdoc 0.9.1" />
 <title>D47crunch API documentation</title>
 <meta name="description" content="Standardization and analytical error propagation of Δ47 clumped-isotope measurements …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -431,7 +431,7 @@ __contact__   = &#39;daeron@lsce.ipsl.fr&#39;
 __copyright__ = &#39;Copyright (c) 2020 Mathieu Daëron&#39;
 __license__   = &#39;Modified BSD License - https://opensource.org/licenses/BSD-3-Clause&#39;
 __date__      = &#39;2020-05-16&#39;
-__version__   = &#39;0.5.dev2&#39;
+__version__   = &#39;0.5.dev3&#39;
 
 import os
 import numpy as np
@@ -1911,81 +1911,99 @@ class D47data(list):
                 &#39;&#39;&#39;
                 if not os.path.exists(dir):
                         os.makedirs(dir)
-                anchor_color = &#39;r&#39;
-                unknown_color = &#39;b&#39;
 
-                xmin = min([r[&#39;d47&#39;] for r in self])
-                xmax = max([r[&#39;d47&#39;] for r in self])
-                xmin -= (xmax - xmin)/10
-                xmax += (xmax - xmin)/11
-
-                ymin = min([r[&#39;D47&#39;] for r in self])
-                ymax = max([r[&#39;D47&#39;] for r in self])
-                ymin -= (ymax - ymin)/10
-                ymax += (ymax - ymin)/11
-
-                repl_kw = dict(ls = &#39;None&#39;, marker = &#39;x&#39;, mfc = &#39;None&#39;, ms = 4, mew = .67, alpha = 1)
-                avg_kw = dict(ls = &#39;-&#39;, marker = &#39;None&#39;, lw = .67, alpha = .67)
                 for session in self.sessions:
-                        fig = ppl.figure( figsize = figsize)
-                        for sample in self.anchors:
-                                db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
-                                if len(db):
-                                        repl_kw[&#39;mec&#39;] = anchor_color
-                                        X = [r[&#39;d47&#39;] for r in db]
-                                        Y = [r[&#39;D47&#39;] for r in db]
-                                        ppl.plot(X, Y, **repl_kw)
-
-                                        avg_kw[&#39;color&#39;] = anchor_color
-                                        X = [min(X)-.5, max(X)+.5]
-                                        Y = [self.samples[sample][&#39;D47&#39;]] * 2
-                                        ppl.plot(X, Y, **avg_kw)
-
-                                        outliers = [r for r in db if abs(r[&#39;D47&#39;] - self.Nominal_D47[r[&#39;Sample&#39;]])&gt;.1]
-                                        for r in outliers:
-                                                print(r[&#39;UID&#39;], r[&#39;Sample&#39;], r[&#39;D47&#39;])
-                                        X = [r[&#39;d47&#39;] for r in outliers]
-                                        Y = [r[&#39;D47&#39;] for r in outliers]
-                                        ppl.plot(X, Y, &#39;o&#39;, mfc = &#39;None&#39;, mec = (1,0,1), mew = 2)
-
-                        for sample in self.unknowns:
-
-                                db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
-                                if len(db):
-                                        repl_kw[&#39;mec&#39;] = unknown_color
-                                        X = [r[&#39;d47&#39;] for r in db]
-                                        Y = [r[&#39;D47&#39;] for r in db]
-                                        ppl.plot(X, Y, **repl_kw)
-
-                                        avg_kw[&#39;color&#39;] = unknown_color
-                                        X = [min(X)-.19, max(X)+.19]
-                                        Y = [self.samples[sample][&#39;D47&#39;]] * 2
-                                        ppl.plot(X, Y, **avg_kw)
-
-                        XI,YI = np.meshgrid(np.linspace(xmin, xmax), np.linspace(ymin, ymax))
-                        SI = np.array([[self.standardization_error(session, xi, yi) for xi in XI[0,:]] for yi in YI[:,0]])
-                        rng = np.max(SI) - np.min(SI)
-                        if rng &lt;= 0.01:
-                                cinterval = 0.001
-                        elif rng &lt;= 0.03:
-                                cinterval = 0.004
-                        elif rng &lt;= 0.1:
-                                cinterval = 0.01
-                        elif rng &lt;= 0.3:
-                                cinterval = 0.03
-                        else:
-                                cinterval = 0.1
-                        cval = [np.ceil(SI.min() / .001) * .001 + k * cinterval for k in range(int(np.ceil((SI.max() - SI.min()) / cinterval)))]
-                        cs = ppl.contour(XI, YI, SI, cval, colors = anchor_color, alpha = .5)
-                        ppl.clabel(cs)
-
-                        ppl.axis([xmin, xmax, ymin, ymax])
-                        ppl.xlabel(&#39;δ$_{47}$ (‰ WG)&#39;)
-                        ppl.ylabel(&#39;Δ$_{47}$ (‰)&#39;)
-                        ppl.grid(alpha = .15)
-                        ppl.title(session, weight = &#39;bold&#39;)
+                        sp = self.plot_single_session(session, xylimits = &#39;constant&#39;)
                         ppl.savefig(f&#39;{dir}/D47model_{session}.pdf&#39;)
-                        ppl.close(fig)
+                        ppl.close(sp.fig)
+
+
+#       def plot_sessions_old(self, dir = &#39;plots&#39;, figsize = (8,8)):
+#               &#39;&#39;&#39;
+#               Generate session plots and save them to disk.
+# 
+#               __Parameters__
+# 
+#               + `dir`: the directory in which to save the plots
+#               + `figsize`: the width and height (in inches) of each plot
+#               &#39;&#39;&#39;
+#               if not os.path.exists(dir):
+#                       os.makedirs(dir)
+#               anchor_color = &#39;r&#39;
+#               unknown_color = &#39;b&#39;
+# 
+#               xmin = min([r[&#39;d47&#39;] for r in self])
+#               xmax = max([r[&#39;d47&#39;] for r in self])
+#               xmin -= (xmax - xmin)/10
+#               xmax += (xmax - xmin)/11
+# 
+#               ymin = min([r[&#39;D47&#39;] for r in self])
+#               ymax = max([r[&#39;D47&#39;] for r in self])
+#               ymin -= (ymax - ymin)/10
+#               ymax += (ymax - ymin)/11
+# 
+#               repl_kw = dict(ls = &#39;None&#39;, marker = &#39;x&#39;, mfc = &#39;None&#39;, ms = 4, mew = .67, alpha = 1)
+#               avg_kw = dict(ls = &#39;-&#39;, marker = &#39;None&#39;, lw = .67, alpha = .67)
+#               for session in self.sessions:
+#                       fig = ppl.figure( figsize = figsize)
+#                       for sample in self.anchors:
+#                               db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
+#                               if len(db):
+#                                       repl_kw[&#39;mec&#39;] = anchor_color
+#                                       X = [r[&#39;d47&#39;] for r in db]
+#                                       Y = [r[&#39;D47&#39;] for r in db]
+#                                       ppl.plot(X, Y, **repl_kw)
+# 
+#                                       avg_kw[&#39;color&#39;] = anchor_color
+#                                       X = [min(X)-.5, max(X)+.5]
+#                                       Y = [self.samples[sample][&#39;D47&#39;]] * 2
+#                                       ppl.plot(X, Y, **avg_kw)
+# 
+#                                       outliers = [r for r in db if abs(r[&#39;D47&#39;] - self.Nominal_D47[r[&#39;Sample&#39;]])&gt;.1]
+#                                       for r in outliers:
+#                                               print(r[&#39;UID&#39;], r[&#39;Sample&#39;], r[&#39;D47&#39;])
+#                                       X = [r[&#39;d47&#39;] for r in outliers]
+#                                       Y = [r[&#39;D47&#39;] for r in outliers]
+#                                       ppl.plot(X, Y, &#39;o&#39;, mfc = &#39;None&#39;, mec = (1,0,1), mew = 2)
+# 
+#                       for sample in self.unknowns:
+# 
+#                               db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
+#                               if len(db):
+#                                       repl_kw[&#39;mec&#39;] = unknown_color
+#                                       X = [r[&#39;d47&#39;] for r in db]
+#                                       Y = [r[&#39;D47&#39;] for r in db]
+#                                       ppl.plot(X, Y, **repl_kw)
+# 
+#                                       avg_kw[&#39;color&#39;] = unknown_color
+#                                       X = [min(X)-.19, max(X)+.19]
+#                                       Y = [self.samples[sample][&#39;D47&#39;]] * 2
+#                                       ppl.plot(X, Y, **avg_kw)
+# 
+#                       XI,YI = np.meshgrid(np.linspace(xmin, xmax), np.linspace(ymin, ymax))
+#                       SI = np.array([[self.standardization_error(session, xi, yi) for xi in XI[0,:]] for yi in YI[:,0]])
+#                       rng = np.max(SI) - np.min(SI)
+#                       if rng &lt;= 0.01:
+#                               cinterval = 0.001
+#                       elif rng &lt;= 0.03:
+#                               cinterval = 0.004
+#                       elif rng &lt;= 0.1:
+#                               cinterval = 0.01
+#                       elif rng &lt;= 0.3:
+#                               cinterval = 0.03
+#                       else:
+#                               cinterval = 0.1
+#                       cval = [np.ceil(SI.min() / .001) * .001 + k * cinterval for k in range(int(np.ceil((SI.max() - SI.min()) / cinterval)))]
+#                       cs = ppl.contour(XI, YI, SI, cval, colors = anchor_color, alpha = .5)
+#                       ppl.clabel(cs)
+# 
+#                       ppl.axis([xmin, xmax, ymin, ymax])
+#                       ppl.xlabel(&#39;δ$_{47}$ (‰ WG)&#39;)
+#                       ppl.ylabel(&#39;Δ$_{47}$ (‰)&#39;)
+#                       ppl.grid(alpha = .15)
+#                       ppl.title(session, weight = &#39;bold&#39;)
+#                       ppl.savefig(f&#39;{dir}/D47model_{session}.pdf&#39;)
+#                       ppl.close(fig)
 
 
 #       def sample_D47_covar(self, sample_1, sample_2 = &#39;&#39;):
@@ -2406,7 +2424,109 @@ class D47data(list):
                         self.sample_D47_covar(sample1, sample2)
                         / self.unknowns[sample1][&#39;SE_D47&#39;]
                         / self.unknowns[sample2][&#39;SE_D47&#39;]
-                        )</code></pre>
+                        )
+
+        def plot_single_session(self,
+                session,
+                kw_plot_anchors = dict(ls=&#39;None&#39;, marker=&#39;x&#39;, mec=(.75, 0, 0), mew = .75, ms = 4),
+                kw_plot_unknowns = dict(ls=&#39;None&#39;, marker=&#39;x&#39;, mec=(0, 0, .75), mew = .75, ms = 4),
+                kw_plot_anchor_avg = dict(ls=&#39;-&#39;, marker=&#39;None&#39;, color=(.75, 0, 0), lw = .75),
+                kw_plot_unknown_avg = dict(ls=&#39;-&#39;, marker=&#39;None&#39;, color=(0, 0, .75), lw = .75),
+                kw_contour_error = dict(colors = [[0, 0, 0]], alpha = .5, linewidths = 0.75),
+                xylimits = &#39;free&#39;, # | &#39;constant&#39;
+                x_label = &#39;δ$_{47}$ (‰)&#39;,
+                y_label = &#39;Δ$_{47}$ (‰)&#39;,
+                error_contour_interval = &#39;auto&#39;,
+                fig = &#39;new&#39;,
+                ):
+                &#39;&#39;&#39;
+                Generate plot for a single session
+                &#39;&#39;&#39;             
+                out = SessionPlot()
+                
+                if fig == &#39;new&#39;:
+                        out.fig = ppl.figure(figsize = (6,6))
+                        ppl.subplots_adjust(.1,.1,.9,.9)
+                
+                out.anchor_analyses, = ppl.plot(
+                        [r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
+                        [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
+                        **kw_plot_anchors)
+                out.unknown_analyses, = ppl.plot(
+                        [r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns],
+                        [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns],
+                        **kw_plot_unknowns)
+                out.anchor_avg = ppl.plot(
+                        np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.anchors]).T,
+                        np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in self.anchors]).T,
+                        &#39;-&#39;, **kw_plot_anchor_avg)
+                out.unknown_avg = ppl.plot(
+                        np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.unknowns]).T,
+                        np.array([ np.array([0, 0]) + self.unknowns[sample][&#39;D47&#39;] for sample in self.unknowns]).T,
+                        &#39;-&#39;, **kw_plot_unknown_avg)
+                if xylimits == &#39;constant&#39;:
+                        x = [r[&#39;d47&#39;] for r in self]
+                        y = [r[&#39;D47&#39;] for r in self]
+                        x1, x2, y1, y2 = np.min(x), np.max(x), np.min(y), np.max(y)
+                        w, h = x2-x1, y2-y1
+                        x1 -= w/20
+                        x2 += w/20
+                        y1 -= h/20
+                        y2 += h/20
+                        ppl.axis([x1, x2, y1, y2])
+                elif xylimits != &#39;free&#39;:
+                        x1, x2, y1, y2 = ppl.axis()
+                else:
+                        x1, x2, y1, y2 = ppl.axis(xylimits)
+
+                if error_contour_interval != &#39;none&#39;:
+                        xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
+                        XI,YI = np.meshgrid(xi, yi)
+                        SI = np.array([[self.standardization_error(session, x, y) for x in xi] for y in yi])
+                        if error_contour_interval == &#39;auto&#39;:
+                                rng = np.max(SI) - np.min(SI)
+                                if rng &lt;= 0.01:
+                                        cinterval = 0.001
+                                elif rng &lt;= 0.03:
+                                        cinterval = 0.004
+                                elif rng &lt;= 0.1:
+                                        cinterval = 0.01
+                                elif rng &lt;= 0.3:
+                                        cinterval = 0.03
+                                elif rng &lt;= 1.:
+                                        cinterval = 0.1
+                                else:
+                                        cinterval = 0.5
+                        else:
+                                cinterval = error_contour_interval
+
+                        cval = np.arange(np.ceil(SI.min() / .001) * .001, np.ceil(SI.max() / .001 + 1) * .001, cinterval)
+                        out.contour = ppl.contour(XI, YI, SI, cval, **kw_contour_error)
+                        out.clabel = ppl.clabel(out.contour)
+
+                ppl.xlabel(x_label)
+                ppl.ylabel(y_label)
+                ppl.title(session, weight = &#39;bold&#39;)
+                ppl.grid(alpha = .2)
+                out.ax = ppl.gca()              
+
+                return out
+
+class SessionPlot():
+        def __init__(self):
+                pass
+
+#                       rng = np.max(SI) - np.min(SI)
+#                       if rng &lt;= 0.01:
+#                               cinterval = 0.001
+#                       elif rng &lt;= 0.03:
+#                               cinterval = 0.004
+#                       elif rng &lt;= 0.1:
+#                               cinterval = 0.01
+#                       elif rng &lt;= 0.3:
+#                               cinterval = 0.03
+#                       else:
+#                               cinterval = 0.1</code></pre>
 </details>
 </section>
 <section>
@@ -4034,81 +4154,99 @@ methods.</li>
                 &#39;&#39;&#39;
                 if not os.path.exists(dir):
                         os.makedirs(dir)
-                anchor_color = &#39;r&#39;
-                unknown_color = &#39;b&#39;
 
-                xmin = min([r[&#39;d47&#39;] for r in self])
-                xmax = max([r[&#39;d47&#39;] for r in self])
-                xmin -= (xmax - xmin)/10
-                xmax += (xmax - xmin)/11
-
-                ymin = min([r[&#39;D47&#39;] for r in self])
-                ymax = max([r[&#39;D47&#39;] for r in self])
-                ymin -= (ymax - ymin)/10
-                ymax += (ymax - ymin)/11
-
-                repl_kw = dict(ls = &#39;None&#39;, marker = &#39;x&#39;, mfc = &#39;None&#39;, ms = 4, mew = .67, alpha = 1)
-                avg_kw = dict(ls = &#39;-&#39;, marker = &#39;None&#39;, lw = .67, alpha = .67)
                 for session in self.sessions:
-                        fig = ppl.figure( figsize = figsize)
-                        for sample in self.anchors:
-                                db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
-                                if len(db):
-                                        repl_kw[&#39;mec&#39;] = anchor_color
-                                        X = [r[&#39;d47&#39;] for r in db]
-                                        Y = [r[&#39;D47&#39;] for r in db]
-                                        ppl.plot(X, Y, **repl_kw)
-
-                                        avg_kw[&#39;color&#39;] = anchor_color
-                                        X = [min(X)-.5, max(X)+.5]
-                                        Y = [self.samples[sample][&#39;D47&#39;]] * 2
-                                        ppl.plot(X, Y, **avg_kw)
-
-                                        outliers = [r for r in db if abs(r[&#39;D47&#39;] - self.Nominal_D47[r[&#39;Sample&#39;]])&gt;.1]
-                                        for r in outliers:
-                                                print(r[&#39;UID&#39;], r[&#39;Sample&#39;], r[&#39;D47&#39;])
-                                        X = [r[&#39;d47&#39;] for r in outliers]
-                                        Y = [r[&#39;D47&#39;] for r in outliers]
-                                        ppl.plot(X, Y, &#39;o&#39;, mfc = &#39;None&#39;, mec = (1,0,1), mew = 2)
-
-                        for sample in self.unknowns:
-
-                                db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
-                                if len(db):
-                                        repl_kw[&#39;mec&#39;] = unknown_color
-                                        X = [r[&#39;d47&#39;] for r in db]
-                                        Y = [r[&#39;D47&#39;] for r in db]
-                                        ppl.plot(X, Y, **repl_kw)
-
-                                        avg_kw[&#39;color&#39;] = unknown_color
-                                        X = [min(X)-.19, max(X)+.19]
-                                        Y = [self.samples[sample][&#39;D47&#39;]] * 2
-                                        ppl.plot(X, Y, **avg_kw)
-
-                        XI,YI = np.meshgrid(np.linspace(xmin, xmax), np.linspace(ymin, ymax))
-                        SI = np.array([[self.standardization_error(session, xi, yi) for xi in XI[0,:]] for yi in YI[:,0]])
-                        rng = np.max(SI) - np.min(SI)
-                        if rng &lt;= 0.01:
-                                cinterval = 0.001
-                        elif rng &lt;= 0.03:
-                                cinterval = 0.004
-                        elif rng &lt;= 0.1:
-                                cinterval = 0.01
-                        elif rng &lt;= 0.3:
-                                cinterval = 0.03
-                        else:
-                                cinterval = 0.1
-                        cval = [np.ceil(SI.min() / .001) * .001 + k * cinterval for k in range(int(np.ceil((SI.max() - SI.min()) / cinterval)))]
-                        cs = ppl.contour(XI, YI, SI, cval, colors = anchor_color, alpha = .5)
-                        ppl.clabel(cs)
-
-                        ppl.axis([xmin, xmax, ymin, ymax])
-                        ppl.xlabel(&#39;δ$_{47}$ (‰ WG)&#39;)
-                        ppl.ylabel(&#39;Δ$_{47}$ (‰)&#39;)
-                        ppl.grid(alpha = .15)
-                        ppl.title(session, weight = &#39;bold&#39;)
+                        sp = self.plot_single_session(session, xylimits = &#39;constant&#39;)
                         ppl.savefig(f&#39;{dir}/D47model_{session}.pdf&#39;)
-                        ppl.close(fig)
+                        ppl.close(sp.fig)
+
+
+#       def plot_sessions_old(self, dir = &#39;plots&#39;, figsize = (8,8)):
+#               &#39;&#39;&#39;
+#               Generate session plots and save them to disk.
+# 
+#               __Parameters__
+# 
+#               + `dir`: the directory in which to save the plots
+#               + `figsize`: the width and height (in inches) of each plot
+#               &#39;&#39;&#39;
+#               if not os.path.exists(dir):
+#                       os.makedirs(dir)
+#               anchor_color = &#39;r&#39;
+#               unknown_color = &#39;b&#39;
+# 
+#               xmin = min([r[&#39;d47&#39;] for r in self])
+#               xmax = max([r[&#39;d47&#39;] for r in self])
+#               xmin -= (xmax - xmin)/10
+#               xmax += (xmax - xmin)/11
+# 
+#               ymin = min([r[&#39;D47&#39;] for r in self])
+#               ymax = max([r[&#39;D47&#39;] for r in self])
+#               ymin -= (ymax - ymin)/10
+#               ymax += (ymax - ymin)/11
+# 
+#               repl_kw = dict(ls = &#39;None&#39;, marker = &#39;x&#39;, mfc = &#39;None&#39;, ms = 4, mew = .67, alpha = 1)
+#               avg_kw = dict(ls = &#39;-&#39;, marker = &#39;None&#39;, lw = .67, alpha = .67)
+#               for session in self.sessions:
+#                       fig = ppl.figure( figsize = figsize)
+#                       for sample in self.anchors:
+#                               db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
+#                               if len(db):
+#                                       repl_kw[&#39;mec&#39;] = anchor_color
+#                                       X = [r[&#39;d47&#39;] for r in db]
+#                                       Y = [r[&#39;D47&#39;] for r in db]
+#                                       ppl.plot(X, Y, **repl_kw)
+# 
+#                                       avg_kw[&#39;color&#39;] = anchor_color
+#                                       X = [min(X)-.5, max(X)+.5]
+#                                       Y = [self.samples[sample][&#39;D47&#39;]] * 2
+#                                       ppl.plot(X, Y, **avg_kw)
+# 
+#                                       outliers = [r for r in db if abs(r[&#39;D47&#39;] - self.Nominal_D47[r[&#39;Sample&#39;]])&gt;.1]
+#                                       for r in outliers:
+#                                               print(r[&#39;UID&#39;], r[&#39;Sample&#39;], r[&#39;D47&#39;])
+#                                       X = [r[&#39;d47&#39;] for r in outliers]
+#                                       Y = [r[&#39;D47&#39;] for r in outliers]
+#                                       ppl.plot(X, Y, &#39;o&#39;, mfc = &#39;None&#39;, mec = (1,0,1), mew = 2)
+# 
+#                       for sample in self.unknowns:
+# 
+#                               db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
+#                               if len(db):
+#                                       repl_kw[&#39;mec&#39;] = unknown_color
+#                                       X = [r[&#39;d47&#39;] for r in db]
+#                                       Y = [r[&#39;D47&#39;] for r in db]
+#                                       ppl.plot(X, Y, **repl_kw)
+# 
+#                                       avg_kw[&#39;color&#39;] = unknown_color
+#                                       X = [min(X)-.19, max(X)+.19]
+#                                       Y = [self.samples[sample][&#39;D47&#39;]] * 2
+#                                       ppl.plot(X, Y, **avg_kw)
+# 
+#                       XI,YI = np.meshgrid(np.linspace(xmin, xmax), np.linspace(ymin, ymax))
+#                       SI = np.array([[self.standardization_error(session, xi, yi) for xi in XI[0,:]] for yi in YI[:,0]])
+#                       rng = np.max(SI) - np.min(SI)
+#                       if rng &lt;= 0.01:
+#                               cinterval = 0.001
+#                       elif rng &lt;= 0.03:
+#                               cinterval = 0.004
+#                       elif rng &lt;= 0.1:
+#                               cinterval = 0.01
+#                       elif rng &lt;= 0.3:
+#                               cinterval = 0.03
+#                       else:
+#                               cinterval = 0.1
+#                       cval = [np.ceil(SI.min() / .001) * .001 + k * cinterval for k in range(int(np.ceil((SI.max() - SI.min()) / cinterval)))]
+#                       cs = ppl.contour(XI, YI, SI, cval, colors = anchor_color, alpha = .5)
+#                       ppl.clabel(cs)
+# 
+#                       ppl.axis([xmin, xmax, ymin, ymax])
+#                       ppl.xlabel(&#39;δ$_{47}$ (‰ WG)&#39;)
+#                       ppl.ylabel(&#39;Δ$_{47}$ (‰)&#39;)
+#                       ppl.grid(alpha = .15)
+#                       ppl.title(session, weight = &#39;bold&#39;)
+#                       ppl.savefig(f&#39;{dir}/D47model_{session}.pdf&#39;)
+#                       ppl.close(fig)
 
 
 #       def sample_D47_covar(self, sample_1, sample_2 = &#39;&#39;):
@@ -4529,7 +4667,93 @@ methods.</li>
                         self.sample_D47_covar(sample1, sample2)
                         / self.unknowns[sample1][&#39;SE_D47&#39;]
                         / self.unknowns[sample2][&#39;SE_D47&#39;]
-                        )</code></pre>
+                        )
+
+        def plot_single_session(self,
+                session,
+                kw_plot_anchors = dict(ls=&#39;None&#39;, marker=&#39;x&#39;, mec=(.75, 0, 0), mew = .75, ms = 4),
+                kw_plot_unknowns = dict(ls=&#39;None&#39;, marker=&#39;x&#39;, mec=(0, 0, .75), mew = .75, ms = 4),
+                kw_plot_anchor_avg = dict(ls=&#39;-&#39;, marker=&#39;None&#39;, color=(.75, 0, 0), lw = .75),
+                kw_plot_unknown_avg = dict(ls=&#39;-&#39;, marker=&#39;None&#39;, color=(0, 0, .75), lw = .75),
+                kw_contour_error = dict(colors = [[0, 0, 0]], alpha = .5, linewidths = 0.75),
+                xylimits = &#39;free&#39;, # | &#39;constant&#39;
+                x_label = &#39;δ$_{47}$ (‰)&#39;,
+                y_label = &#39;Δ$_{47}$ (‰)&#39;,
+                error_contour_interval = &#39;auto&#39;,
+                fig = &#39;new&#39;,
+                ):
+                &#39;&#39;&#39;
+                Generate plot for a single session
+                &#39;&#39;&#39;             
+                out = SessionPlot()
+                
+                if fig == &#39;new&#39;:
+                        out.fig = ppl.figure(figsize = (6,6))
+                        ppl.subplots_adjust(.1,.1,.9,.9)
+                
+                out.anchor_analyses, = ppl.plot(
+                        [r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
+                        [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
+                        **kw_plot_anchors)
+                out.unknown_analyses, = ppl.plot(
+                        [r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns],
+                        [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns],
+                        **kw_plot_unknowns)
+                out.anchor_avg = ppl.plot(
+                        np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.anchors]).T,
+                        np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in self.anchors]).T,
+                        &#39;-&#39;, **kw_plot_anchor_avg)
+                out.unknown_avg = ppl.plot(
+                        np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.unknowns]).T,
+                        np.array([ np.array([0, 0]) + self.unknowns[sample][&#39;D47&#39;] for sample in self.unknowns]).T,
+                        &#39;-&#39;, **kw_plot_unknown_avg)
+                if xylimits == &#39;constant&#39;:
+                        x = [r[&#39;d47&#39;] for r in self]
+                        y = [r[&#39;D47&#39;] for r in self]
+                        x1, x2, y1, y2 = np.min(x), np.max(x), np.min(y), np.max(y)
+                        w, h = x2-x1, y2-y1
+                        x1 -= w/20
+                        x2 += w/20
+                        y1 -= h/20
+                        y2 += h/20
+                        ppl.axis([x1, x2, y1, y2])
+                elif xylimits != &#39;free&#39;:
+                        x1, x2, y1, y2 = ppl.axis()
+                else:
+                        x1, x2, y1, y2 = ppl.axis(xylimits)
+
+                if error_contour_interval != &#39;none&#39;:
+                        xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
+                        XI,YI = np.meshgrid(xi, yi)
+                        SI = np.array([[self.standardization_error(session, x, y) for x in xi] for y in yi])
+                        if error_contour_interval == &#39;auto&#39;:
+                                rng = np.max(SI) - np.min(SI)
+                                if rng &lt;= 0.01:
+                                        cinterval = 0.001
+                                elif rng &lt;= 0.03:
+                                        cinterval = 0.004
+                                elif rng &lt;= 0.1:
+                                        cinterval = 0.01
+                                elif rng &lt;= 0.3:
+                                        cinterval = 0.03
+                                elif rng &lt;= 1.:
+                                        cinterval = 0.1
+                                else:
+                                        cinterval = 0.5
+                        else:
+                                cinterval = error_contour_interval
+
+                        cval = np.arange(np.ceil(SI.min() / .001) * .001, np.ceil(SI.max() / .001 + 1) * .001, cinterval)
+                        out.contour = ppl.contour(XI, YI, SI, cval, **kw_contour_error)
+                        out.clabel = ppl.clabel(out.contour)
+
+                ppl.xlabel(x_label)
+                ppl.ylabel(y_label)
+                ppl.title(session, weight = &#39;bold&#39;)
+                ppl.grid(alpha = .2)
+                out.ax = ppl.gca()              
+
+                return out</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -4600,7 +4824,7 @@ By definition equal to <code>R18_VSMOW * 1.03092</code>.</p></div>
 <dt id="D47crunch.D47data.R18_VSMOW"><code class="name">var <span class="ident">R18_VSMOW</span></code></dt>
 <dd>
 <div class="desc"><p>Absolute (<sup>18</sup>O/<sup>16</sup>C) ratio of VSMOW.
-By default equal to 0.0020052 (<a href="https://doi.org/10.1016/0012-821X(76&gt;)90115-1">Baertschi, 1976</a>)</p></div>
+By default equal to 0.0020052 (<a href="https://doi.org/10.1016/0012-821X(76)90115-1">Baertschi, 1976</a>)</p></div>
 </dd>
 <dt id="D47crunch.D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION"><code class="name">var <span class="ident">SAMPLE_CONSTRAINING_WG_COMPOSITION</span></code></dt>
 <dd>
@@ -5434,81 +5658,107 @@ and allow locally overriding <code>self.verbose</code></p></div>
         &#39;&#39;&#39;
         if not os.path.exists(dir):
                 os.makedirs(dir)
-        anchor_color = &#39;r&#39;
-        unknown_color = &#39;b&#39;
 
-        xmin = min([r[&#39;d47&#39;] for r in self])
-        xmax = max([r[&#39;d47&#39;] for r in self])
-        xmin -= (xmax - xmin)/10
-        xmax += (xmax - xmin)/11
-
-        ymin = min([r[&#39;D47&#39;] for r in self])
-        ymax = max([r[&#39;D47&#39;] for r in self])
-        ymin -= (ymax - ymin)/10
-        ymax += (ymax - ymin)/11
-
-        repl_kw = dict(ls = &#39;None&#39;, marker = &#39;x&#39;, mfc = &#39;None&#39;, ms = 4, mew = .67, alpha = 1)
-        avg_kw = dict(ls = &#39;-&#39;, marker = &#39;None&#39;, lw = .67, alpha = .67)
         for session in self.sessions:
-                fig = ppl.figure( figsize = figsize)
-                for sample in self.anchors:
-                        db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
-                        if len(db):
-                                repl_kw[&#39;mec&#39;] = anchor_color
-                                X = [r[&#39;d47&#39;] for r in db]
-                                Y = [r[&#39;D47&#39;] for r in db]
-                                ppl.plot(X, Y, **repl_kw)
-
-                                avg_kw[&#39;color&#39;] = anchor_color
-                                X = [min(X)-.5, max(X)+.5]
-                                Y = [self.samples[sample][&#39;D47&#39;]] * 2
-                                ppl.plot(X, Y, **avg_kw)
-
-                                outliers = [r for r in db if abs(r[&#39;D47&#39;] - self.Nominal_D47[r[&#39;Sample&#39;]])&gt;.1]
-                                for r in outliers:
-                                        print(r[&#39;UID&#39;], r[&#39;Sample&#39;], r[&#39;D47&#39;])
-                                X = [r[&#39;d47&#39;] for r in outliers]
-                                Y = [r[&#39;D47&#39;] for r in outliers]
-                                ppl.plot(X, Y, &#39;o&#39;, mfc = &#39;None&#39;, mec = (1,0,1), mew = 2)
-
-                for sample in self.unknowns:
-
-                        db = [r for r in self.samples[sample][&#39;data&#39;] if r[&#39;Session&#39;] == session]
-                        if len(db):
-                                repl_kw[&#39;mec&#39;] = unknown_color
-                                X = [r[&#39;d47&#39;] for r in db]
-                                Y = [r[&#39;D47&#39;] for r in db]
-                                ppl.plot(X, Y, **repl_kw)
-
-                                avg_kw[&#39;color&#39;] = unknown_color
-                                X = [min(X)-.19, max(X)+.19]
-                                Y = [self.samples[sample][&#39;D47&#39;]] * 2
-                                ppl.plot(X, Y, **avg_kw)
-
-                XI,YI = np.meshgrid(np.linspace(xmin, xmax), np.linspace(ymin, ymax))
-                SI = np.array([[self.standardization_error(session, xi, yi) for xi in XI[0,:]] for yi in YI[:,0]])
-                rng = np.max(SI) - np.min(SI)
-                if rng &lt;= 0.01:
-                        cinterval = 0.001
-                elif rng &lt;= 0.03:
-                        cinterval = 0.004
-                elif rng &lt;= 0.1:
-                        cinterval = 0.01
-                elif rng &lt;= 0.3:
-                        cinterval = 0.03
-                else:
-                        cinterval = 0.1
-                cval = [np.ceil(SI.min() / .001) * .001 + k * cinterval for k in range(int(np.ceil((SI.max() - SI.min()) / cinterval)))]
-                cs = ppl.contour(XI, YI, SI, cval, colors = anchor_color, alpha = .5)
-                ppl.clabel(cs)
-
-                ppl.axis([xmin, xmax, ymin, ymax])
-                ppl.xlabel(&#39;δ$_{47}$ (‰ WG)&#39;)
-                ppl.ylabel(&#39;Δ$_{47}$ (‰)&#39;)
-                ppl.grid(alpha = .15)
-                ppl.title(session, weight = &#39;bold&#39;)
+                sp = self.plot_single_session(session, xylimits = &#39;constant&#39;)
                 ppl.savefig(f&#39;{dir}/D47model_{session}.pdf&#39;)
-                ppl.close(fig)</code></pre>
+                ppl.close(sp.fig)</code></pre>
+</details>
+</dd>
+<dt id="D47crunch.D47data.plot_single_session"><code class="name flex">
+<span>def <span class="ident">plot_single_session</span></span>(<span>self, session, kw_plot_anchors={'ls': 'None', 'marker': 'x', 'mec': (0.75, 0, 0), 'mew': 0.75, 'ms': 4}, kw_plot_unknowns={'ls': 'None', 'marker': 'x', 'mec': (0, 0, 0.75), 'mew': 0.75, 'ms': 4}, kw_plot_anchor_avg={'ls': '-', 'marker': 'None', 'color': (0.75, 0, 0), 'lw': 0.75}, kw_plot_unknown_avg={'ls': '-', 'marker': 'None', 'color': (0, 0, 0.75), 'lw': 0.75}, kw_contour_error={'colors': [[0, 0, 0]], 'alpha': 0.5, 'linewidths': 0.75}, xylimits='free', x_label='δ$_{47}$ (‰)', y_label='Δ$_{47}$ (‰)', error_contour_interval='auto', fig='new')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate plot for a single session</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_single_session(self,
+        session,
+        kw_plot_anchors = dict(ls=&#39;None&#39;, marker=&#39;x&#39;, mec=(.75, 0, 0), mew = .75, ms = 4),
+        kw_plot_unknowns = dict(ls=&#39;None&#39;, marker=&#39;x&#39;, mec=(0, 0, .75), mew = .75, ms = 4),
+        kw_plot_anchor_avg = dict(ls=&#39;-&#39;, marker=&#39;None&#39;, color=(.75, 0, 0), lw = .75),
+        kw_plot_unknown_avg = dict(ls=&#39;-&#39;, marker=&#39;None&#39;, color=(0, 0, .75), lw = .75),
+        kw_contour_error = dict(colors = [[0, 0, 0]], alpha = .5, linewidths = 0.75),
+        xylimits = &#39;free&#39;, # | &#39;constant&#39;
+        x_label = &#39;δ$_{47}$ (‰)&#39;,
+        y_label = &#39;Δ$_{47}$ (‰)&#39;,
+        error_contour_interval = &#39;auto&#39;,
+        fig = &#39;new&#39;,
+        ):
+        &#39;&#39;&#39;
+        Generate plot for a single session
+        &#39;&#39;&#39;             
+        out = SessionPlot()
+        
+        if fig == &#39;new&#39;:
+                out.fig = ppl.figure(figsize = (6,6))
+                ppl.subplots_adjust(.1,.1,.9,.9)
+        
+        out.anchor_analyses, = ppl.plot(
+                [r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
+                [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
+                **kw_plot_anchors)
+        out.unknown_analyses, = ppl.plot(
+                [r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns],
+                [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns],
+                **kw_plot_unknowns)
+        out.anchor_avg = ppl.plot(
+                np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.anchors]).T,
+                np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in self.anchors]).T,
+                &#39;-&#39;, **kw_plot_anchor_avg)
+        out.unknown_avg = ppl.plot(
+                np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.unknowns]).T,
+                np.array([ np.array([0, 0]) + self.unknowns[sample][&#39;D47&#39;] for sample in self.unknowns]).T,
+                &#39;-&#39;, **kw_plot_unknown_avg)
+        if xylimits == &#39;constant&#39;:
+                x = [r[&#39;d47&#39;] for r in self]
+                y = [r[&#39;D47&#39;] for r in self]
+                x1, x2, y1, y2 = np.min(x), np.max(x), np.min(y), np.max(y)
+                w, h = x2-x1, y2-y1
+                x1 -= w/20
+                x2 += w/20
+                y1 -= h/20
+                y2 += h/20
+                ppl.axis([x1, x2, y1, y2])
+        elif xylimits != &#39;free&#39;:
+                x1, x2, y1, y2 = ppl.axis()
+        else:
+                x1, x2, y1, y2 = ppl.axis(xylimits)
+
+        if error_contour_interval != &#39;none&#39;:
+                xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
+                XI,YI = np.meshgrid(xi, yi)
+                SI = np.array([[self.standardization_error(session, x, y) for x in xi] for y in yi])
+                if error_contour_interval == &#39;auto&#39;:
+                        rng = np.max(SI) - np.min(SI)
+                        if rng &lt;= 0.01:
+                                cinterval = 0.001
+                        elif rng &lt;= 0.03:
+                                cinterval = 0.004
+                        elif rng &lt;= 0.1:
+                                cinterval = 0.01
+                        elif rng &lt;= 0.3:
+                                cinterval = 0.03
+                        elif rng &lt;= 1.:
+                                cinterval = 0.1
+                        else:
+                                cinterval = 0.5
+                else:
+                        cinterval = error_contour_interval
+
+                cval = np.arange(np.ceil(SI.min() / .001) * .001, np.ceil(SI.max() / .001 + 1) * .001, cinterval)
+                out.contour = ppl.contour(XI, YI, SI, cval, **kw_contour_error)
+                out.clabel = ppl.clabel(out.contour)
+
+        ppl.xlabel(x_label)
+        ppl.ylabel(y_label)
+        ppl.title(session, weight = &#39;bold&#39;)
+        ppl.grid(alpha = .2)
+        out.ax = ppl.gca()              
+
+        return out</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.read"><code class="name flex">
@@ -6737,6 +6987,20 @@ def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&
 </dd>
 </dl>
 </dd>
+<dt id="D47crunch.SessionPlot"><code class="flex name class">
+<span>class <span class="ident">SessionPlot</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SessionPlot():
+        def __init__(self):
+                pass</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 </article>
@@ -6826,6 +7090,7 @@ def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&
 <li><code><a title="D47crunch.D47data.make_verbal" href="#D47crunch.D47data.make_verbal">make_verbal</a></code></li>
 <li><code><a title="D47crunch.D47data.msg" href="#D47crunch.D47data.msg">msg</a></code></li>
 <li><code><a title="D47crunch.D47data.plot_sessions" href="#D47crunch.D47data.plot_sessions">plot_sessions</a></code></li>
+<li><code><a title="D47crunch.D47data.plot_single_session" href="#D47crunch.D47data.plot_single_session">plot_single_session</a></code></li>
 <li><code><a title="D47crunch.D47data.read" href="#D47crunch.D47data.read">read</a></code></li>
 <li><code><a title="D47crunch.D47data.refresh" href="#D47crunch.D47data.refresh">refresh</a></code></li>
 <li><code><a title="D47crunch.D47data.refresh_samples" href="#D47crunch.D47data.refresh_samples">refresh_samples</a></code></li>
@@ -6851,13 +7116,16 @@ def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&
 <li><code><a title="D47crunch.D47data.wg_old" href="#D47crunch.D47data.wg_old">wg_old</a></code></li>
 </ul>
 </li>
+<li>
+<h4><code><a title="D47crunch.SessionPlot" href="#D47crunch.SessionPlot">SessionPlot</a></code></h4>
+</li>
 </ul>
 </li>
 </ul>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>
