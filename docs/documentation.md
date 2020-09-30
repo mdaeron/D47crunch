@@ -1,10 +1,99 @@
 ## Usage
 
-### 1. Import data
+### 1. Create `D47data` object
+
+Start by creating a `D47data` object which will store and process your data.
+
+```python
+import D47crunch 
+foo = D47crunch.D47data(verbose = True)
+```
+
+The `verbose` keyword specifies whether to print out extra information when calling `D47data` methods.
+This property may be arbitrarily changed using the `verbose` attribute of the resulting object:
+
+```python
+foo.verbose = False
+```
+
+Even before importing any analyses, our `D47data` object has properties which may be inspected and/or edited:
+
+#### 1.1 Nominal δ<sup>13</sup>C<sub>VPDB</sub>, δ<sup>18</sup>O<sub>VPDB</sub>, and Δ<sub>47</sub> values of carbonate standards
+
+`foo.Nominal_d13C_VPDB` and `foo.Nominal_d18O_VPDB` are dictionaries storing the δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub> values of carbonate standards. You may freely edit these values and/or which standards to consider:
+
+```python
+print(foo.Nominal_d13C_VPDB)
+# output: {'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71}
+
+print(foo.Nominal_d18O_VPDB)
+# {'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78}
+
+foo.Nominal_d13C_VPDB['ETH-4'] = -10.20
+foo.Nominal_d18O_VPDB['ETH-4'] = -18.81
+
+print(foo.Nominal_d13C_VPDB)
+# output: {'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71, 'ETH-4': -10.2}
+
+print(foo.Nominal_d18O_VPDB)
+# {'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78, 'ETH-4': -18.81}
+```
+
+`foo.Nominal_D47` is another dictionary, storing the absolute Δ<sub>47</sub> values of the standards used to anchor your measurements to an absolute Δ<sub>47</sub> reference frame.
+As above, you may feely edit these values:
+
+```python
+print(foo.Nominal_D47)
+# output: {'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691}
+
+foo.Nominal_D47['ETH-4'] = 0.507
+
+print(foo.Nominal_D47)
+# output: {'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691, 'ETH-4': 0.507}
+```
+
+#### 1.2 Oxygen-17 correction parameters
+
+The oxygen-17 correction parameters used by `D47data.crunch()` (see below) are specified by `foo.R13_VPDB`, `foo.R17_VSMOW`, `foo.R18_VSMOW` and `foo.lambda_17`. Default values correspond to the IUPAC values as recommended by [Daëron et al. (2016)] and  [Schauer et al. (2016)].
+
+[Daëron et al. (2016)]: https://dx.doi.org/10.1016/j.chemgeo.2016.08.014
+[Schauer et al. (2016)]: https://dx.doi.org/10.1002/rcm.7743
+
+```python
+print(foo.R13_VPDB)  # -> 0.01118    (Chang & Li, 1990)
+print(foo.R17_VSMOW) # -> 0.00038475 (Assonov & Brenninkmeijer, 2003, rescaled to R13_VPDB)
+print(foo.R18_VSMOW) # -> 0.0020052  (Baertschi, 1976)
+print(foo.lambda_17) # -> 0.528      (Barkan & Luz, 2005)
+```
+
+As above, the values for these parameters may be arbitrarily redefined:
+
+```python
+# to change the lambda value to 0.5164, leaving the other parameters unchanged:
+foo.lambda_17 = 0.5164
+```
+
+#### 1.3 Default method for carbon-13 and oxygen-18 standardization
+
+By default, bulk isotopic compositions are standardized using a “two-point” affine transformation (correcting for small offsets and stretching effects) based on the carbonate standards defined in `foo.Nominal_d13C_VPDB` and `foo.Nominal_d18O_VPDB` (see above).
+
+Optionally, you may opt instead for a “single-point” standardization approach not correcting for strecthing effects, for instance if the cabonate standards in `foo.Nominal_d13C_VPDB` and `foo.Nominal_d18O_VPDB` cover only a small fraction of the full isotopic range of your measurements.
+
+Finally, you may also opt to perform no _a posteriori_ standardization of bulk isotopic compositions, which implies that the quality of your final δ<sup>13</sup>C and δ<sup>18</sup>O values will depend strongly on the accuracy of your working gas composition and the linearity of your instrument.
+
+Switching betwwen these three options can be achieved by setting `foo.d13C_STANDARDIZATION_METHOD` and `foo.d18O_STANDARDIZATION_METHOD` to `'2pt'`, `'1pt'`, and `'none'`, respectively. Note that you may later override this default behavior on a per-session basis.
+
+#### 1.4 Oxygen-18 acid fractionation factor
+
+`D47data` processing methods always return δ<sup>18</sup>O values of CO<sub>2</sub> analytes relative to VSMOW rather than carbonate δ<sup>18</sup>O<sub>VPDB</sub> values (which depend on sample mineralogies and acid reaction temperature). However, when using single-point or two-point δ<sup>18</sup>O standardization or when computing the bulk isotope composition of working gases based on carbonate standards (using `D47data.wg()`), it is necessary to specify the oxygen-18 fractionation factor associated with the phosphoric acid reaction, by setting the value of `foo.ALPHA_18O_ACID_REACTION`.
+
+### 2. Import data
+
+It's time to add some analyses to out `D47data` object.
 
 Start with some raw data stored as CSV in a file named `rawdata.csv` (spaces after commas are optional). Each line corresponds to a single analysis.
 
-The only required fields are a sample identifier (`Sample`), and the working-gas delta values `d45`, `d46`, `d47`. If no session information is provided, all analuses will be treated as belonging to a single analytical session. Alternatively, to group analyses into sessions, provide session identifiers in a `Session` field. If not specified by the user, a unique identifier (`UID`) will be assigned automatically to each analysis. Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to VSMOW, with λ equal to `D47data.lambda_17`), and are assumed to be zero otherwise. Working-gas deltas `d48` and `d49` may also be provided, and are otherwise treated as `nan`.
+The only required fields are a sample identifier (`Sample`), and the working-gas delta values `d45`, `d46`, `d47`. If no session information is provided, all analyses will be treated as belonging to a single analytical session. Alternatively, to group analyses into sessions, provide session identifiers in a `Session` field. If not specified by the user, a unique identifier (`UID`) will be assigned automatically to each analysis. Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to VSMOW, with λ equal to `D47data.lambda_17`), and are assumed to be zero otherwise. Working-gas deltas `d48` and `d49` may also be provided, and are otherwise treated as `nan`.
 
 Example `rawdata.csv` file:
 
@@ -32,12 +121,9 @@ A19, Session2,   ETH-3,   5.52227, 12.01174,  17.36841,  26.19829,  1.03740
 A20, Session2, IAEA-C1,   6.21937, 11.44701,  17.26426,  24.84678,  0.76866
 ```
 
-First create a `D47data` object named `foo` and import `rawdata.csv`:
+Reading data from `rawdata.csv` can be done with `foo.read()`:
 
 ```python
-import D47crunch
- 
-foo = D47crunch.D47data()
 foo.read('rawdata.csv')
     
 print('foo contains:')
@@ -52,7 +138,9 @@ print(f'{len({r["Session"] for r in foo})} sessions')
 # 2 sessions
 ```
 
-We can inspect the elements of `foo`:
+At this stage, `foo` behaves like a `list` object. Yoy may slice it in the usual way (`foo[:10]` returns a list of the first 10 analyses) and use built-in methods in the expected way (e.g., `len(foo)` is equal to 20).
+
+We can inspect the first record now stored in `foo`, corresponding to a single analysis:
 
 ```python
 r = foo[0]
@@ -70,11 +158,54 @@ for k in r:
 # r["d49"] = 0.79486
 ```
 
-### 2. Working gas composition
+#### 2.1 Sessions
+
+After importing records from `rawdata.csv`, our `D47data` object now has a new dictionary attribute, `foo.sessions`:
+
+```python
+for session in foo.sessions:
+	print(f"{session:>28}:")
+	for k in foo.sessions[session]:
+		if k == 'data':
+			print(f"{k:>28}: [...] (too large to print)")
+		else:
+			print(f"{k:>28}: {foo.sessions[session][k]}")
+	print()
+# output:
+#                     Session1:
+#                         data: [...] (too large to print)
+#             scrambling_drift: False
+#                  slope_drift: False
+#                     wg_drift: False
+#  d13C_standardization_method: 2pt
+#  d18O_standardization_method: 2pt
+# 
+#                     Session2:
+#                         data: [...] (too large to print)
+#             scrambling_drift: False
+#                  slope_drift: False
+#                     wg_drift: False
+#  d13C_standardization_method: 2pt
+#  d18O_standardization_method: 2pt
+```
+
+Each session in `foo.sessions` has the following attributes at this stage:
+
++ `data`: list of all the analyses in this session
++ `scrambling_drift`, `slope_drift`, `wg_drift`: whether parameters `a`, `b`,`c` of the Δ<sub>47</sub> standardization model are allowed to drift (change linearly with with time).
++ `d13C_standardization_method`, `d18O_standardization_method`: which method to use for this session.
+
+You may arbitrarily edit the values of `d13C_standardization_method`, `d18O_standardization_method` for any session, which will affect the results of `foo.crunch()`.
+
+Similarly, you may arbitrarily edit the values of `scrambling_drift`, `slope_drift`, `wg_drift` for any session, which will affect the results of `foo.standardize()`.
+
+#### 2.2 Samples, anchors and unknowns
+
+### 3. Working gas composition
 
 There are two ways to define the isotpic composition of the working gas.
 
-#### 2.1 Option 1: explicit definition
+#### 3.1 Option 1: explicit definition
 
 Directly writing to fields `d13Cwg_VPDB` and `d18Owg_VSMOW`:
 
@@ -88,7 +219,7 @@ for r in foo:
         r['d18Owg_VSMOW'] = 25.17
 ```
 
-#### 2.2 Option 2: based on the known composition of a sample:
+#### 3.2 Option 2: based on the known composition of a sample:
 
 ```python
 # The 2 code lines below are the default settings. It is thus not
@@ -102,7 +233,7 @@ foo.wg()
 
 ```
 
-### 3. Crunch the data
+### 4. Crunch the data
 
 Now compute δ<sup>13</sup>C, δ<sup>18</sup>Ο, and raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values. Note that δ<sup>18</sup>Ο is the CO<sub>2</sub> composition. The user is responsible for any acid fractionation correction.
 
@@ -130,47 +261,6 @@ for k in r:
 # r["D47raw"] = -0.5746856128030498
 # r["D48raw"] = 1.1496833191546596
 # r["D49raw"] = -27.690248970251407
-```
-
-### 4. Oxygen-17 correction parameters
-
-The crunching step performed by `foo.crunch()` uses the IUPAC oxygen-17 correction parameters, as recommended by [Daëron et al. (2016)](https://dx.doi.org/10.1016/j.chemgeo.2016.08.014) and  [Schauer et al. (2016)](https://dx.doi.org/10.1002/rcm.7743):
-
-```python
-R13_VPDB = 0.01118  # (Chang & Li, 1990)
-R18_VSMOW = 0.0020052  # (Baertschi, 1976)
-lambda_17 = 0.528  # (Barkan & Luz, 2005)
-R17_VSMOW = 0.00038475  # (Assonov & Brenninkmeijer, 2003, rescaled to R13_VPDB)
-R18_VPDB = R18_VSMOW * 1.03092
-R17_VPDB = R17_VSMOW * 1.03092 ** lambda_17
-```
-
-To use different numerical values for these parameters, change them before performing `foo.crunch()`:
-
-```python
-# to change the lambda value to 0.5164, leaving the other parameters unchanged:
-foo.lambda_17 = 0.5164
-```
-
-### 5. Reference frame
-
-The nominal Δ<sub>47</sub> values assigned to the anchor samples are defined in `foo.Nominal_D47`, which may be redefined arbitrarily:
-
-```python
-print(foo.Nominal_D47) # default values from Bernasconi et al. (2018)
-# output:
-# {'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691}
-
-foo.Nominal_D47 = {
-    "Foo-1": 0.232,
-    "Foo-2": 0.289,
-    "Foo-3": 0.455,
-    "Foo-4": 0.704,
-    }
-
-print(foo.Nominal_D47)
-# output:
-# {'Foo-1': 0.232, 'Foo-2': 0.289, 'Foo-3': 0.455, 'Foo-4': 0.704}
 ```
 
 ### 6. Standardization

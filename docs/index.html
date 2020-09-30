@@ -57,9 +57,66 @@ color : #AAA
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
 Δ<sub>47</sub> values with fully propagated analytical error estimates.</p>
 <h2 id="usage">Usage</h2>
-<h3 id="1-import-data">1. Import data</h3>
+<h3 id="1-create-d47data-object">1. Create <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object</h3>
+<p>Start by creating a <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object which will store and process your data.</p>
+<pre><code class="python">import D47crunch 
+foo = D47crunch.D47data(verbose = True)
+</code></pre>
+<p>The <code>verbose</code> keyword specifies whether to print out extra information when calling <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> methods.
+This property may be arbitrarily changed using the <code>verbose</code> attribute of the resulting object:</p>
+<pre><code class="python">foo.verbose = False
+</code></pre>
+<p>Even before importing any analyses, our <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object has properties which may be inspected and/or edited:</p>
+<h4 id="11-nominal-13cvpdb-18ovpdb-and-47-values-of-carbonate-standards">1.1 Nominal δ<sup>13</sup>C<sub>VPDB</sub>, δ<sup>18</sup>O<sub>VPDB</sub>, and Δ<sub>47</sub> values of carbonate standards</h4>
+<p><code>foo.Nominal_d13C_VPDB</code> and <code>foo.Nominal_d18O_VPDB</code> are dictionaries storing the δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub> values of carbonate standards. You may freely edit these values and/or which standards to consider:</p>
+<pre><code class="python">print(foo.Nominal_d13C_VPDB)
+# output: {'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71}
+
+print(foo.Nominal_d18O_VPDB)
+# {'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78}
+
+foo.Nominal_d13C_VPDB['ETH-4'] = -10.20
+foo.Nominal_d18O_VPDB['ETH-4'] = -18.81
+
+print(foo.Nominal_d13C_VPDB)
+# output: {'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71, 'ETH-4': -10.2}
+
+print(foo.Nominal_d18O_VPDB)
+# {'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78, 'ETH-4': -18.81}
+</code></pre>
+<p><code>foo.Nominal_D47</code> is another dictionary, storing the absolute Δ<sub>47</sub> values of the standards used to anchor your measurements to an absolute Δ<sub>47</sub> reference frame.
+As above, you may feely edit these values:</p>
+<pre><code class="python">print(foo.Nominal_D47)
+# output: {'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691}
+
+foo.Nominal_D47['ETH-4'] = 0.507
+
+print(foo.Nominal_D47)
+# output: {'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691, 'ETH-4': 0.507}
+</code></pre>
+<h4 id="12-oxygen-17-correction-parameters">1.2 Oxygen-17 correction parameters</h4>
+<p>The oxygen-17 correction parameters used by <code><a title="D47crunch.D47data.crunch" href="#D47crunch.D47data.crunch">D47data.crunch()</a></code> (see below) are specified by <code>foo.R13_VPDB</code>, <code>foo.R17_VSMOW</code>, <code>foo.R18_VSMOW</code> and <code>foo.lambda_17</code>. Default values correspond to the IUPAC values as recommended by <a href="https://dx.doi.org/10.1016/j.chemgeo.2016.08.014">Daëron et al. (2016)</a> and
+<a href="https://dx.doi.org/10.1002/rcm.7743">Schauer et al. (2016)</a>.</p>
+<pre><code class="python">print(foo.R13_VPDB)  # -&gt; 0.01118    (Chang &amp; Li, 1990)
+print(foo.R17_VSMOW) # -&gt; 0.00038475 (Assonov &amp; Brenninkmeijer, 2003, rescaled to R13_VPDB)
+print(foo.R18_VSMOW) # -&gt; 0.0020052  (Baertschi, 1976)
+print(foo.lambda_17) # -&gt; 0.528      (Barkan &amp; Luz, 2005)
+</code></pre>
+<p>As above, the values for these parameters may be arbitrarily redefined:</p>
+<pre><code class="python"># to change the lambda value to 0.5164, leaving the other parameters unchanged:
+foo.lambda_17 = 0.5164
+</code></pre>
+<h4 id="13-default-method-for-carbon-13-and-oxygen-18-standardization">1.3 Default method for carbon-13 and oxygen-18 standardization</h4>
+<p>By default, bulk isotopic compositions are standardized using a “two-point” affine transformation (correcting for small offsets and stretching effects) based on the carbonate standards defined in <code>foo.Nominal_d13C_VPDB</code> and <code>foo.Nominal_d18O_VPDB</code> (see above).</p>
+<p>Optionally, you may opt instead for a “single-point” standardization approach not correcting for strecthing effects, for instance if the cabonate standards in <code>foo.Nominal_d13C_VPDB</code> and <code>foo.Nominal_d18O_VPDB</code> cover only a small fraction of the full isotopic range of your measurements.</p>
+<p>Finally, you may also opt to perform no <em>a posteriori</em> standardization of bulk isotopic compositions, which implies that the quality of your final δ<sup>13</sup>C and δ<sup>18</sup>O values will depend strongly on the accuracy of your working gas composition and the linearity of your instrument.</p>
+<p>Switching betwwen these three options can be achieved by setting <code>foo.d13C_STANDARDIZATION_METHOD</code> and <code>foo.d18O_STANDARDIZATION_METHOD</code> to <code>'2pt'</code>, <code>'1pt'</code>, and <code>'none'</code>, respectively. Note that you may later override this default behavior on a per-session basis.</p>
+<h4 id="14-oxygen-18-acid-fractionation-factor">1.4 Oxygen-18 acid fractionation factor</h4>
+<p><code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> processing methods always return δ<sup>18</sup>O values of CO<sub>2</sub> analytes relative to VSMOW rather than carbonate δ<sup>18</sup>O<sub>VPDB</sub> values (which depend on sample mineralogies and acid reaction temperature). However, when using single-point or two-point δ<sup>18</sup>O standardization or when computing the bulk isotope composition of working gases based on carbonate standards (using <code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">D47data.wg()</a></code>), it is necessary to specify the oxygen-18 fractionation factor associated with the phosphoric acid reaction, by setting the value of <code>foo.ALPHA_18O_ACID_REACTION</code>.</p>
+<h3 id="2-import-data">2. Import data</h3>
+<p>It's time to add some analyses to out <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object.</p>
 <p>Start with some raw data stored as CSV in a file named <code>rawdata.csv</code> (spaces after commas are optional). Each line corresponds to a single analysis.</p>
-<p>The only required fields are a sample identifier (<code>Sample</code>), and the working-gas delta values <code>d45</code>, <code>d46</code>, <code>d47</code>. If no session information is provided, all analuses will be treated as belonging to a single analytical session. Alternatively, to group analyses into sessions, provide session identifiers in a <code>Session</code> field. If not specified by the user, a unique identifier (<code>UID</code>) will be assigned automatically to each analysis. Independently known oxygen-17 anomalies may be provided as <code>D17O</code> (in ‰ relative to VSMOW, with λ equal to <code><a title="D47crunch.D47data.lambda_17" href="#D47crunch.D47data.lambda_17">D47data.lambda_17</a></code>), and are assumed to be zero otherwise. Working-gas deltas <code>d48</code> and <code>d49</code> may also be provided, and are otherwise treated as <code>nan</code>.</p>
+<p>The only required fields are a sample identifier (<code>Sample</code>), and the working-gas delta values <code>d45</code>, <code>d46</code>, <code>d47</code>. If no session information is provided, all analyses will be treated as belonging to a single analytical session. Alternatively, to group analyses into sessions, provide session identifiers in a <code>Session</code> field. If not specified by the user, a unique identifier (<code>UID</code>) will be assigned automatically to each analysis. Independently known oxygen-17 anomalies may be provided as <code>D17O</code> (in ‰ relative to VSMOW, with λ equal to <code><a title="D47crunch.D47data.lambda_17" href="#D47crunch.D47data.lambda_17">D47data.lambda_17</a></code>), and are assumed to be zero otherwise. Working-gas deltas <code>d48</code> and <code>d49</code> may also be provided, and are otherwise treated as <code>nan</code>.</p>
 <p>Example <code>rawdata.csv</code> file:</p>
 <pre><code class="csv">UID,  Session,  Sample,       d45,      d46,       d47,       d48,      d49
 A01, Session1,   ETH-1,   5.79502, 11.62767,  16.89351,  24.56708,  0.79486
@@ -83,11 +140,8 @@ A18, Session2, IAEA-C2,  -3.85355,  4.91943,   0.58463,  10.56221,  0.71245
 A19, Session2,   ETH-3,   5.52227, 12.01174,  17.36841,  26.19829,  1.03740
 A20, Session2, IAEA-C1,   6.21937, 11.44701,  17.26426,  24.84678,  0.76866
 </code></pre>
-<p>First create a <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object named <code>foo</code> and import <code>rawdata.csv</code>:</p>
-<pre><code class="python">import D47crunch
-
-foo = D47crunch.D47data()
-foo.read('rawdata.csv')
+<p>Reading data from <code>rawdata.csv</code> can be done with <code>foo.read()</code>:</p>
+<pre><code class="python">foo.read('rawdata.csv')
 
 print('foo contains:')
 print(f'{len(foo)} analyses')
@@ -100,7 +154,8 @@ print(f'{len({r[&quot;Session&quot;] for r in foo})} sessions')
 # 5 samples
 # 2 sessions
 </code></pre>
-<p>We can inspect the elements of <code>foo</code>:</p>
+<p>At this stage, <code>foo</code> behaves like a <code>list</code> object. Yoy may slice it in the usual way (<code>foo[:10]</code> returns a list of the first 10 analyses) and use built-in methods in the expected way (e.g., <code>len(foo)</code> is equal to 20).</p>
+<p>We can inspect the first record now stored in <code>foo</code>, corresponding to a single analysis:</p>
 <pre><code class="python">r = foo[0]
 for k in r:
     print(f'r[&quot;{k}&quot;] = {repr(r[k])}')
@@ -115,9 +170,45 @@ for k in r:
 # r[&quot;d48&quot;] = 24.56708
 # r[&quot;d49&quot;] = 0.79486
 </code></pre>
-<h3 id="2-working-gas-composition">2. Working gas composition</h3>
+<h4 id="21-sessions">2.1 Sessions</h4>
+<p>After importing records from <code>rawdata.csv</code>, our <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object now has a new dictionary attribute, <code>foo.sessions</code>:</p>
+<pre><code class="python">for session in foo.sessions:
+    print(f&quot;{session:&gt;28}:&quot;)
+    for k in foo.sessions[session]:
+        if k == 'data':
+            print(f&quot;{k:&gt;28}: [...] (too large to print)&quot;)
+        else:
+            print(f&quot;{k:&gt;28}: {foo.sessions[session][k]}&quot;)
+    print()
+# output:
+#                     Session1:
+#                         data: [...] (too large to print)
+#             scrambling_drift: False
+#                  slope_drift: False
+#                     wg_drift: False
+#  d13C_standardization_method: 2pt
+#  d18O_standardization_method: 2pt
+# 
+#                     Session2:
+#                         data: [...] (too large to print)
+#             scrambling_drift: False
+#                  slope_drift: False
+#                     wg_drift: False
+#  d13C_standardization_method: 2pt
+#  d18O_standardization_method: 2pt
+</code></pre>
+<p>Each session in <code>foo.sessions</code> has the following attributes at this stage:</p>
+<ul>
+<li><code>data</code>: list of all the analyses in this session</li>
+<li><code>scrambling_drift</code>, <code>slope_drift</code>, <code>wg_drift</code>: whether parameters <code>a</code>, <code>b</code>,<code>c</code> of the Δ<sub>47</sub> standardization model are allowed to drift (change linearly with with time).</li>
+<li><code>d13C_standardization_method</code>, <code>d18O_standardization_method</code>: which method to use for this session.</li>
+</ul>
+<p>You may arbitrarily edit the values of <code>d13C_standardization_method</code>, <code>d18O_standardization_method</code> for any session, which will affect the results of <code>foo.crunch()</code>.</p>
+<p>Similarly, you may arbitrarily edit the values of <code>scrambling_drift</code>, <code>slope_drift</code>, <code>wg_drift</code> for any session, which will affect the results of <code>foo.standardize()</code>.</p>
+<h4 id="22-samples-anchors-and-unknowns">2.2 Samples, anchors and unknowns</h4>
+<h3 id="3-working-gas-composition">3. Working gas composition</h3>
 <p>There are two ways to define the isotpic composition of the working gas.</p>
-<h4 id="21-option-1-explicit-definition">2.1 Option 1: explicit definition</h4>
+<h4 id="31-option-1-explicit-definition">3.1 Option 1: explicit definition</h4>
 <p>Directly writing to fields <code>d13Cwg_VPDB</code> and <code>d18Owg_VSMOW</code>:</p>
 <pre><code class="python">for r in foo:
     if r['Session'] == 'Session1':
@@ -127,7 +218,7 @@ for k in r:
         r['d13Cwg_VPDB'] = -3.74
         r['d18Owg_VSMOW'] = 25.17
 </code></pre>
-<h4 id="22-option-2-based-on-the-known-composition-of-a-sample">2.2 Option 2: based on the known composition of a sample:</h4>
+<h4 id="32-option-2-based-on-the-known-composition-of-a-sample">3.2 Option 2: based on the known composition of a sample:</h4>
 <pre><code class="python"># The 2 code lines below are the default settings. It is thus not
 # necessary to include them unless you wish to use different values.
 
@@ -138,7 +229,7 @@ foo.ALPHA_18O_ACID_REACTION = 1.00813 # (Kim et al., 2007), calcite at 90 °C
 foo.wg()
 
 </code></pre>
-<h3 id="3-crunch-the-data">3. Crunch the data</h3>
+<h3 id="4-crunch-the-data">4. Crunch the data</h3>
 <p>Now compute δ<sup>13</sup>C, δ<sup>18</sup>Ο, and raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values. Note that δ<sup>18</sup>Ο is the CO<sub>2</sub> composition. The user is responsible for any acid fractionation correction.</p>
 <pre><code class="python">foo.crunch()
 
@@ -163,37 +254,6 @@ for k in r:
 # r[&quot;D47raw&quot;] = -0.5746856128030498
 # r[&quot;D48raw&quot;] = 1.1496833191546596
 # r[&quot;D49raw&quot;] = -27.690248970251407
-</code></pre>
-<h3 id="4-oxygen-17-correction-parameters">4. Oxygen-17 correction parameters</h3>
-<p>The crunching step performed by <code>foo.crunch()</code> uses the IUPAC oxygen-17 correction parameters, as recommended by <a href="https://dx.doi.org/10.1016/j.chemgeo.2016.08.014">Daëron et al. (2016)</a> and
-<a href="https://dx.doi.org/10.1002/rcm.7743">Schauer et al. (2016)</a>:</p>
-<pre><code class="python">R13_VPDB = 0.01118  # (Chang &amp; Li, 1990)
-R18_VSMOW = 0.0020052  # (Baertschi, 1976)
-lambda_17 = 0.528  # (Barkan &amp; Luz, 2005)
-R17_VSMOW = 0.00038475  # (Assonov &amp; Brenninkmeijer, 2003, rescaled to R13_VPDB)
-R18_VPDB = R18_VSMOW * 1.03092
-R17_VPDB = R17_VSMOW * 1.03092 ** lambda_17
-</code></pre>
-<p>To use different numerical values for these parameters, change them before performing <code>foo.crunch()</code>:</p>
-<pre><code class="python"># to change the lambda value to 0.5164, leaving the other parameters unchanged:
-foo.lambda_17 = 0.5164
-</code></pre>
-<h3 id="5-reference-frame">5. Reference frame</h3>
-<p>The nominal Δ<sub>47</sub> values assigned to the anchor samples are defined in <code>foo.Nominal_D47</code>, which may be redefined arbitrarily:</p>
-<pre><code class="python">print(foo.Nominal_D47) # default values from Bernasconi et al. (2018)
-# output:
-# {'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691}
-
-foo.Nominal_D47 = {
-    &quot;Foo-1&quot;: 0.232,
-    &quot;Foo-2&quot;: 0.289,
-    &quot;Foo-3&quot;: 0.455,
-    &quot;Foo-4&quot;: 0.704,
-    }
-
-print(foo.Nominal_D47)
-# output:
-# {'Foo-1': 0.232, 'Foo-2': 0.289, 'Foo-3': 0.455, 'Foo-4': 0.704}
 </code></pre>
 <h3 id="6-standardization">6. Standardization</h3>
 <h4 id="61-default-approach-pooled">6.1 Default approach (<span style="text-transform:lowercase"><code>pooled</code></span>)</h4>
@@ -371,7 +431,7 @@ __contact__   = &#39;daeron@lsce.ipsl.fr&#39;
 __copyright__ = &#39;Copyright (c) 2020 Mathieu Daëron&#39;
 __license__   = &#39;Modified BSD License - https://opensource.org/licenses/BSD-3-Clause&#39;
 __date__      = &#39;2020-05-16&#39;
-__version__   = &#39;0.4.dev3&#39;
+__version__   = &#39;0.5.dev2&#39;
 
 import os
 import numpy as np
@@ -733,7 +793,7 @@ class D47data(list):
         [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
         &#39;&#39;&#39;
 
-        d13C_STANDARDIZATION_METHOD = &#39;none&#39;
+        d13C_STANDARDIZATION_METHOD = &#39;2pt&#39;
         &#39;&#39;&#39;
         Method by which to standardize δ&lt;sup&gt;13&lt;/sup&gt;C values:
         
@@ -747,7 +807,7 @@ class D47data(list):
         is defined).
         &#39;&#39;&#39;
 
-        d18O_STANDARDIZATION_METHOD = &#39;none&#39;
+        d18O_STANDARDIZATION_METHOD = &#39;2pt&#39;
         &#39;&#39;&#39;
         Method by which to standardize δ&lt;sup&gt;18&lt;/sup&gt;O values:
         
@@ -854,8 +914,8 @@ class D47data(list):
                         self.sessions[s][&#39;scrambling_drift&#39;] = False
                         self.sessions[s][&#39;slope_drift&#39;] = False
                         self.sessions[s][&#39;wg_drift&#39;] = False
-                        self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] = self.d13C_STANDARDIZATION_METHOD
-                        self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] = self.d18O_STANDARDIZATION_METHOD
+                        self.sessions[s][&#39;d13C_standardization_method&#39;] = self.d13C_STANDARDIZATION_METHOD
+                        self.sessions[s][&#39;d18O_standardization_method&#39;] = self.d18O_STANDARDIZATION_METHOD
 
 
         def refresh_samples(self):
@@ -937,7 +997,88 @@ class D47data(list):
 
 
         @make_verbal
-        def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
+        def wg(self, samples = &#39;&#39;, a18_acid = &#39;&#39;):
+                &#39;&#39;&#39;
+                Compute bulk composition of the working gas for each session
+                based on the carbonate standards defined both in `self.Nominal_d13C_VPDB`
+                and in `self.Nominal_d18O_VPDB`.
+                &#39;&#39;&#39;
+
+                self.msg(&#39;Computing WG composition:&#39;)
+
+                if a18_acid == &#39;&#39;:
+                        a18_acid = self.ALPHA_18O_ACID_REACTION
+                if samples == &#39;&#39;:
+                        samples = [s for s in self.Nominal_d13C_VPDB if s in self.Nominal_d18O_VPDB]
+
+                assert a18_acid, f&#39;Acid fractionation value should differ from zero.&#39;
+
+                samples = [s for s in samples if s in self.Nominal_d13C_VPDB and s in self.Nominal_d18O_VPDB]
+                R45R46_standards = {}
+                for sample in samples:
+                        d13C_vpdb = self.Nominal_d13C_VPDB[sample]
+                        d18O_vpdb = self.Nominal_d18O_VPDB[sample]
+                        R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
+                        R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
+                        R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
+
+                        C12_s = 1 / (1 + R13_s)
+                        C13_s = R13_s / (1 + R13_s)
+                        C16_s = 1 / (1 + R17_s + R18_s)
+                        C17_s = R17_s / (1 + R17_s + R18_s)
+                        C18_s = R18_s / (1 + R17_s + R18_s)
+
+                        C626_s = C12_s * C16_s ** 2
+                        C627_s = 2 * C12_s * C16_s * C17_s
+                        C628_s = 2 * C12_s * C16_s * C18_s
+                        C636_s = C13_s * C16_s ** 2
+                        C637_s = 2 * C13_s * C16_s * C17_s
+                        C727_s = C12_s * C17_s ** 2
+
+                        R45_s = (C627_s + C636_s) / C626_s
+                        R46_s = (C628_s + C637_s + C727_s) / C626_s
+                        R45R46_standards[sample] = (R45_s, R46_s)
+                
+                for s in self.sessions:
+                        db = [r for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in samples]
+                        assert db, f&#39;No sample from {samples} found in session &#34;{s}&#34;.&#39;
+#                       dbsamples = sorted({r[&#39;Sample&#39;] for r in db})
+
+                        X = [r[&#39;d45&#39;] for r in db]
+                        Y = [R45R46_standards[r[&#39;Sample&#39;]][0] for r in db]
+                        x1, x2 = np.min(X), np.max(X)
+                        wgcoord = x1/(x1-x2)
+                        if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
+                                # unreasonable to extrapolate to d45 = 0
+                                R45_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
+                        else :
+                                # d45 = 0 is reasonably well bracketed
+                                R45_wg = np.polyfit(X, Y, 1)[1]
+
+                        X = [r[&#39;d46&#39;] for r in db]
+                        Y = [R45R46_standards[r[&#39;Sample&#39;]][1] for r in db]
+                        x1, x2 = np.min(X), np.max(X)
+                        wgcoord = x1/(x1-x2)
+                        if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
+                                # unreasonable to extrapolate to d46 = 0
+                                R46_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
+                        else :
+                                # d46 = 0 is reasonably well bracketed
+                                R46_wg = np.polyfit(X, Y, 1)[1]
+
+                        d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
+
+                        self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
+
+                        self.sessions[s][&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+                        self.sessions[s][&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
+                        for r in self.sessions[s][&#39;data&#39;]:
+                                r[&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+                                r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
+                
+
+        @make_verbal
+        def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
                 &#39;&#39;&#39;
                 Compute bulk composition of the working gas for each session
                 based on the average composition, within each session,
@@ -1100,19 +1241,19 @@ class D47data(list):
         def standardize_d13C(self):
                 &#39;&#39;&#39;
                 Perform δ&lt;sup&gt;13&lt;/sup&gt;C standadization within each session `s` according to
-                `self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;]`, which is defined by default
+                `self.sessions[s][&#39;d13C_standardization_method&#39;]`, which is defined by default
                 by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but
                 may be redefined abitrarily at a later stage.
                 &#39;&#39;&#39;
                 for s in self.sessions:
-                        if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                        if self.sessions[s][&#39;d13C_standardization_method&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
                                 XY = [(r[&#39;d13C_VPDB&#39;], self.Nominal_d13C_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d13C_VPDB]
                                 X,Y = zip(*XY)
-                                if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                                if self.sessions[s][&#39;d13C_standardization_method&#39;] == &#39;1pt&#39;:
                                         offset = np.mean(Y) - np.mean(X)
                                         for r in self.sessions[s][&#39;data&#39;]:
                                                 r[&#39;d13C_VPDB&#39;] += offset                                
-                                elif self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                                elif self.sessions[s][&#39;d13C_standardization_method&#39;] == &#39;2pt&#39;:
                                         a,b = np.polyfit(X,Y,1)
                                         for r in self.sessions[s][&#39;data&#39;]:
                                                 r[&#39;d13C_VPDB&#39;] = a * r[&#39;d13C_VPDB&#39;] + b
@@ -1120,20 +1261,20 @@ class D47data(list):
         def standardize_d18O(self):
                 &#39;&#39;&#39;
                 Perform δ&lt;sup&gt;18&lt;/sup&gt;O standadization within each session `s` according to
-                `self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;]`,
+                `self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_standardization_method&#39;]`,
                 which is defined by default by `D47data.refresh_sessions()`as equal to
                 `self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.
                 &#39;&#39;&#39;
                 for s in self.sessions:
-                        if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                        if self.sessions[s][&#39;d18O_standardization_method&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
                                 XY = [(r[&#39;d18O_VSMOW&#39;], self.Nominal_d18O_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d18O_VPDB]
                                 X,Y = zip(*XY)
                                 Y = [(1000+y) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000 for y in Y]
-                                if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                                if self.sessions[s][&#39;d18O_standardization_method&#39;] == &#39;1pt&#39;:
                                         offset = np.mean(Y) - np.mean(X)
                                         for r in self.sessions[s][&#39;data&#39;]:
                                                 r[&#39;d18O_VSMOW&#39;] += offset                               
-                                elif self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                                elif self.sessions[s][&#39;d18O_standardization_method&#39;] == &#39;2pt&#39;:
                                         a,b = np.polyfit(X,Y,1)
                                         for r in self.sessions[s][&#39;data&#39;]:
                                                 r[&#39;d18O_VSMOW&#39;] = a * r[&#39;d18O_VSMOW&#39;] + b
@@ -1563,13 +1704,13 @@ class D47data(list):
 
 
         @make_verbal
-        def table_of_sessions(self,
+        def summary(self,
                 dir = &#39;results&#39;,
-                filename = &#39;sessions.csv&#39;,
+                filename = &#39;summary.csv&#39;,
                 save_to_file = True,
                 print_out = True):
                 &#39;&#39;&#39;
-                Print out an/or save to disk a table of sessions.
+                Print out an/or save to disk a summary of the standardization results.
 
                 __Parameters__
 
@@ -1590,12 +1731,37 @@ class D47data(list):
                 out += [[&#39;Model degrees of freedom&#39;, f&#34;{self.Nf}&#34;]]
                 out += [[&#39;Student\&#39;s 95% t-factor&#39;, f&#34;{self.t95:.2f}&#34;]]
                 out += [[&#39;Standardization method&#39;, self.standardization_method]]
-                out1 = out
-                self.msg(&#39;\n&#39; + pretty_table(out1, header = 0))
 
+                if save_to_file:
+                        if not os.path.exists(dir):
+                                os.makedirs(dir)
+                        with open(f&#39;{dir}/{filename}&#39;, &#39;w&#39;) as fid:
+                                fid.write(make_csv(out))
+                if print_out:
+                        self.msg(&#39;\n&#39; + pretty_table(out, header = 0))
+                return out
+
+
+        @make_verbal
+        def table_of_sessions(self,
+                dir = &#39;results&#39;,
+                filename = &#39;sessions.csv&#39;,
+                save_to_file = True,
+                print_out = True):
+                &#39;&#39;&#39;
+                Print out an/or save to disk a table of sessions.
+
+                __Parameters__
+
+                + `dir`: the directory in which to save the table
+                + `filename`: the name to the csv file to write to
+                + `save_to_file`: whether to save the table to disk
+                + `print_out`: whether to print out the table
+                &#39;&#39;&#39;
                 include_a2 = any([self.sessions[session][&#39;scrambling_drift&#39;] for session in self.sessions])
                 include_b2 = any([self.sessions[session][&#39;slope_drift&#39;] for session in self.sessions])
                 include_c2 = any([self.sessions[session][&#39;wg_drift&#39;] for session in self.sessions])
+
                 out = [[&#39;Session&#39;,&#39;Na&#39;,&#39;Nu&#39;,&#39;d13Cwg_VPDB&#39;,&#39;d18Owg_VSMOW&#39;,&#39;r_d13C&#39;,&#39;r_d18O&#39;,&#39;r_D47&#39;,&#39;a ± SE&#39;,&#39;1e3 x b ± SE&#39;,&#39;c ± SE&#39;]]
                 if include_a2:
                         out[-1] += [&#39;a2 ± SE&#39;]
@@ -1640,9 +1806,10 @@ class D47data(list):
                                 fid.write(make_csv(out))
                 if print_out:
                         self.msg(&#39;\n&#39; + pretty_table(out))
-                return out1, out
+                return out
 
 
+        @make_verbal
         def table_of_analyses(self, dir = &#39;results&#39;, filename = &#39;analyses.csv&#39;, save_to_file = True, print_out = True):
                 &#39;&#39;&#39;
                 Print out an/or save to disk a table of analyses.
@@ -1685,7 +1852,7 @@ class D47data(list):
                         with open(f&#39;{dir}/{filename}&#39;, &#39;w&#39;) as fid:
                                 fid.write(make_csv(out))
                 if print_out:
-                        print(pretty_table(out))
+                        self.msg(&#39;\n&#39; + pretty_table(out))
                 return out
 
 
@@ -2075,6 +2242,7 @@ class D47data(list):
                 self.repeatabilies()
 
                 if tables:
+                        self.summary()
                         self.table_of_sessions()
                         self.table_of_analyses()
                         self.table_of_samples()
@@ -2748,7 +2916,7 @@ methods.</li>
         [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
         &#39;&#39;&#39;
 
-        d13C_STANDARDIZATION_METHOD = &#39;none&#39;
+        d13C_STANDARDIZATION_METHOD = &#39;2pt&#39;
         &#39;&#39;&#39;
         Method by which to standardize δ&lt;sup&gt;13&lt;/sup&gt;C values:
         
@@ -2762,7 +2930,7 @@ methods.</li>
         is defined).
         &#39;&#39;&#39;
 
-        d18O_STANDARDIZATION_METHOD = &#39;none&#39;
+        d18O_STANDARDIZATION_METHOD = &#39;2pt&#39;
         &#39;&#39;&#39;
         Method by which to standardize δ&lt;sup&gt;18&lt;/sup&gt;O values:
         
@@ -2869,8 +3037,8 @@ methods.</li>
                         self.sessions[s][&#39;scrambling_drift&#39;] = False
                         self.sessions[s][&#39;slope_drift&#39;] = False
                         self.sessions[s][&#39;wg_drift&#39;] = False
-                        self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] = self.d13C_STANDARDIZATION_METHOD
-                        self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] = self.d18O_STANDARDIZATION_METHOD
+                        self.sessions[s][&#39;d13C_standardization_method&#39;] = self.d13C_STANDARDIZATION_METHOD
+                        self.sessions[s][&#39;d18O_standardization_method&#39;] = self.d18O_STANDARDIZATION_METHOD
 
 
         def refresh_samples(self):
@@ -2952,7 +3120,88 @@ methods.</li>
 
 
         @make_verbal
-        def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
+        def wg(self, samples = &#39;&#39;, a18_acid = &#39;&#39;):
+                &#39;&#39;&#39;
+                Compute bulk composition of the working gas for each session
+                based on the carbonate standards defined both in `self.Nominal_d13C_VPDB`
+                and in `self.Nominal_d18O_VPDB`.
+                &#39;&#39;&#39;
+
+                self.msg(&#39;Computing WG composition:&#39;)
+
+                if a18_acid == &#39;&#39;:
+                        a18_acid = self.ALPHA_18O_ACID_REACTION
+                if samples == &#39;&#39;:
+                        samples = [s for s in self.Nominal_d13C_VPDB if s in self.Nominal_d18O_VPDB]
+
+                assert a18_acid, f&#39;Acid fractionation value should differ from zero.&#39;
+
+                samples = [s for s in samples if s in self.Nominal_d13C_VPDB and s in self.Nominal_d18O_VPDB]
+                R45R46_standards = {}
+                for sample in samples:
+                        d13C_vpdb = self.Nominal_d13C_VPDB[sample]
+                        d18O_vpdb = self.Nominal_d18O_VPDB[sample]
+                        R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
+                        R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
+                        R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
+
+                        C12_s = 1 / (1 + R13_s)
+                        C13_s = R13_s / (1 + R13_s)
+                        C16_s = 1 / (1 + R17_s + R18_s)
+                        C17_s = R17_s / (1 + R17_s + R18_s)
+                        C18_s = R18_s / (1 + R17_s + R18_s)
+
+                        C626_s = C12_s * C16_s ** 2
+                        C627_s = 2 * C12_s * C16_s * C17_s
+                        C628_s = 2 * C12_s * C16_s * C18_s
+                        C636_s = C13_s * C16_s ** 2
+                        C637_s = 2 * C13_s * C16_s * C17_s
+                        C727_s = C12_s * C17_s ** 2
+
+                        R45_s = (C627_s + C636_s) / C626_s
+                        R46_s = (C628_s + C637_s + C727_s) / C626_s
+                        R45R46_standards[sample] = (R45_s, R46_s)
+                
+                for s in self.sessions:
+                        db = [r for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in samples]
+                        assert db, f&#39;No sample from {samples} found in session &#34;{s}&#34;.&#39;
+#                       dbsamples = sorted({r[&#39;Sample&#39;] for r in db})
+
+                        X = [r[&#39;d45&#39;] for r in db]
+                        Y = [R45R46_standards[r[&#39;Sample&#39;]][0] for r in db]
+                        x1, x2 = np.min(X), np.max(X)
+                        wgcoord = x1/(x1-x2)
+                        if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
+                                # unreasonable to extrapolate to d45 = 0
+                                R45_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
+                        else :
+                                # d45 = 0 is reasonably well bracketed
+                                R45_wg = np.polyfit(X, Y, 1)[1]
+
+                        X = [r[&#39;d46&#39;] for r in db]
+                        Y = [R45R46_standards[r[&#39;Sample&#39;]][1] for r in db]
+                        x1, x2 = np.min(X), np.max(X)
+                        wgcoord = x1/(x1-x2)
+                        if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
+                                # unreasonable to extrapolate to d46 = 0
+                                R46_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
+                        else :
+                                # d46 = 0 is reasonably well bracketed
+                                R46_wg = np.polyfit(X, Y, 1)[1]
+
+                        d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
+
+                        self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
+
+                        self.sessions[s][&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+                        self.sessions[s][&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
+                        for r in self.sessions[s][&#39;data&#39;]:
+                                r[&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+                                r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
+                
+
+        @make_verbal
+        def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
                 &#39;&#39;&#39;
                 Compute bulk composition of the working gas for each session
                 based on the average composition, within each session,
@@ -3115,19 +3364,19 @@ methods.</li>
         def standardize_d13C(self):
                 &#39;&#39;&#39;
                 Perform δ&lt;sup&gt;13&lt;/sup&gt;C standadization within each session `s` according to
-                `self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;]`, which is defined by default
+                `self.sessions[s][&#39;d13C_standardization_method&#39;]`, which is defined by default
                 by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but
                 may be redefined abitrarily at a later stage.
                 &#39;&#39;&#39;
                 for s in self.sessions:
-                        if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                        if self.sessions[s][&#39;d13C_standardization_method&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
                                 XY = [(r[&#39;d13C_VPDB&#39;], self.Nominal_d13C_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d13C_VPDB]
                                 X,Y = zip(*XY)
-                                if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                                if self.sessions[s][&#39;d13C_standardization_method&#39;] == &#39;1pt&#39;:
                                         offset = np.mean(Y) - np.mean(X)
                                         for r in self.sessions[s][&#39;data&#39;]:
                                                 r[&#39;d13C_VPDB&#39;] += offset                                
-                                elif self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                                elif self.sessions[s][&#39;d13C_standardization_method&#39;] == &#39;2pt&#39;:
                                         a,b = np.polyfit(X,Y,1)
                                         for r in self.sessions[s][&#39;data&#39;]:
                                                 r[&#39;d13C_VPDB&#39;] = a * r[&#39;d13C_VPDB&#39;] + b
@@ -3135,20 +3384,20 @@ methods.</li>
         def standardize_d18O(self):
                 &#39;&#39;&#39;
                 Perform δ&lt;sup&gt;18&lt;/sup&gt;O standadization within each session `s` according to
-                `self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;]`,
+                `self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_standardization_method&#39;]`,
                 which is defined by default by `D47data.refresh_sessions()`as equal to
                 `self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.
                 &#39;&#39;&#39;
                 for s in self.sessions:
-                        if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                        if self.sessions[s][&#39;d18O_standardization_method&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
                                 XY = [(r[&#39;d18O_VSMOW&#39;], self.Nominal_d18O_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d18O_VPDB]
                                 X,Y = zip(*XY)
                                 Y = [(1000+y) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000 for y in Y]
-                                if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                                if self.sessions[s][&#39;d18O_standardization_method&#39;] == &#39;1pt&#39;:
                                         offset = np.mean(Y) - np.mean(X)
                                         for r in self.sessions[s][&#39;data&#39;]:
                                                 r[&#39;d18O_VSMOW&#39;] += offset                               
-                                elif self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                                elif self.sessions[s][&#39;d18O_standardization_method&#39;] == &#39;2pt&#39;:
                                         a,b = np.polyfit(X,Y,1)
                                         for r in self.sessions[s][&#39;data&#39;]:
                                                 r[&#39;d18O_VSMOW&#39;] = a * r[&#39;d18O_VSMOW&#39;] + b
@@ -3578,13 +3827,13 @@ methods.</li>
 
 
         @make_verbal
-        def table_of_sessions(self,
+        def summary(self,
                 dir = &#39;results&#39;,
-                filename = &#39;sessions.csv&#39;,
+                filename = &#39;summary.csv&#39;,
                 save_to_file = True,
                 print_out = True):
                 &#39;&#39;&#39;
-                Print out an/or save to disk a table of sessions.
+                Print out an/or save to disk a summary of the standardization results.
 
                 __Parameters__
 
@@ -3605,12 +3854,37 @@ methods.</li>
                 out += [[&#39;Model degrees of freedom&#39;, f&#34;{self.Nf}&#34;]]
                 out += [[&#39;Student\&#39;s 95% t-factor&#39;, f&#34;{self.t95:.2f}&#34;]]
                 out += [[&#39;Standardization method&#39;, self.standardization_method]]
-                out1 = out
-                self.msg(&#39;\n&#39; + pretty_table(out1, header = 0))
 
+                if save_to_file:
+                        if not os.path.exists(dir):
+                                os.makedirs(dir)
+                        with open(f&#39;{dir}/{filename}&#39;, &#39;w&#39;) as fid:
+                                fid.write(make_csv(out))
+                if print_out:
+                        self.msg(&#39;\n&#39; + pretty_table(out, header = 0))
+                return out
+
+
+        @make_verbal
+        def table_of_sessions(self,
+                dir = &#39;results&#39;,
+                filename = &#39;sessions.csv&#39;,
+                save_to_file = True,
+                print_out = True):
+                &#39;&#39;&#39;
+                Print out an/or save to disk a table of sessions.
+
+                __Parameters__
+
+                + `dir`: the directory in which to save the table
+                + `filename`: the name to the csv file to write to
+                + `save_to_file`: whether to save the table to disk
+                + `print_out`: whether to print out the table
+                &#39;&#39;&#39;
                 include_a2 = any([self.sessions[session][&#39;scrambling_drift&#39;] for session in self.sessions])
                 include_b2 = any([self.sessions[session][&#39;slope_drift&#39;] for session in self.sessions])
                 include_c2 = any([self.sessions[session][&#39;wg_drift&#39;] for session in self.sessions])
+
                 out = [[&#39;Session&#39;,&#39;Na&#39;,&#39;Nu&#39;,&#39;d13Cwg_VPDB&#39;,&#39;d18Owg_VSMOW&#39;,&#39;r_d13C&#39;,&#39;r_d18O&#39;,&#39;r_D47&#39;,&#39;a ± SE&#39;,&#39;1e3 x b ± SE&#39;,&#39;c ± SE&#39;]]
                 if include_a2:
                         out[-1] += [&#39;a2 ± SE&#39;]
@@ -3655,9 +3929,10 @@ methods.</li>
                                 fid.write(make_csv(out))
                 if print_out:
                         self.msg(&#39;\n&#39; + pretty_table(out))
-                return out1, out
+                return out
 
 
+        @make_verbal
         def table_of_analyses(self, dir = &#39;results&#39;, filename = &#39;analyses.csv&#39;, save_to_file = True, print_out = True):
                 &#39;&#39;&#39;
                 Print out an/or save to disk a table of analyses.
@@ -3700,7 +3975,7 @@ methods.</li>
                         with open(f&#39;{dir}/{filename}&#39;, &#39;w&#39;) as fid:
                                 fid.write(make_csv(out))
                 if print_out:
-                        print(pretty_table(out))
+                        self.msg(&#39;\n&#39; + pretty_table(out))
                 return out
 
 
@@ -4090,6 +4365,7 @@ methods.</li>
                 self.repeatabilies()
 
                 if tables:
+                        self.summary()
                         self.table_of_sessions()
                         self.table_of_analyses()
                         self.table_of_samples()
@@ -4680,6 +4956,7 @@ def consolidate(self, tables = True, plots = True):
         self.repeatabilies()
 
         if tables:
+                self.summary()
                 self.table_of_sessions()
                 self.table_of_analyses()
                 self.table_of_samples()
@@ -5351,8 +5628,8 @@ to <code>False</code> for all sessions.</p></div>
                 self.sessions[s][&#39;scrambling_drift&#39;] = False
                 self.sessions[s][&#39;slope_drift&#39;] = False
                 self.sessions[s][&#39;wg_drift&#39;] = False
-                self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] = self.d13C_STANDARDIZATION_METHOD
-                self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] = self.d18O_STANDARDIZATION_METHOD</code></pre>
+                self.sessions[s][&#39;d13C_standardization_method&#39;] = self.d13C_STANDARDIZATION_METHOD
+                self.sessions[s][&#39;d18O_standardization_method&#39;] = self.d18O_STANDARDIZATION_METHOD</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.repeatabilies"><code class="name flex">
@@ -5893,7 +6170,7 @@ session independently, based only on anchors analyses.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Perform δ<sup>13</sup>C standadization within each session <code>s</code> according to
-<code>self.sessions[s]['d13C_STANDARDIZATION_METHOD']</code>, which is defined by default
+<code>self.sessions[s]['d13C_standardization_method']</code>, which is defined by default
 by <code><a title="D47crunch.D47data.refresh_sessions" href="#D47crunch.D47data.refresh_sessions">D47data.refresh_sessions()</a></code>as equal to <code>self.d13C_STANDARDIZATION_METHOD</code>, but
 may be redefined abitrarily at a later stage.</p></div>
 <details class="source">
@@ -5903,19 +6180,19 @@ may be redefined abitrarily at a later stage.</p></div>
 <pre><code class="python">def standardize_d13C(self):
         &#39;&#39;&#39;
         Perform δ&lt;sup&gt;13&lt;/sup&gt;C standadization within each session `s` according to
-        `self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;]`, which is defined by default
+        `self.sessions[s][&#39;d13C_standardization_method&#39;]`, which is defined by default
         by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but
         may be redefined abitrarily at a later stage.
         &#39;&#39;&#39;
         for s in self.sessions:
-                if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                if self.sessions[s][&#39;d13C_standardization_method&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
                         XY = [(r[&#39;d13C_VPDB&#39;], self.Nominal_d13C_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d13C_VPDB]
                         X,Y = zip(*XY)
-                        if self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                        if self.sessions[s][&#39;d13C_standardization_method&#39;] == &#39;1pt&#39;:
                                 offset = np.mean(Y) - np.mean(X)
                                 for r in self.sessions[s][&#39;data&#39;]:
                                         r[&#39;d13C_VPDB&#39;] += offset                                
-                        elif self.sessions[s][&#39;d13C_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                        elif self.sessions[s][&#39;d13C_standardization_method&#39;] == &#39;2pt&#39;:
                                 a,b = np.polyfit(X,Y,1)
                                 for r in self.sessions[s][&#39;data&#39;]:
                                         r[&#39;d13C_VPDB&#39;] = a * r[&#39;d13C_VPDB&#39;] + b</code></pre>
@@ -5926,7 +6203,7 @@ may be redefined abitrarily at a later stage.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Perform δ<sup>18</sup>O standadization within each session <code>s</code> according to
-<code>self.ALPHA_18O_ACID_REACTION</code> and <code>self.sessions[s]['d18O_STANDARDIZATION_METHOD']</code>,
+<code>self.ALPHA_18O_ACID_REACTION</code> and <code>self.sessions[s]['d18O_standardization_method']</code>,
 which is defined by default by <code><a title="D47crunch.D47data.refresh_sessions" href="#D47crunch.D47data.refresh_sessions">D47data.refresh_sessions()</a></code>as equal to
 <code>self.d18O_STANDARDIZATION_METHOD</code>, but may be redefined abitrarily at a later stage.</p></div>
 <details class="source">
@@ -5936,23 +6213,78 @@ which is defined by default by <code><a title="D47crunch.D47data.refresh_session
 <pre><code class="python">def standardize_d18O(self):
         &#39;&#39;&#39;
         Perform δ&lt;sup&gt;18&lt;/sup&gt;O standadization within each session `s` according to
-        `self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;]`,
+        `self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_standardization_method&#39;]`,
         which is defined by default by `D47data.refresh_sessions()`as equal to
         `self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.
         &#39;&#39;&#39;
         for s in self.sessions:
-                if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
+                if self.sessions[s][&#39;d18O_standardization_method&#39;] in [&#39;1pt&#39;, &#39;2pt&#39;]:
                         XY = [(r[&#39;d18O_VSMOW&#39;], self.Nominal_d18O_VPDB[r[&#39;Sample&#39;]]) for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in self.Nominal_d18O_VPDB]
                         X,Y = zip(*XY)
                         Y = [(1000+y) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000 for y in Y]
-                        if self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;1pt&#39;:
+                        if self.sessions[s][&#39;d18O_standardization_method&#39;] == &#39;1pt&#39;:
                                 offset = np.mean(Y) - np.mean(X)
                                 for r in self.sessions[s][&#39;data&#39;]:
                                         r[&#39;d18O_VSMOW&#39;] += offset                               
-                        elif self.sessions[s][&#39;d18O_STANDARDIZATION_METHOD&#39;] == &#39;2pt&#39;:
+                        elif self.sessions[s][&#39;d18O_standardization_method&#39;] == &#39;2pt&#39;:
                                 a,b = np.polyfit(X,Y,1)
                                 for r in self.sessions[s][&#39;data&#39;]:
                                         r[&#39;d18O_VSMOW&#39;] = a * r[&#39;d18O_VSMOW&#39;] + b</code></pre>
+</details>
+</dd>
+<dt id="D47crunch.D47data.summary"><code class="name flex">
+<span>def <span class="ident">summary</span></span>(<span>self, dir='results', filename='summary.csv', save_to_file=True, print_out=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Print out an/or save to disk a summary of the standardization results.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>dir</code>: the directory in which to save the table</li>
+<li><code>filename</code>: the name to the csv file to write to</li>
+<li><code>save_to_file</code>: whether to save the table to disk</li>
+<li><code>print_out</code>: whether to print out the table</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@make_verbal
+def summary(self,
+        dir = &#39;results&#39;,
+        filename = &#39;summary.csv&#39;,
+        save_to_file = True,
+        print_out = True):
+        &#39;&#39;&#39;
+        Print out an/or save to disk a summary of the standardization results.
+
+        __Parameters__
+
+        + `dir`: the directory in which to save the table
+        + `filename`: the name to the csv file to write to
+        + `save_to_file`: whether to save the table to disk
+        + `print_out`: whether to print out the table
+        &#39;&#39;&#39;
+
+        out = []
+        out += [[&#39;N samples (anchors + unknowns)&#39;, f&#34;{len(self.samples)} ({len(self.anchors)} + {len(self.unknowns)})&#34;]]
+        out += [[&#39;N analyses (anchors + unknowns)&#39;, f&#34;{len(self)} ({len([r for r in self if r[&#39;Sample&#39;] in self.anchors])} + {len([r for r in self if r[&#39;Sample&#39;] in self.unknowns])})&#34;]]
+        out += [[&#39;Repeatability of δ13C_VPDB&#39;, f&#34;{1000 * self.repeatability[&#39;r_d13C_VPDB&#39;]:.1f} ppm&#34;]]
+        out += [[&#39;Repeatability of δ18O_VSMOW&#39;, f&#34;{1000 * self.repeatability[&#39;r_d18O_VSMOW&#39;]:.1f} ppm&#34;]]
+        out += [[&#39;Repeatability of Δ47 (anchors)&#39;, f&#34;{1000 * self.repeatability[&#39;r_D47a&#39;]:.1f} ppm&#34;]]
+        out += [[&#39;Repeatability of Δ47 (unknowns)&#39;, f&#34;{1000 * self.repeatability[&#39;r_D47u&#39;]:.1f} ppm&#34;]]
+        out += [[&#39;Repeatability of Δ47 (all)&#39;, f&#34;{1000 * self.repeatability[&#39;r_D47&#39;]:.1f} ppm&#34;]]
+        out += [[&#39;Model degrees of freedom&#39;, f&#34;{self.Nf}&#34;]]
+        out += [[&#39;Student\&#39;s 95% t-factor&#39;, f&#34;{self.t95:.2f}&#34;]]
+        out += [[&#39;Standardization method&#39;, self.standardization_method]]
+
+        if save_to_file:
+                if not os.path.exists(dir):
+                        os.makedirs(dir)
+                with open(f&#39;{dir}/{filename}&#39;, &#39;w&#39;) as fid:
+                        fid.write(make_csv(out))
+        if print_out:
+                self.msg(&#39;\n&#39; + pretty_table(out, header = 0))
+        return out</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.table_of_analyses"><code class="name flex">
@@ -5971,7 +6303,8 @@ which is defined by default by <code><a title="D47crunch.D47data.refresh_session
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def table_of_analyses(self, dir = &#39;results&#39;, filename = &#39;analyses.csv&#39;, save_to_file = True, print_out = True):
+<pre><code class="python">@make_verbal
+def table_of_analyses(self, dir = &#39;results&#39;, filename = &#39;analyses.csv&#39;, save_to_file = True, print_out = True):
         &#39;&#39;&#39;
         Print out an/or save to disk a table of analyses.
 
@@ -6013,7 +6346,7 @@ which is defined by default by <code><a title="D47crunch.D47data.refresh_session
                 with open(f&#39;{dir}/{filename}&#39;, &#39;w&#39;) as fid:
                         fid.write(make_csv(out))
         if print_out:
-                print(pretty_table(out))
+                self.msg(&#39;\n&#39; + pretty_table(out))
         return out</code></pre>
 </details>
 </dd>
@@ -6110,24 +6443,10 @@ def table_of_sessions(self,
         + `save_to_file`: whether to save the table to disk
         + `print_out`: whether to print out the table
         &#39;&#39;&#39;
-
-        out = []
-        out += [[&#39;N samples (anchors + unknowns)&#39;, f&#34;{len(self.samples)} ({len(self.anchors)} + {len(self.unknowns)})&#34;]]
-        out += [[&#39;N analyses (anchors + unknowns)&#39;, f&#34;{len(self)} ({len([r for r in self if r[&#39;Sample&#39;] in self.anchors])} + {len([r for r in self if r[&#39;Sample&#39;] in self.unknowns])})&#34;]]
-        out += [[&#39;Repeatability of δ13C_VPDB&#39;, f&#34;{1000 * self.repeatability[&#39;r_d13C_VPDB&#39;]:.1f} ppm&#34;]]
-        out += [[&#39;Repeatability of δ18O_VSMOW&#39;, f&#34;{1000 * self.repeatability[&#39;r_d18O_VSMOW&#39;]:.1f} ppm&#34;]]
-        out += [[&#39;Repeatability of Δ47 (anchors)&#39;, f&#34;{1000 * self.repeatability[&#39;r_D47a&#39;]:.1f} ppm&#34;]]
-        out += [[&#39;Repeatability of Δ47 (unknowns)&#39;, f&#34;{1000 * self.repeatability[&#39;r_D47u&#39;]:.1f} ppm&#34;]]
-        out += [[&#39;Repeatability of Δ47 (all)&#39;, f&#34;{1000 * self.repeatability[&#39;r_D47&#39;]:.1f} ppm&#34;]]
-        out += [[&#39;Model degrees of freedom&#39;, f&#34;{self.Nf}&#34;]]
-        out += [[&#39;Student\&#39;s 95% t-factor&#39;, f&#34;{self.t95:.2f}&#34;]]
-        out += [[&#39;Standardization method&#39;, self.standardization_method]]
-        out1 = out
-        self.msg(&#39;\n&#39; + pretty_table(out1, header = 0))
-
         include_a2 = any([self.sessions[session][&#39;scrambling_drift&#39;] for session in self.sessions])
         include_b2 = any([self.sessions[session][&#39;slope_drift&#39;] for session in self.sessions])
         include_c2 = any([self.sessions[session][&#39;wg_drift&#39;] for session in self.sessions])
+
         out = [[&#39;Session&#39;,&#39;Na&#39;,&#39;Nu&#39;,&#39;d13Cwg_VPDB&#39;,&#39;d18Owg_VSMOW&#39;,&#39;r_d13C&#39;,&#39;r_d18O&#39;,&#39;r_D47&#39;,&#39;a ± SE&#39;,&#39;1e3 x b ± SE&#39;,&#39;c ± SE&#39;]]
         if include_a2:
                 out[-1] += [&#39;a2 ± SE&#39;]
@@ -6172,7 +6491,7 @@ def table_of_sessions(self,
                         fid.write(make_csv(out))
         if print_out:
                 self.msg(&#39;\n&#39; + pretty_table(out))
-        return out1, out</code></pre>
+        return out</code></pre>
 </details>
 </dd>
 <dt id="D47crunch.D47data.unsplit_samples"><code class="name flex">
@@ -6254,7 +6573,99 @@ def table_of_sessions(self,
 </details>
 </dd>
 <dt id="D47crunch.D47data.wg"><code class="name flex">
-<span>def <span class="ident">wg</span></span>(<span>self, sample='', d13C_vpdb='', d18O_vpdb='', a18_acid='')</span>
+<span>def <span class="ident">wg</span></span>(<span>self, samples='', a18_acid='')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Compute bulk composition of the working gas for each session
+based on the carbonate standards defined both in <code>self.Nominal_d13C_VPDB</code>
+and in <code>self.Nominal_d18O_VPDB</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">        @make_verbal
+        def wg(self, samples = &#39;&#39;, a18_acid = &#39;&#39;):
+                &#39;&#39;&#39;
+                Compute bulk composition of the working gas for each session
+                based on the carbonate standards defined both in `self.Nominal_d13C_VPDB`
+                and in `self.Nominal_d18O_VPDB`.
+                &#39;&#39;&#39;
+
+                self.msg(&#39;Computing WG composition:&#39;)
+
+                if a18_acid == &#39;&#39;:
+                        a18_acid = self.ALPHA_18O_ACID_REACTION
+                if samples == &#39;&#39;:
+                        samples = [s for s in self.Nominal_d13C_VPDB if s in self.Nominal_d18O_VPDB]
+
+                assert a18_acid, f&#39;Acid fractionation value should differ from zero.&#39;
+
+                samples = [s for s in samples if s in self.Nominal_d13C_VPDB and s in self.Nominal_d18O_VPDB]
+                R45R46_standards = {}
+                for sample in samples:
+                        d13C_vpdb = self.Nominal_d13C_VPDB[sample]
+                        d18O_vpdb = self.Nominal_d18O_VPDB[sample]
+                        R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
+                        R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
+                        R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
+
+                        C12_s = 1 / (1 + R13_s)
+                        C13_s = R13_s / (1 + R13_s)
+                        C16_s = 1 / (1 + R17_s + R18_s)
+                        C17_s = R17_s / (1 + R17_s + R18_s)
+                        C18_s = R18_s / (1 + R17_s + R18_s)
+
+                        C626_s = C12_s * C16_s ** 2
+                        C627_s = 2 * C12_s * C16_s * C17_s
+                        C628_s = 2 * C12_s * C16_s * C18_s
+                        C636_s = C13_s * C16_s ** 2
+                        C637_s = 2 * C13_s * C16_s * C17_s
+                        C727_s = C12_s * C17_s ** 2
+
+                        R45_s = (C627_s + C636_s) / C626_s
+                        R46_s = (C628_s + C637_s + C727_s) / C626_s
+                        R45R46_standards[sample] = (R45_s, R46_s)
+                
+                for s in self.sessions:
+                        db = [r for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] in samples]
+                        assert db, f&#39;No sample from {samples} found in session &#34;{s}&#34;.&#39;
+#                       dbsamples = sorted({r[&#39;Sample&#39;] for r in db})
+
+                        X = [r[&#39;d45&#39;] for r in db]
+                        Y = [R45R46_standards[r[&#39;Sample&#39;]][0] for r in db]
+                        x1, x2 = np.min(X), np.max(X)
+                        wgcoord = x1/(x1-x2)
+                        if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
+                                # unreasonable to extrapolate to d45 = 0
+                                R45_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
+                        else :
+                                # d45 = 0 is reasonably well bracketed
+                                R45_wg = np.polyfit(X, Y, 1)[1]
+
+                        X = [r[&#39;d46&#39;] for r in db]
+                        Y = [R45R46_standards[r[&#39;Sample&#39;]][1] for r in db]
+                        x1, x2 = np.min(X), np.max(X)
+                        wgcoord = x1/(x1-x2)
+                        if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
+                                # unreasonable to extrapolate to d46 = 0
+                                R46_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
+                        else :
+                                # d46 = 0 is reasonably well bracketed
+                                R46_wg = np.polyfit(X, Y, 1)[1]
+
+                        d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
+
+                        self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
+
+                        self.sessions[s][&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+                        self.sessions[s][&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
+                        for r in self.sessions[s][&#39;data&#39;]:
+                                r[&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+                                r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW</code></pre>
+</details>
+</dd>
+<dt id="D47crunch.D47data.wg_old"><code class="name flex">
+<span>def <span class="ident">wg_old</span></span>(<span>self, sample='', d13C_vpdb='', d18O_vpdb='', a18_acid='')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute bulk composition of the working gas for each session
@@ -6265,7 +6676,7 @@ of a given sample.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@make_verbal
-def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
+def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
         &#39;&#39;&#39;
         Compute bulk composition of the working gas for each session
         based on the average composition, within each session,
@@ -6334,15 +6745,24 @@ def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;
 <div class="toc">
 <ul>
 <li><a href="#usage">Usage</a><ul>
-<li><a href="#1-import-data">1. Import data</a></li>
-<li><a href="#2-working-gas-composition">2. Working gas composition</a><ul>
-<li><a href="#21-option-1-explicit-definition">2.1 Option 1: explicit definition</a></li>
-<li><a href="#22-option-2-based-on-the-known-composition-of-a-sample">2.2 Option 2: based on the known composition of a sample:</a></li>
+<li><a href="#1-create-d47data-object">1. Create D47data object</a><ul>
+<li><a href="#11-nominal-13cvpdb-18ovpdb-and-47-values-of-carbonate-standards">1.1 Nominal δ13CVPDB, δ18OVPDB, and Δ47 values of carbonate standards</a></li>
+<li><a href="#12-oxygen-17-correction-parameters">1.2 Oxygen-17 correction parameters</a></li>
+<li><a href="#13-default-method-for-carbon-13-and-oxygen-18-standardization">1.3 Default method for carbon-13 and oxygen-18 standardization</a></li>
+<li><a href="#14-oxygen-18-acid-fractionation-factor">1.4 Oxygen-18 acid fractionation factor</a></li>
 </ul>
 </li>
-<li><a href="#3-crunch-the-data">3. Crunch the data</a></li>
-<li><a href="#4-oxygen-17-correction-parameters">4. Oxygen-17 correction parameters</a></li>
-<li><a href="#5-reference-frame">5. Reference frame</a></li>
+<li><a href="#2-import-data">2. Import data</a><ul>
+<li><a href="#21-sessions">2.1 Sessions</a></li>
+<li><a href="#22-samples-anchors-and-unknowns">2.2 Samples, anchors and unknowns</a></li>
+</ul>
+</li>
+<li><a href="#3-working-gas-composition">3. Working gas composition</a><ul>
+<li><a href="#31-option-1-explicit-definition">3.1 Option 1: explicit definition</a></li>
+<li><a href="#32-option-2-based-on-the-known-composition-of-a-sample">3.2 Option 2: based on the known composition of a sample:</a></li>
+</ul>
+</li>
+<li><a href="#4-crunch-the-data">4. Crunch the data</a></li>
 <li><a href="#6-standardization">6. Standardization</a><ul>
 <li><a href="#61-default-approach-pooled">6.1 Default approach (pooled)</a></li>
 <li><a href="#62-d47datasessions">6.2 D47data().sessions</a></li>
@@ -6421,12 +6841,14 @@ def wg(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;
 <li><code><a title="D47crunch.D47data.standardize" href="#D47crunch.D47data.standardize">standardize</a></code></li>
 <li><code><a title="D47crunch.D47data.standardize_d13C" href="#D47crunch.D47data.standardize_d13C">standardize_d13C</a></code></li>
 <li><code><a title="D47crunch.D47data.standardize_d18O" href="#D47crunch.D47data.standardize_d18O">standardize_d18O</a></code></li>
+<li><code><a title="D47crunch.D47data.summary" href="#D47crunch.D47data.summary">summary</a></code></li>
 <li><code><a title="D47crunch.D47data.table_of_analyses" href="#D47crunch.D47data.table_of_analyses">table_of_analyses</a></code></li>
 <li><code><a title="D47crunch.D47data.table_of_samples" href="#D47crunch.D47data.table_of_samples">table_of_samples</a></code></li>
 <li><code><a title="D47crunch.D47data.table_of_sessions" href="#D47crunch.D47data.table_of_sessions">table_of_sessions</a></code></li>
 <li><code><a title="D47crunch.D47data.unsplit_samples" href="#D47crunch.D47data.unsplit_samples">unsplit_samples</a></code></li>
 <li><code><a title="D47crunch.D47data.vmsg" href="#D47crunch.D47data.vmsg">vmsg</a></code></li>
 <li><code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">wg</a></code></li>
+<li><code><a title="D47crunch.D47data.wg_old" href="#D47crunch.D47data.wg_old">wg_old</a></code></li>
 </ul>
 </li>
 </ul>
