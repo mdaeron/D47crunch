@@ -1921,13 +1921,15 @@ class D47data(list):
 		):
 		'''
 		Generate plot for a single session
-		'''		
+		'''
 		out = SessionPlot()
+		anchors = [a for a in self.anchors if [r for r in self.sessions[session]['data'] if r['Sample'] == a]]
+		unknowns = [u for u in self.unknowns if [r for r in self.sessions[session]['data'] if r['Sample'] == u]]
 		
 		if fig == 'new':
 			out.fig = ppl.figure(figsize = (6,6))
 			ppl.subplots_adjust(.1,.1,.9,.9)
-		
+
 		out.anchor_analyses, = ppl.plot(
 			[r['d47'] for r in self.sessions[session]['data'] if r['Sample'] in self.anchors],
 			[r['D47'] for r in self.sessions[session]['data'] if r['Sample'] in self.anchors],
@@ -1937,12 +1939,12 @@ class D47data(list):
 			[r['D47'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns],
 			**kw_plot_unknowns)
 		out.anchor_avg = ppl.plot(
-			np.array([ np.array([-.5, .5]) + np.mean([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) for sample in self.anchors]).T,
-			np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in self.anchors]).T,
+			np.array([ np.array([-.5, .5]) + np.mean([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) for sample in anchors]).T,
+			np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in anchors]).T,
 			'-', **kw_plot_anchor_avg)
 		out.unknown_avg = ppl.plot(
-			np.array([ np.array([-.5, .5]) + np.mean([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) for sample in self.unknowns]).T,
-			np.array([ np.array([0, 0]) + self.unknowns[sample]['D47'] for sample in self.unknowns]).T,
+			np.array([ np.array([-.5, .5]) + np.mean([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) for sample in unknowns]).T,
+			np.array([ np.array([0, 0]) + self.unknowns[sample]['D47'] for sample in unknowns]).T,
 			'-', **kw_plot_unknown_avg)
 		if xylimits == 'constant':
 			x = [r['d47'] for r in self]
@@ -1958,7 +1960,8 @@ class D47data(list):
 			x1, x2, y1, y2 = ppl.axis()
 		else:
 			x1, x2, y1, y2 = ppl.axis(xylimits)
-
+		
+		
 		if error_contour_interval != 'none':
 			xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
 			XI,YI = np.meshgrid(xi, yi)
