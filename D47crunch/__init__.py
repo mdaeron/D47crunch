@@ -14,7 +14,7 @@ __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2020 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __date__      = '2020-09-30'
-__version__   = '0.6.1'
+__version__   = '0.6.2dev1'
 
 import os
 import numpy as np
@@ -2002,7 +2002,10 @@ class D47data(list):
 		fig = ppl.figure(figsize = (8,3))
 		ppl.subplots_adjust(.1,.05,.78,.9)
 		N = len(self.anchors)
-		colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+		if N == 4:
+			colorz = {a: c for a,c in zip(self.anchors, [(.25,.25,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+		else:
+			colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
 		session = self[0]['Session']
 		x1 = 0
 # 		ymax = np.max([1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self])
