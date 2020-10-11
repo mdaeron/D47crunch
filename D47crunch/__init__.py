@@ -631,7 +631,12 @@ class D47data(list):
 			X = [r['d45'] for r in db]
 			Y = [R45R46_standards[r['Sample']][0] for r in db]
 			x1, x2 = np.min(X), np.max(X)
-			wgcoord = x1/(x1-x2)
+
+			if x1 < x2:
+				wgcoord = x1/(x1-x2)
+			else:
+				wgcoord = 999
+
 			if wgcoord < -.5 or wgcoord > 1.5:
 				# unreasonable to extrapolate to d45 = 0
 				R45_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
@@ -642,7 +647,12 @@ class D47data(list):
 			X = [r['d46'] for r in db]
 			Y = [R45R46_standards[r['Sample']][1] for r in db]
 			x1, x2 = np.min(X), np.max(X)
-			wgcoord = x1/(x1-x2)
+
+			if x1 < x2:
+				wgcoord = x1/(x1-x2)
+			else:
+				wgcoord = 999
+
 			if wgcoord < -.5 or wgcoord > 1.5:
 				# unreasonable to extrapolate to d46 = 0
 				R46_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
