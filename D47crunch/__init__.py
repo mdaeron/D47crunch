@@ -1966,7 +1966,7 @@ class D47data(list):
 			y1 -= h/20
 			y2 += h/20
 			ppl.axis([x1, x2, y1, y2])
-		elif xylimits != 'free':
+		elif xylimits == 'free':
 			x1, x2, y1, y2 = ppl.axis()
 		else:
 			x1, x2, y1, y2 = ppl.axis(xylimits)
