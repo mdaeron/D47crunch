@@ -1949,11 +1949,17 @@ class D47data(list):
 			[r['D47'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns],
 			**kw_plot_unknowns)
 		out.anchor_avg = ppl.plot(
-			np.array([ np.array([-.5, .5]) + np.mean([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) for sample in anchors]).T,
+			np.array([ np.array([
+				np.min([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
+				np.max([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
+				]) for sample in anchors]).T,
 			np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in anchors]).T,
 			'-', **kw_plot_anchor_avg)
 		out.unknown_avg = ppl.plot(
-			np.array([ np.array([-.5, .5]) + np.mean([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) for sample in unknowns]).T,
+			np.array([ np.array([
+				np.min([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
+				np.max([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
+				]) for sample in unknowns]).T,
 			np.array([ np.array([0, 0]) + self.unknowns[sample]['D47'] for sample in unknowns]).T,
 			'-', **kw_plot_unknown_avg)
 		if xylimits == 'constant':
