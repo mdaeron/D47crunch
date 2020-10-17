@@ -308,16 +308,16 @@ class D47data(list):
 	[Levene's test]: https://en.wikipedia.org/wiki/Levene%27s_test
 	'''
 
-	SAMPLE_CONSTRAINING_WG_COMPOSITION = ('ETH-3', 1.71, -1.78) # (Bernasconi et al., 2018)
-	'''
-	Specifies the name, δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub>
-	of the carbonate standard used by `D47data.wg()` to compute the isotopic composition
-	of the working gas in each session.
-
-	By default equal to `('ETH-3', 1.71, -1.78)` after [Bernasconi et al. (2018)].
-
-	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
-	'''
+# 	SAMPLE_CONSTRAINING_WG_COMPOSITION = ('ETH-3', 1.71, -1.78) # (Bernasconi et al., 2018)
+# 	'''
+# 	Specifies the name, δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub>
+# 	of the carbonate standard used by `D47data.wg()` to compute the isotopic composition
+# 	of the working gas in each session.
+# 
+# 	By default equal to `('ETH-3', 1.71, -1.78)` after [Bernasconi et al. (2018)].
+# 
+# 	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+# 	'''
 
 	ALPHA_18O_ACID_REACTION = round(np.exp(3.59 / (90 + 273.15) - 1.79e-3), 6)  # (Kim et al., 2007, calcite)
 	'''
@@ -671,64 +671,64 @@ class D47data(list):
 				r['d18Owg_VSMOW'] = d18Owg_VSMOW
 		
 
-	@make_verbal
-	def wg_old(self, sample = '', d13C_vpdb = '', d18O_vpdb = '', a18_acid = ''):
-		'''
-		Compute bulk composition of the working gas for each session
-		based on the average composition, within each session,
-		of a given sample.
-		'''
-
-		self.msg('Computing WG composition:')
-
-		if sample == '':
-			sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
-		if d13C_vpdb == '':
-			d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
-		if d18O_vpdb == '':
-			d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
-		if a18_acid == '':
-			a18_acid = self.ALPHA_18O_ACID_REACTION
-
-		assert a18_acid, f'Acid fractionation value should differ from zero.'
-
-		R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
-		R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
-		R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
-
-		C12_s = 1 / (1 + R13_s)
-		C13_s = R13_s / (1 + R13_s)
-		C16_s = 1 / (1 + R17_s + R18_s)
-		C17_s = R17_s / (1 + R17_s + R18_s)
-		C18_s = R18_s / (1 + R17_s + R18_s)
-
-		C626_s = C12_s * C16_s ** 2
-		C627_s = 2 * C12_s * C16_s * C17_s
-		C628_s = 2 * C12_s * C16_s * C18_s
-		C636_s = C13_s * C16_s ** 2
-		C637_s = 2 * C13_s * C16_s * C17_s
-		C727_s = C12_s * C17_s ** 2
-
-		R45_s = (C627_s + C636_s) / C626_s
-		R46_s = (C628_s + C637_s + C727_s) / C626_s
-
-		for s in self.sessions:
-			db = [r for r in self.sessions[s]['data'] if r['Sample'] == sample]
-			assert db, f'Sample "{sample}" not found in session "{s}".'
-			d45_s = np.mean([r['d45'] for r in db])
-			d46_s = np.mean([r['d46'] for r in db])
-			R45_wg = R45_s / (1 + d45_s / 1000)
-			R46_wg = R46_s / (1 + d46_s / 1000)
-
-			d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
-
-			self.msg(f'Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}')
-
-			self.sessions[s]['d13Cwg_VPDB'] = d13Cwg_VPDB
-			self.sessions[s]['d18Owg_VSMOW'] = d18Owg_VSMOW
-			for r in self.sessions[s]['data']:
-				r['d13Cwg_VPDB'] = d13Cwg_VPDB
-				r['d18Owg_VSMOW'] = d18Owg_VSMOW
+# 	@make_verbal
+# 	def wg_old(self, sample = '', d13C_vpdb = '', d18O_vpdb = '', a18_acid = ''):
+# 		'''
+# 		Compute bulk composition of the working gas for each session
+# 		based on the average composition, within each session,
+# 		of a given sample.
+# 		'''
+# 
+# 		self.msg('Computing WG composition:')
+# 
+# 		if sample == '':
+# 			sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
+# 		if d13C_vpdb == '':
+# 			d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
+# 		if d18O_vpdb == '':
+# 			d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
+# 		if a18_acid == '':
+# 			a18_acid = self.ALPHA_18O_ACID_REACTION
+# 
+# 		assert a18_acid, f'Acid fractionation value should differ from zero.'
+# 
+# 		R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
+# 		R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
+# 		R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
+# 
+# 		C12_s = 1 / (1 + R13_s)
+# 		C13_s = R13_s / (1 + R13_s)
+# 		C16_s = 1 / (1 + R17_s + R18_s)
+# 		C17_s = R17_s / (1 + R17_s + R18_s)
+# 		C18_s = R18_s / (1 + R17_s + R18_s)
+# 
+# 		C626_s = C12_s * C16_s ** 2
+# 		C627_s = 2 * C12_s * C16_s * C17_s
+# 		C628_s = 2 * C12_s * C16_s * C18_s
+# 		C636_s = C13_s * C16_s ** 2
+# 		C637_s = 2 * C13_s * C16_s * C17_s
+# 		C727_s = C12_s * C17_s ** 2
+# 
+# 		R45_s = (C627_s + C636_s) / C626_s
+# 		R46_s = (C628_s + C637_s + C727_s) / C626_s
+# 
+# 		for s in self.sessions:
+# 			db = [r for r in self.sessions[s]['data'] if r['Sample'] == sample]
+# 			assert db, f'Sample "{sample}" not found in session "{s}".'
+# 			d45_s = np.mean([r['d45'] for r in db])
+# 			d46_s = np.mean([r['d46'] for r in db])
+# 			R45_wg = R45_s / (1 + d45_s / 1000)
+# 			R46_wg = R46_s / (1 + d46_s / 1000)
+# 
+# 			d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
+# 
+# 			self.msg(f'Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}')
+# 
+# 			self.sessions[s]['d13Cwg_VPDB'] = d13Cwg_VPDB
+# 			self.sessions[s]['d18Owg_VSMOW'] = d18Owg_VSMOW
+# 			for r in self.sessions[s]['data']:
+# 				r['d13Cwg_VPDB'] = d13Cwg_VPDB
+# 				r['d18Owg_VSMOW'] = d18Owg_VSMOW
 
 
 	def compute_bulk_delta(self, R45, R46, D17O = 0):
@@ -2021,8 +2021,10 @@ class D47data(list):
 		fig = ppl.figure(figsize = (8,3))
 		ppl.subplots_adjust(.1,.05,.78,.9)
 		N = len(self.anchors)
-		if N == 4:
-			colorz = {a: c for a,c in zip(self.anchors, [(.25,.25,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+		if N == 3:
+			colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
+		elif N == 4:
+			colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
 		else:
 			colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
 		session = self[0]['Session']
@@ -2030,6 +2032,7 @@ class D47data(list):
 # 		ymax = np.max([1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self])
 		x_sessions = {}
 		one_or_more_singlets = False
+		one_or_more_multiplets = False
 		for k,r in enumerate(self):
 			if r['Session'] != session:
 				x2 = k-1
@@ -2038,8 +2041,11 @@ class D47data(list):
 				session = r['Session']
 				x1 = k
 			singlet = len(self.samples[r['Sample']]['data']) == 1
-			if singlet:
-				one_or_more_singlets = True
+			if r['Sample'] in self.unknowns:
+				if singlet:
+					one_or_more_singlets = True
+				else:
+					one_or_more_multiplets = True
 			kw = dict(
 				marker = 'x' if singlet else '+',
 				ms = 4 if singlet else 5,
@@ -2060,21 +2066,31 @@ class D47data(list):
 		ymax = ppl.axis()[3]
 		for s in x_sessions:
 			ppl.text(x_sessions[s], ymax +1, s, va = 'bottom', ha = 'center')
+
 		for s in self.anchors:
 			kw['marker'] = '+'
 			kw['ms'] = 5
 			kw['mec'] = colorz[s]
 			kw['label'] = s
+			kw['alpha'] = 1
 			ppl.plot([], [], **kw)
+
 		kw['mec'] = (0,0,0)
-		kw['label'] = 'unknowns (N$\\,$>$\\,$1)' if one_or_more_singlets else 'unknowns'
-		ppl.plot([], [], **kw)
+
 		if one_or_more_singlets:
 			kw['marker'] = 'x'
 			kw['ms'] = 4
 			kw['alpha'] = .2
-			kw['label'] = 'unknowns (N$\\,$=$\\,$1)'
+			kw['label'] = 'unknowns (N$\\,$=$\\,$1)' if one_or_more_multiplets else 'unknowns'
 			ppl.plot([], [], **kw)
+
+		if one_or_more_multiplets:
+			kw['marker'] = '+'
+			kw['ms'] = 4
+			kw['alpha'] = 1
+			kw['label'] = 'unknowns (N$\\,$>$\\,$1)' if one_or_more_singlets else 'unknowns'
+			ppl.plot([], [], **kw)
+
 		ppl.legend(loc = 'lower left', bbox_to_anchor = (1.03, 0), borderaxespad = 0)
 		ppl.xticks([])
 		ppl.ylabel('Δ$_{47}$ residuals (ppm)')
