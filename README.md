@@ -1,5 +1,7 @@
 # D47crunch
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4314551.svg)](https://doi.org/10.5281/zenodo.4314551)
+
 Python library for processing and standardizing carbonate clumped-isotope analyses, from low-level data out of a dual-inlet mass spectrometer to final, “absolute” Δ<sub>47</sub> values with fully propagated analytical error estimates.
 
 ## Documentation
