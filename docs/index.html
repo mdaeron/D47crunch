@@ -430,8 +430,8 @@ __author__    = &#39;Mathieu Daëron&#39;
 __contact__   = &#39;daeron@lsce.ipsl.fr&#39;
 __copyright__ = &#39;Copyright (c) 2020 Mathieu Daëron&#39;
 __license__   = &#39;Modified BSD License - https://opensource.org/licenses/BSD-3-Clause&#39;
-__date__      = &#39;2020-09-30&#39;
-__version__   = &#39;0.6&#39;
+__date__      = &#39;2020-12-10&#39;
+__version__   = &#39;1.0.0&#39;
 
 import os
 import numpy as np
@@ -659,6 +659,28 @@ def w_avg(X, sX) :
         return Xavg, sXavg
 
 
+def read_csv(filename, sep = &#39;&#39;):
+        &#39;&#39;&#39;
+        Read contents of `filename` in csv format and return a list of dictionaries.
+
+        In the csv string, spaces before and after field separators (`&#39;,&#39;` by default)
+        are optional.
+
+        __Parameters__
+
+        + `filename`: the csv file to read
+        + `sep`: csv separator delimiting the fields. By default, use `,`, `;`, or `\t`,
+        whichever appers most often in the contents of `filename`.
+        &#39;&#39;&#39;
+        with open(filename) as fid:
+                txt = fid.read()
+
+        if sep == &#39;&#39;:
+                sep = sorted(&#39;,;\t&#39;, key = lambda x: - txt.count(x))[0]
+        txt = [[x.strip() for x in l.split(sep)] for l in txt.splitlines() if l.strip()]
+        return [{k: smart_type(v) for k,v in zip(txt[0], l) if v} for l in txt[1:]]
+
+
 class D47data(list):
         &#39;&#39;&#39;
         Store and process data for a large set of Δ&lt;sub&gt;47&lt;/sub&gt; analyses,
@@ -725,16 +747,16 @@ class D47data(list):
         [Levene&#39;s test]: https://en.wikipedia.org/wiki/Levene%27s_test
         &#39;&#39;&#39;
 
-        SAMPLE_CONSTRAINING_WG_COMPOSITION = (&#39;ETH-3&#39;, 1.71, -1.78) # (Bernasconi et al., 2018)
-        &#39;&#39;&#39;
-        Specifies the name, δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt;
-        of the carbonate standard used by `D47data.wg()` to compute the isotopic composition
-        of the working gas in each session.
-
-        By default equal to `(&#39;ETH-3&#39;, 1.71, -1.78)` after [Bernasconi et al. (2018)].
-
-        [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
-        &#39;&#39;&#39;
+#       SAMPLE_CONSTRAINING_WG_COMPOSITION = (&#39;ETH-3&#39;, 1.71, -1.78) # (Bernasconi et al., 2018)
+#       &#39;&#39;&#39;
+#       Specifies the name, δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt;
+#       of the carbonate standard used by `D47data.wg()` to compute the isotopic composition
+#       of the working gas in each session.
+# 
+#       By default equal to `(&#39;ETH-3&#39;, 1.71, -1.78)` after [Bernasconi et al. (2018)].
+# 
+#       [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+#       &#39;&#39;&#39;
 
         ALPHA_18O_ACID_REACTION = round(np.exp(3.59 / (90 + 273.15) - 1.79e-3), 6)  # (Kim et al., 2007, calcite)
         &#39;&#39;&#39;
@@ -935,7 +957,7 @@ class D47data(list):
                 &#39;&#39;&#39;
                 Read file in csv format to load data into a `D47data` object.
 
-                In the csv file, spaces befor and after field separators (`&#39;,&#39;` by default)
+                In the csv file, spaces before and after field separators (`&#39;,&#39;` by default)
                 are optional. Each line corresponds to a single analysis.
 
                 The required fields are:
@@ -963,7 +985,7 @@ class D47data(list):
                 &#39;&#39;&#39;
                 Read `txt` string in csv format to load analysis data into a `D47data` object.
 
-                In the csv string, spaces befor and after field separators (`&#39;,&#39;` by default)
+                In the csv string, spaces before and after field separators (`&#39;,&#39;` by default)
                 are optional. Each line corresponds to a single analysis.
 
                 The required fields are:
@@ -1048,7 +1070,12 @@ class D47data(list):
                         X = [r[&#39;d45&#39;] for r in db]
                         Y = [R45R46_standards[r[&#39;Sample&#39;]][0] for r in db]
                         x1, x2 = np.min(X), np.max(X)
-                        wgcoord = x1/(x1-x2)
+
+                        if x1 &lt; x2:
+                                wgcoord = x1/(x1-x2)
+                        else:
+                                wgcoord = 999
+
                         if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
                                 # unreasonable to extrapolate to d45 = 0
                                 R45_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
@@ -1059,7 +1086,12 @@ class D47data(list):
                         X = [r[&#39;d46&#39;] for r in db]
                         Y = [R45R46_standards[r[&#39;Sample&#39;]][1] for r in db]
                         x1, x2 = np.min(X), np.max(X)
-                        wgcoord = x1/(x1-x2)
+
+                        if x1 &lt; x2:
+                                wgcoord = x1/(x1-x2)
+                        else:
+                                wgcoord = 999
+
                         if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
                                 # unreasonable to extrapolate to d46 = 0
                                 R46_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
@@ -1078,64 +1110,64 @@ class D47data(list):
                                 r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
                 
 
-        @make_verbal
-        def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
-                &#39;&#39;&#39;
-                Compute bulk composition of the working gas for each session
-                based on the average composition, within each session,
-                of a given sample.
-                &#39;&#39;&#39;
-
-                self.msg(&#39;Computing WG composition:&#39;)
-
-                if sample == &#39;&#39;:
-                        sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
-                if d13C_vpdb == &#39;&#39;:
-                        d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
-                if d18O_vpdb == &#39;&#39;:
-                        d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
-                if a18_acid == &#39;&#39;:
-                        a18_acid = self.ALPHA_18O_ACID_REACTION
-
-                assert a18_acid, f&#39;Acid fractionation value should differ from zero.&#39;
-
-                R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
-                R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
-                R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
-
-                C12_s = 1 / (1 + R13_s)
-                C13_s = R13_s / (1 + R13_s)
-                C16_s = 1 / (1 + R17_s + R18_s)
-                C17_s = R17_s / (1 + R17_s + R18_s)
-                C18_s = R18_s / (1 + R17_s + R18_s)
-
-                C626_s = C12_s * C16_s ** 2
-                C627_s = 2 * C12_s * C16_s * C17_s
-                C628_s = 2 * C12_s * C16_s * C18_s
-                C636_s = C13_s * C16_s ** 2
-                C637_s = 2 * C13_s * C16_s * C17_s
-                C727_s = C12_s * C17_s ** 2
-
-                R45_s = (C627_s + C636_s) / C626_s
-                R46_s = (C628_s + C637_s + C727_s) / C626_s
-
-                for s in self.sessions:
-                        db = [r for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]
-                        assert db, f&#39;Sample &#34;{sample}&#34; not found in session &#34;{s}&#34;.&#39;
-                        d45_s = np.mean([r[&#39;d45&#39;] for r in db])
-                        d46_s = np.mean([r[&#39;d46&#39;] for r in db])
-                        R45_wg = R45_s / (1 + d45_s / 1000)
-                        R46_wg = R46_s / (1 + d46_s / 1000)
-
-                        d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
-
-                        self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
-
-                        self.sessions[s][&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
-                        self.sessions[s][&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
-                        for r in self.sessions[s][&#39;data&#39;]:
-                                r[&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
-                                r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
+#       @make_verbal
+#       def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
+#               &#39;&#39;&#39;
+#               Compute bulk composition of the working gas for each session
+#               based on the average composition, within each session,
+#               of a given sample.
+#               &#39;&#39;&#39;
+# 
+#               self.msg(&#39;Computing WG composition:&#39;)
+# 
+#               if sample == &#39;&#39;:
+#                       sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
+#               if d13C_vpdb == &#39;&#39;:
+#                       d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
+#               if d18O_vpdb == &#39;&#39;:
+#                       d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
+#               if a18_acid == &#39;&#39;:
+#                       a18_acid = self.ALPHA_18O_ACID_REACTION
+# 
+#               assert a18_acid, f&#39;Acid fractionation value should differ from zero.&#39;
+# 
+#               R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
+#               R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
+#               R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
+# 
+#               C12_s = 1 / (1 + R13_s)
+#               C13_s = R13_s / (1 + R13_s)
+#               C16_s = 1 / (1 + R17_s + R18_s)
+#               C17_s = R17_s / (1 + R17_s + R18_s)
+#               C18_s = R18_s / (1 + R17_s + R18_s)
+# 
+#               C626_s = C12_s * C16_s ** 2
+#               C627_s = 2 * C12_s * C16_s * C17_s
+#               C628_s = 2 * C12_s * C16_s * C18_s
+#               C636_s = C13_s * C16_s ** 2
+#               C637_s = 2 * C13_s * C16_s * C17_s
+#               C727_s = C12_s * C17_s ** 2
+# 
+#               R45_s = (C627_s + C636_s) / C626_s
+#               R46_s = (C628_s + C637_s + C727_s) / C626_s
+# 
+#               for s in self.sessions:
+#                       db = [r for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]
+#                       assert db, f&#39;Sample &#34;{sample}&#34; not found in session &#34;{s}&#34;.&#39;
+#                       d45_s = np.mean([r[&#39;d45&#39;] for r in db])
+#                       d46_s = np.mean([r[&#39;d46&#39;] for r in db])
+#                       R45_wg = R45_s / (1 + d45_s / 1000)
+#                       R46_wg = R46_s / (1 + d46_s / 1000)
+# 
+#                       d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
+# 
+#                       self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
+# 
+#                       self.sessions[s][&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+#                       self.sessions[s][&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
+#                       for r in self.sessions[s][&#39;data&#39;]:
+#                               r[&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+#                               r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
 
 
         def compute_bulk_delta(self, R45, R46, D17O = 0):
@@ -2338,13 +2370,15 @@ class D47data(list):
                 ):
                 &#39;&#39;&#39;
                 Generate plot for a single session
-                &#39;&#39;&#39;             
+                &#39;&#39;&#39;
                 out = SessionPlot()
+                anchors = [a for a in self.anchors if [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == a]]
+                unknowns = [u for u in self.unknowns if [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == u]]
                 
                 if fig == &#39;new&#39;:
                         out.fig = ppl.figure(figsize = (6,6))
                         ppl.subplots_adjust(.1,.1,.9,.9)
-                
+
                 out.anchor_analyses, = ppl.plot(
                         [r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
                         [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
@@ -2354,12 +2388,18 @@ class D47data(list):
                         [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns],
                         **kw_plot_unknowns)
                 out.anchor_avg = ppl.plot(
-                        np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.anchors]).T,
-                        np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in self.anchors]).T,
+                        np.array([ np.array([
+                                np.min([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) - 1,
+                                np.max([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
+                                ]) for sample in anchors]).T,
+                        np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in anchors]).T,
                         &#39;-&#39;, **kw_plot_anchor_avg)
                 out.unknown_avg = ppl.plot(
-                        np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.unknowns]).T,
-                        np.array([ np.array([0, 0]) + self.unknowns[sample][&#39;D47&#39;] for sample in self.unknowns]).T,
+                        np.array([ np.array([
+                                np.min([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) - 1,
+                                np.max([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
+                                ]) for sample in unknowns]).T,
+                        np.array([ np.array([0, 0]) + self.unknowns[sample][&#39;D47&#39;] for sample in unknowns]).T,
                         &#39;-&#39;, **kw_plot_unknown_avg)
                 if xylimits == &#39;constant&#39;:
                         x = [r[&#39;d47&#39;] for r in self]
@@ -2371,11 +2411,12 @@ class D47data(list):
                         y1 -= h/20
                         y2 += h/20
                         ppl.axis([x1, x2, y1, y2])
-                elif xylimits != &#39;free&#39;:
+                elif xylimits == &#39;free&#39;:
                         x1, x2, y1, y2 = ppl.axis()
                 else:
                         x1, x2, y1, y2 = ppl.axis(xylimits)
-
+                
+                
                 if error_contour_interval != &#39;none&#39;:
                         xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
                         XI,YI = np.meshgrid(xi, yi)
@@ -2416,15 +2457,21 @@ class D47data(list):
 
                 + `dir`: the directory in which to save the plot
                 &#39;&#39;&#39;
-                fig = ppl.figure(figsize = (8,3))
-                ppl.subplots_adjust(.1,.05,.78,.9)
+                fig = ppl.figure(figsize = (8,4))
+                ppl.subplots_adjust(.1,.05,.78,.8)
                 N = len(self.anchors)
-                colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+                if N == 3:
+                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
+                elif N == 4:
+                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+                else:
+                        colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
                 session = self[0][&#39;Session&#39;]
                 x1 = 0
 #               ymax = np.max([1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]) for r in self])
                 x_sessions = {}
                 one_or_more_singlets = False
+                one_or_more_multiplets = False
                 for k,r in enumerate(self):
                         if r[&#39;Session&#39;] != session:
                                 x2 = k-1
@@ -2433,8 +2480,11 @@ class D47data(list):
                                 session = r[&#39;Session&#39;]
                                 x1 = k
                         singlet = len(self.samples[r[&#39;Sample&#39;]][&#39;data&#39;]) == 1
-                        if singlet:
-                                one_or_more_singlets = True
+                        if r[&#39;Sample&#39;] in self.unknowns:
+                                if singlet:
+                                        one_or_more_singlets = True
+                                else:
+                                        one_or_more_multiplets = True
                         kw = dict(
                                 marker = &#39;x&#39; if singlet else &#39;+&#39;,
                                 ms = 4 if singlet else 5,
@@ -2454,22 +2504,42 @@ class D47data(list):
 
                 ymax = ppl.axis()[3]
                 for s in x_sessions:
-                        ppl.text(x_sessions[s], ymax +1, s, va = &#39;bottom&#39;, ha = &#39;center&#39;)
+                        ppl.text(
+                                x_sessions[s],
+                                ymax +1,
+                                s,
+                                va = &#39;bottom&#39;,
+                                **(
+                                        dict(ha = &#39;center&#39;)
+                                        if len(self.sessions[s][&#39;data&#39;]) &gt; (0.15 * len(self))
+                                        else dict(ha = &#39;left&#39;, rotation = 45)
+                                        )
+                                )
+
                 for s in self.anchors:
                         kw[&#39;marker&#39;] = &#39;+&#39;
                         kw[&#39;ms&#39;] = 5
                         kw[&#39;mec&#39;] = colorz[s]
                         kw[&#39;label&#39;] = s
+                        kw[&#39;alpha&#39;] = 1
                         ppl.plot([], [], **kw)
+
                 kw[&#39;mec&#39;] = (0,0,0)
-                kw[&#39;label&#39;] = &#39;unknowns (N$\\,$&gt;$\\,$1)&#39; if one_or_more_singlets else &#39;unknowns&#39;
-                ppl.plot([], [], **kw)
+
                 if one_or_more_singlets:
                         kw[&#39;marker&#39;] = &#39;x&#39;
                         kw[&#39;ms&#39;] = 4
                         kw[&#39;alpha&#39;] = .2
-                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$=$\\,$1)&#39;
+                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$=$\\,$1)&#39; if one_or_more_multiplets else &#39;unknowns&#39;
                         ppl.plot([], [], **kw)
+
+                if one_or_more_multiplets:
+                        kw[&#39;marker&#39;] = &#39;+&#39;
+                        kw[&#39;ms&#39;] = 4
+                        kw[&#39;alpha&#39;] = 1
+                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$&gt;$\\,$1)&#39; if one_or_more_singlets else &#39;unknowns&#39;
+                        ppl.plot([], [], **kw)
+
                 ppl.legend(loc = &#39;lower left&#39;, bbox_to_anchor = (1.03, 0), borderaxespad = 0)
                 ppl.xticks([])
                 ppl.ylabel(&#39;Δ$_{47}$ residuals (ppm)&#39;)
@@ -2697,6 +2767,46 @@ A        B    C
         return &#39;\n&#39;.join(txt)</code></pre>
 </details>
 </dd>
+<dt id="D47crunch.read_csv"><code class="name flex">
+<span>def <span class="ident">read_csv</span></span>(<span>filename, sep='')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read contents of <code>filename</code> in csv format and return a list of dictionaries.</p>
+<p>In the csv string, spaces before and after field separators (<code>','</code> by default)
+are optional.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>filename</code>: the csv file to read</li>
+<li><code>sep</code>: csv separator delimiting the fields. By default, use <code>,</code>, <code>;</code>, or <code>
+</code>,
+whichever appers most often in the contents of <code>filename</code>.</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_csv(filename, sep = &#39;&#39;):
+        &#39;&#39;&#39;
+        Read contents of `filename` in csv format and return a list of dictionaries.
+
+        In the csv string, spaces before and after field separators (`&#39;,&#39;` by default)
+        are optional.
+
+        __Parameters__
+
+        + `filename`: the csv file to read
+        + `sep`: csv separator delimiting the fields. By default, use `,`, `;`, or `\t`,
+        whichever appers most often in the contents of `filename`.
+        &#39;&#39;&#39;
+        with open(filename) as fid:
+                txt = fid.read()
+
+        if sep == &#39;&#39;:
+                sep = sorted(&#39;,;\t&#39;, key = lambda x: - txt.count(x))[0]
+        txt = [[x.strip() for x in l.split(sep)] for l in txt.splitlines() if l.strip()]
+        return [{k: smart_type(v) for k,v in zip(txt[0], l) if v} for l in txt[1:]]</code></pre>
+</details>
+</dd>
 <dt id="D47crunch.smart_type"><code class="name flex">
 <span>def <span class="ident">smart_type</span></span>(<span>x)</span>
 </code></dt>
@@ -2920,16 +3030,16 @@ methods.</li>
         [Levene&#39;s test]: https://en.wikipedia.org/wiki/Levene%27s_test
         &#39;&#39;&#39;
 
-        SAMPLE_CONSTRAINING_WG_COMPOSITION = (&#39;ETH-3&#39;, 1.71, -1.78) # (Bernasconi et al., 2018)
-        &#39;&#39;&#39;
-        Specifies the name, δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt;
-        of the carbonate standard used by `D47data.wg()` to compute the isotopic composition
-        of the working gas in each session.
-
-        By default equal to `(&#39;ETH-3&#39;, 1.71, -1.78)` after [Bernasconi et al. (2018)].
-
-        [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
-        &#39;&#39;&#39;
+#       SAMPLE_CONSTRAINING_WG_COMPOSITION = (&#39;ETH-3&#39;, 1.71, -1.78) # (Bernasconi et al., 2018)
+#       &#39;&#39;&#39;
+#       Specifies the name, δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt;
+#       of the carbonate standard used by `D47data.wg()` to compute the isotopic composition
+#       of the working gas in each session.
+# 
+#       By default equal to `(&#39;ETH-3&#39;, 1.71, -1.78)` after [Bernasconi et al. (2018)].
+# 
+#       [Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+#       &#39;&#39;&#39;
 
         ALPHA_18O_ACID_REACTION = round(np.exp(3.59 / (90 + 273.15) - 1.79e-3), 6)  # (Kim et al., 2007, calcite)
         &#39;&#39;&#39;
@@ -3130,7 +3240,7 @@ methods.</li>
                 &#39;&#39;&#39;
                 Read file in csv format to load data into a `D47data` object.
 
-                In the csv file, spaces befor and after field separators (`&#39;,&#39;` by default)
+                In the csv file, spaces before and after field separators (`&#39;,&#39;` by default)
                 are optional. Each line corresponds to a single analysis.
 
                 The required fields are:
@@ -3158,7 +3268,7 @@ methods.</li>
                 &#39;&#39;&#39;
                 Read `txt` string in csv format to load analysis data into a `D47data` object.
 
-                In the csv string, spaces befor and after field separators (`&#39;,&#39;` by default)
+                In the csv string, spaces before and after field separators (`&#39;,&#39;` by default)
                 are optional. Each line corresponds to a single analysis.
 
                 The required fields are:
@@ -3243,7 +3353,12 @@ methods.</li>
                         X = [r[&#39;d45&#39;] for r in db]
                         Y = [R45R46_standards[r[&#39;Sample&#39;]][0] for r in db]
                         x1, x2 = np.min(X), np.max(X)
-                        wgcoord = x1/(x1-x2)
+
+                        if x1 &lt; x2:
+                                wgcoord = x1/(x1-x2)
+                        else:
+                                wgcoord = 999
+
                         if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
                                 # unreasonable to extrapolate to d45 = 0
                                 R45_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
@@ -3254,7 +3369,12 @@ methods.</li>
                         X = [r[&#39;d46&#39;] for r in db]
                         Y = [R45R46_standards[r[&#39;Sample&#39;]][1] for r in db]
                         x1, x2 = np.min(X), np.max(X)
-                        wgcoord = x1/(x1-x2)
+
+                        if x1 &lt; x2:
+                                wgcoord = x1/(x1-x2)
+                        else:
+                                wgcoord = 999
+
                         if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
                                 # unreasonable to extrapolate to d46 = 0
                                 R46_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
@@ -3273,64 +3393,64 @@ methods.</li>
                                 r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
                 
 
-        @make_verbal
-        def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
-                &#39;&#39;&#39;
-                Compute bulk composition of the working gas for each session
-                based on the average composition, within each session,
-                of a given sample.
-                &#39;&#39;&#39;
-
-                self.msg(&#39;Computing WG composition:&#39;)
-
-                if sample == &#39;&#39;:
-                        sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
-                if d13C_vpdb == &#39;&#39;:
-                        d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
-                if d18O_vpdb == &#39;&#39;:
-                        d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
-                if a18_acid == &#39;&#39;:
-                        a18_acid = self.ALPHA_18O_ACID_REACTION
-
-                assert a18_acid, f&#39;Acid fractionation value should differ from zero.&#39;
-
-                R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
-                R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
-                R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
-
-                C12_s = 1 / (1 + R13_s)
-                C13_s = R13_s / (1 + R13_s)
-                C16_s = 1 / (1 + R17_s + R18_s)
-                C17_s = R17_s / (1 + R17_s + R18_s)
-                C18_s = R18_s / (1 + R17_s + R18_s)
-
-                C626_s = C12_s * C16_s ** 2
-                C627_s = 2 * C12_s * C16_s * C17_s
-                C628_s = 2 * C12_s * C16_s * C18_s
-                C636_s = C13_s * C16_s ** 2
-                C637_s = 2 * C13_s * C16_s * C17_s
-                C727_s = C12_s * C17_s ** 2
-
-                R45_s = (C627_s + C636_s) / C626_s
-                R46_s = (C628_s + C637_s + C727_s) / C626_s
-
-                for s in self.sessions:
-                        db = [r for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]
-                        assert db, f&#39;Sample &#34;{sample}&#34; not found in session &#34;{s}&#34;.&#39;
-                        d45_s = np.mean([r[&#39;d45&#39;] for r in db])
-                        d46_s = np.mean([r[&#39;d46&#39;] for r in db])
-                        R45_wg = R45_s / (1 + d45_s / 1000)
-                        R46_wg = R46_s / (1 + d46_s / 1000)
-
-                        d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
-
-                        self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
-
-                        self.sessions[s][&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
-                        self.sessions[s][&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
-                        for r in self.sessions[s][&#39;data&#39;]:
-                                r[&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
-                                r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
+#       @make_verbal
+#       def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
+#               &#39;&#39;&#39;
+#               Compute bulk composition of the working gas for each session
+#               based on the average composition, within each session,
+#               of a given sample.
+#               &#39;&#39;&#39;
+# 
+#               self.msg(&#39;Computing WG composition:&#39;)
+# 
+#               if sample == &#39;&#39;:
+#                       sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
+#               if d13C_vpdb == &#39;&#39;:
+#                       d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
+#               if d18O_vpdb == &#39;&#39;:
+#                       d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
+#               if a18_acid == &#39;&#39;:
+#                       a18_acid = self.ALPHA_18O_ACID_REACTION
+# 
+#               assert a18_acid, f&#39;Acid fractionation value should differ from zero.&#39;
+# 
+#               R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
+#               R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
+#               R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
+# 
+#               C12_s = 1 / (1 + R13_s)
+#               C13_s = R13_s / (1 + R13_s)
+#               C16_s = 1 / (1 + R17_s + R18_s)
+#               C17_s = R17_s / (1 + R17_s + R18_s)
+#               C18_s = R18_s / (1 + R17_s + R18_s)
+# 
+#               C626_s = C12_s * C16_s ** 2
+#               C627_s = 2 * C12_s * C16_s * C17_s
+#               C628_s = 2 * C12_s * C16_s * C18_s
+#               C636_s = C13_s * C16_s ** 2
+#               C637_s = 2 * C13_s * C16_s * C17_s
+#               C727_s = C12_s * C17_s ** 2
+# 
+#               R45_s = (C627_s + C636_s) / C626_s
+#               R46_s = (C628_s + C637_s + C727_s) / C626_s
+# 
+#               for s in self.sessions:
+#                       db = [r for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]
+#                       assert db, f&#39;Sample &#34;{sample}&#34; not found in session &#34;{s}&#34;.&#39;
+#                       d45_s = np.mean([r[&#39;d45&#39;] for r in db])
+#                       d46_s = np.mean([r[&#39;d46&#39;] for r in db])
+#                       R45_wg = R45_s / (1 + d45_s / 1000)
+#                       R46_wg = R46_s / (1 + d46_s / 1000)
+# 
+#                       d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
+# 
+#                       self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
+# 
+#                       self.sessions[s][&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+#                       self.sessions[s][&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
+#                       for r in self.sessions[s][&#39;data&#39;]:
+#                               r[&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
+#                               r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
 
 
         def compute_bulk_delta(self, R45, R46, D17O = 0):
@@ -4533,13 +4653,15 @@ methods.</li>
                 ):
                 &#39;&#39;&#39;
                 Generate plot for a single session
-                &#39;&#39;&#39;             
+                &#39;&#39;&#39;
                 out = SessionPlot()
+                anchors = [a for a in self.anchors if [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == a]]
+                unknowns = [u for u in self.unknowns if [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == u]]
                 
                 if fig == &#39;new&#39;:
                         out.fig = ppl.figure(figsize = (6,6))
                         ppl.subplots_adjust(.1,.1,.9,.9)
-                
+
                 out.anchor_analyses, = ppl.plot(
                         [r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
                         [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
@@ -4549,12 +4671,18 @@ methods.</li>
                         [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns],
                         **kw_plot_unknowns)
                 out.anchor_avg = ppl.plot(
-                        np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.anchors]).T,
-                        np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in self.anchors]).T,
+                        np.array([ np.array([
+                                np.min([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) - 1,
+                                np.max([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
+                                ]) for sample in anchors]).T,
+                        np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in anchors]).T,
                         &#39;-&#39;, **kw_plot_anchor_avg)
                 out.unknown_avg = ppl.plot(
-                        np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.unknowns]).T,
-                        np.array([ np.array([0, 0]) + self.unknowns[sample][&#39;D47&#39;] for sample in self.unknowns]).T,
+                        np.array([ np.array([
+                                np.min([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) - 1,
+                                np.max([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
+                                ]) for sample in unknowns]).T,
+                        np.array([ np.array([0, 0]) + self.unknowns[sample][&#39;D47&#39;] for sample in unknowns]).T,
                         &#39;-&#39;, **kw_plot_unknown_avg)
                 if xylimits == &#39;constant&#39;:
                         x = [r[&#39;d47&#39;] for r in self]
@@ -4566,11 +4694,12 @@ methods.</li>
                         y1 -= h/20
                         y2 += h/20
                         ppl.axis([x1, x2, y1, y2])
-                elif xylimits != &#39;free&#39;:
+                elif xylimits == &#39;free&#39;:
                         x1, x2, y1, y2 = ppl.axis()
                 else:
                         x1, x2, y1, y2 = ppl.axis(xylimits)
-
+                
+                
                 if error_contour_interval != &#39;none&#39;:
                         xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
                         XI,YI = np.meshgrid(xi, yi)
@@ -4611,15 +4740,21 @@ methods.</li>
 
                 + `dir`: the directory in which to save the plot
                 &#39;&#39;&#39;
-                fig = ppl.figure(figsize = (8,3))
-                ppl.subplots_adjust(.1,.05,.78,.9)
+                fig = ppl.figure(figsize = (8,4))
+                ppl.subplots_adjust(.1,.05,.78,.8)
                 N = len(self.anchors)
-                colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+                if N == 3:
+                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
+                elif N == 4:
+                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+                else:
+                        colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
                 session = self[0][&#39;Session&#39;]
                 x1 = 0
 #               ymax = np.max([1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]) for r in self])
                 x_sessions = {}
                 one_or_more_singlets = False
+                one_or_more_multiplets = False
                 for k,r in enumerate(self):
                         if r[&#39;Session&#39;] != session:
                                 x2 = k-1
@@ -4628,8 +4763,11 @@ methods.</li>
                                 session = r[&#39;Session&#39;]
                                 x1 = k
                         singlet = len(self.samples[r[&#39;Sample&#39;]][&#39;data&#39;]) == 1
-                        if singlet:
-                                one_or_more_singlets = True
+                        if r[&#39;Sample&#39;] in self.unknowns:
+                                if singlet:
+                                        one_or_more_singlets = True
+                                else:
+                                        one_or_more_multiplets = True
                         kw = dict(
                                 marker = &#39;x&#39; if singlet else &#39;+&#39;,
                                 ms = 4 if singlet else 5,
@@ -4649,22 +4787,42 @@ methods.</li>
 
                 ymax = ppl.axis()[3]
                 for s in x_sessions:
-                        ppl.text(x_sessions[s], ymax +1, s, va = &#39;bottom&#39;, ha = &#39;center&#39;)
+                        ppl.text(
+                                x_sessions[s],
+                                ymax +1,
+                                s,
+                                va = &#39;bottom&#39;,
+                                **(
+                                        dict(ha = &#39;center&#39;)
+                                        if len(self.sessions[s][&#39;data&#39;]) &gt; (0.15 * len(self))
+                                        else dict(ha = &#39;left&#39;, rotation = 45)
+                                        )
+                                )
+
                 for s in self.anchors:
                         kw[&#39;marker&#39;] = &#39;+&#39;
                         kw[&#39;ms&#39;] = 5
                         kw[&#39;mec&#39;] = colorz[s]
                         kw[&#39;label&#39;] = s
+                        kw[&#39;alpha&#39;] = 1
                         ppl.plot([], [], **kw)
+
                 kw[&#39;mec&#39;] = (0,0,0)
-                kw[&#39;label&#39;] = &#39;unknowns (N$\\,$&gt;$\\,$1)&#39; if one_or_more_singlets else &#39;unknowns&#39;
-                ppl.plot([], [], **kw)
+
                 if one_or_more_singlets:
                         kw[&#39;marker&#39;] = &#39;x&#39;
                         kw[&#39;ms&#39;] = 4
                         kw[&#39;alpha&#39;] = .2
-                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$=$\\,$1)&#39;
+                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$=$\\,$1)&#39; if one_or_more_multiplets else &#39;unknowns&#39;
                         ppl.plot([], [], **kw)
+
+                if one_or_more_multiplets:
+                        kw[&#39;marker&#39;] = &#39;+&#39;
+                        kw[&#39;ms&#39;] = 4
+                        kw[&#39;alpha&#39;] = 1
+                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$&gt;$\\,$1)&#39; if one_or_more_singlets else &#39;unknowns&#39;
+                        ppl.plot([], [], **kw)
+
                 ppl.legend(loc = &#39;lower left&#39;, bbox_to_anchor = (1.03, 0), borderaxespad = 0)
                 ppl.xticks([])
                 ppl.ylabel(&#39;Δ$_{47}$ residuals (ppm)&#39;)
@@ -4742,13 +4900,6 @@ By definition equal to <code>R18_VSMOW * 1.03092</code>.</p></div>
 <dd>
 <div class="desc"><p>Absolute (<sup>18</sup>O/<sup>16</sup>C) ratio of VSMOW.
 By default equal to 0.0020052 (<a href="https://doi.org/10.1016/0012-821X(76)90115-1">Baertschi, 1976</a>)</p></div>
-</dd>
-<dt id="D47crunch.D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION"><code class="name">var <span class="ident">SAMPLE_CONSTRAINING_WG_COMPOSITION</span></code></dt>
-<dd>
-<div class="desc"><p>Specifies the name, δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub>
-of the carbonate standard used by <code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">D47data.wg()</a></code> to compute the isotopic composition
-of the working gas in each session.</p>
-<p>By default equal to <code>('ETH-3', 1.71, -1.78)</code> after <a href="https://doi.org/10.1029/2017GC007385">Bernasconi et al. (2018)</a>.</p></div>
 </dd>
 <dt id="D47crunch.D47data.d13C_STANDARDIZATION_METHOD"><code class="name">var <span class="ident">d13C_STANDARDIZATION_METHOD</span></code></dt>
 <dd>
@@ -5420,7 +5571,7 @@ def crunch(self, verbose = &#39;&#39;):
 </code></dt>
 <dd>
 <div class="desc"><p>Read <code>txt</code> string in csv format to load analysis data into a <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object.</p>
-<p>In the csv string, spaces befor and after field separators (<code>','</code> by default)
+<p>In the csv string, spaces before and after field separators (<code>','</code> by default)
 are optional. Each line corresponds to a single analysis.</p>
 <p>The required fields are:</p>
 <ul>
@@ -5448,7 +5599,7 @@ whichever appers most often in <code>txt</code>.</li>
         &#39;&#39;&#39;
         Read `txt` string in csv format to load analysis data into a `D47data` object.
 
-        In the csv string, spaces befor and after field separators (`&#39;,&#39;` by default)
+        In the csv string, spaces before and after field separators (`&#39;,&#39;` by default)
         are optional. Each line corresponds to a single analysis.
 
         The required fields are:
@@ -5570,15 +5721,21 @@ the order of analyses in the D47data() object)</p>
 
                 + `dir`: the directory in which to save the plot
                 &#39;&#39;&#39;
-                fig = ppl.figure(figsize = (8,3))
-                ppl.subplots_adjust(.1,.05,.78,.9)
+                fig = ppl.figure(figsize = (8,4))
+                ppl.subplots_adjust(.1,.05,.78,.8)
                 N = len(self.anchors)
-                colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+                if N == 3:
+                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
+                elif N == 4:
+                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+                else:
+                        colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
                 session = self[0][&#39;Session&#39;]
                 x1 = 0
 #               ymax = np.max([1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]) for r in self])
                 x_sessions = {}
                 one_or_more_singlets = False
+                one_or_more_multiplets = False
                 for k,r in enumerate(self):
                         if r[&#39;Session&#39;] != session:
                                 x2 = k-1
@@ -5587,8 +5744,11 @@ the order of analyses in the D47data() object)</p>
                                 session = r[&#39;Session&#39;]
                                 x1 = k
                         singlet = len(self.samples[r[&#39;Sample&#39;]][&#39;data&#39;]) == 1
-                        if singlet:
-                                one_or_more_singlets = True
+                        if r[&#39;Sample&#39;] in self.unknowns:
+                                if singlet:
+                                        one_or_more_singlets = True
+                                else:
+                                        one_or_more_multiplets = True
                         kw = dict(
                                 marker = &#39;x&#39; if singlet else &#39;+&#39;,
                                 ms = 4 if singlet else 5,
@@ -5608,22 +5768,42 @@ the order of analyses in the D47data() object)</p>
 
                 ymax = ppl.axis()[3]
                 for s in x_sessions:
-                        ppl.text(x_sessions[s], ymax +1, s, va = &#39;bottom&#39;, ha = &#39;center&#39;)
+                        ppl.text(
+                                x_sessions[s],
+                                ymax +1,
+                                s,
+                                va = &#39;bottom&#39;,
+                                **(
+                                        dict(ha = &#39;center&#39;)
+                                        if len(self.sessions[s][&#39;data&#39;]) &gt; (0.15 * len(self))
+                                        else dict(ha = &#39;left&#39;, rotation = 45)
+                                        )
+                                )
+
                 for s in self.anchors:
                         kw[&#39;marker&#39;] = &#39;+&#39;
                         kw[&#39;ms&#39;] = 5
                         kw[&#39;mec&#39;] = colorz[s]
                         kw[&#39;label&#39;] = s
+                        kw[&#39;alpha&#39;] = 1
                         ppl.plot([], [], **kw)
+
                 kw[&#39;mec&#39;] = (0,0,0)
-                kw[&#39;label&#39;] = &#39;unknowns (N$\\,$&gt;$\\,$1)&#39; if one_or_more_singlets else &#39;unknowns&#39;
-                ppl.plot([], [], **kw)
+
                 if one_or_more_singlets:
                         kw[&#39;marker&#39;] = &#39;x&#39;
                         kw[&#39;ms&#39;] = 4
                         kw[&#39;alpha&#39;] = .2
-                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$=$\\,$1)&#39;
+                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$=$\\,$1)&#39; if one_or_more_multiplets else &#39;unknowns&#39;
                         ppl.plot([], [], **kw)
+
+                if one_or_more_multiplets:
+                        kw[&#39;marker&#39;] = &#39;+&#39;
+                        kw[&#39;ms&#39;] = 4
+                        kw[&#39;alpha&#39;] = 1
+                        kw[&#39;label&#39;] = &#39;unknowns (N$\\,$&gt;$\\,$1)&#39; if one_or_more_singlets else &#39;unknowns&#39;
+                        ppl.plot([], [], **kw)
+
                 ppl.legend(loc = &#39;lower left&#39;, bbox_to_anchor = (1.03, 0), borderaxespad = 0)
                 ppl.xticks([])
                 ppl.ylabel(&#39;Δ$_{47}$ residuals (ppm)&#39;)
@@ -5688,13 +5868,15 @@ the order of analyses in the D47data() object)</p>
         ):
         &#39;&#39;&#39;
         Generate plot for a single session
-        &#39;&#39;&#39;             
+        &#39;&#39;&#39;
         out = SessionPlot()
+        anchors = [a for a in self.anchors if [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == a]]
+        unknowns = [u for u in self.unknowns if [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == u]]
         
         if fig == &#39;new&#39;:
                 out.fig = ppl.figure(figsize = (6,6))
                 ppl.subplots_adjust(.1,.1,.9,.9)
-        
+
         out.anchor_analyses, = ppl.plot(
                 [r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
                 [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.anchors],
@@ -5704,12 +5886,18 @@ the order of analyses in the D47data() object)</p>
                 [r[&#39;D47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] in self.unknowns],
                 **kw_plot_unknowns)
         out.anchor_avg = ppl.plot(
-                np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.anchors]).T,
-                np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in self.anchors]).T,
+                np.array([ np.array([
+                        np.min([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) - 1,
+                        np.max([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
+                        ]) for sample in anchors]).T,
+                np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in anchors]).T,
                 &#39;-&#39;, **kw_plot_anchor_avg)
         out.unknown_avg = ppl.plot(
-                np.array([ np.array([-.5, .5]) + np.mean([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) for sample in self.unknowns]).T,
-                np.array([ np.array([0, 0]) + self.unknowns[sample][&#39;D47&#39;] for sample in self.unknowns]).T,
+                np.array([ np.array([
+                        np.min([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) - 1,
+                        np.max([r[&#39;d47&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
+                        ]) for sample in unknowns]).T,
+                np.array([ np.array([0, 0]) + self.unknowns[sample][&#39;D47&#39;] for sample in unknowns]).T,
                 &#39;-&#39;, **kw_plot_unknown_avg)
         if xylimits == &#39;constant&#39;:
                 x = [r[&#39;d47&#39;] for r in self]
@@ -5721,11 +5909,12 @@ the order of analyses in the D47data() object)</p>
                 y1 -= h/20
                 y2 += h/20
                 ppl.axis([x1, x2, y1, y2])
-        elif xylimits != &#39;free&#39;:
+        elif xylimits == &#39;free&#39;:
                 x1, x2, y1, y2 = ppl.axis()
         else:
                 x1, x2, y1, y2 = ppl.axis(xylimits)
-
+        
+        
         if error_contour_interval != &#39;none&#39;:
                 xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
                 XI,YI = np.meshgrid(xi, yi)
@@ -5765,7 +5954,7 @@ the order of analyses in the D47data() object)</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Read file in csv format to load data into a <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object.</p>
-<p>In the csv file, spaces befor and after field separators (<code>','</code> by default)
+<p>In the csv file, spaces before and after field separators (<code>','</code> by default)
 are optional. Each line corresponds to a single analysis.</p>
 <p>The required fields are:</p>
 <ul>
@@ -5791,7 +5980,7 @@ and <code>d49</code> may also be provided, and are also set to 0 otherwise.</p>
         &#39;&#39;&#39;
         Read file in csv format to load data into a `D47data` object.
 
-        In the csv file, spaces befor and after field separators (`&#39;,&#39;` by default)
+        In the csv file, spaces before and after field separators (`&#39;,&#39;` by default)
         are optional. Each line corresponds to a single analysis.
 
         The required fields are:
@@ -6883,7 +7072,12 @@ and in <code>self.Nominal_d18O_VPDB</code>.</p></div>
                         X = [r[&#39;d45&#39;] for r in db]
                         Y = [R45R46_standards[r[&#39;Sample&#39;]][0] for r in db]
                         x1, x2 = np.min(X), np.max(X)
-                        wgcoord = x1/(x1-x2)
+
+                        if x1 &lt; x2:
+                                wgcoord = x1/(x1-x2)
+                        else:
+                                wgcoord = 999
+
                         if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
                                 # unreasonable to extrapolate to d45 = 0
                                 R45_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
@@ -6894,7 +7088,12 @@ and in <code>self.Nominal_d18O_VPDB</code>.</p></div>
                         X = [r[&#39;d46&#39;] for r in db]
                         Y = [R45R46_standards[r[&#39;Sample&#39;]][1] for r in db]
                         x1, x2 = np.min(X), np.max(X)
-                        wgcoord = x1/(x1-x2)
+
+                        if x1 &lt; x2:
+                                wgcoord = x1/(x1-x2)
+                        else:
+                                wgcoord = 999
+
                         if wgcoord &lt; -.5 or wgcoord &gt; 1.5:
                                 # unreasonable to extrapolate to d46 = 0
                                 R46_wg = np.mean([y/(1+x/1000) for x,y in zip(X,Y)])
@@ -6911,77 +7110,6 @@ and in <code>self.Nominal_d18O_VPDB</code>.</p></div>
                         for r in self.sessions[s][&#39;data&#39;]:
                                 r[&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
                                 r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW</code></pre>
-</details>
-</dd>
-<dt id="D47crunch.D47data.wg_old"><code class="name flex">
-<span>def <span class="ident">wg_old</span></span>(<span>self, sample='', d13C_vpdb='', d18O_vpdb='', a18_acid='')</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Compute bulk composition of the working gas for each session
-based on the average composition, within each session,
-of a given sample.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@make_verbal
-def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&#39;, a18_acid = &#39;&#39;):
-        &#39;&#39;&#39;
-        Compute bulk composition of the working gas for each session
-        based on the average composition, within each session,
-        of a given sample.
-        &#39;&#39;&#39;
-
-        self.msg(&#39;Computing WG composition:&#39;)
-
-        if sample == &#39;&#39;:
-                sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
-        if d13C_vpdb == &#39;&#39;:
-                d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
-        if d18O_vpdb == &#39;&#39;:
-                d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
-        if a18_acid == &#39;&#39;:
-                a18_acid = self.ALPHA_18O_ACID_REACTION
-
-        assert a18_acid, f&#39;Acid fractionation value should differ from zero.&#39;
-
-        R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
-        R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
-        R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
-
-        C12_s = 1 / (1 + R13_s)
-        C13_s = R13_s / (1 + R13_s)
-        C16_s = 1 / (1 + R17_s + R18_s)
-        C17_s = R17_s / (1 + R17_s + R18_s)
-        C18_s = R18_s / (1 + R17_s + R18_s)
-
-        C626_s = C12_s * C16_s ** 2
-        C627_s = 2 * C12_s * C16_s * C17_s
-        C628_s = 2 * C12_s * C16_s * C18_s
-        C636_s = C13_s * C16_s ** 2
-        C637_s = 2 * C13_s * C16_s * C17_s
-        C727_s = C12_s * C17_s ** 2
-
-        R45_s = (C627_s + C636_s) / C626_s
-        R46_s = (C628_s + C637_s + C727_s) / C626_s
-
-        for s in self.sessions:
-                db = [r for r in self.sessions[s][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]
-                assert db, f&#39;Sample &#34;{sample}&#34; not found in session &#34;{s}&#34;.&#39;
-                d45_s = np.mean([r[&#39;d45&#39;] for r in db])
-                d46_s = np.mean([r[&#39;d46&#39;] for r in db])
-                R45_wg = R45_s / (1 + d45_s / 1000)
-                R46_wg = R46_s / (1 + d46_s / 1000)
-
-                d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
-
-                self.msg(f&#39;Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}&#39;)
-
-                self.sessions[s][&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
-                self.sessions[s][&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW
-                for r in self.sessions[s][&#39;data&#39;]:
-                        r[&#39;d13Cwg_VPDB&#39;] = d13Cwg_VPDB
-                        r[&#39;d18Owg_VSMOW&#39;] = d18Owg_VSMOW</code></pre>
 </details>
 </dd>
 </dl>
@@ -7049,6 +7177,7 @@ def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&
 <li><code><a title="D47crunch.make_csv" href="#D47crunch.make_csv">make_csv</a></code></li>
 <li><code><a title="D47crunch.pf" href="#D47crunch.pf">pf</a></code></li>
 <li><code><a title="D47crunch.pretty_table" href="#D47crunch.pretty_table">pretty_table</a></code></li>
+<li><code><a title="D47crunch.read_csv" href="#D47crunch.read_csv">read_csv</a></code></li>
 <li><code><a title="D47crunch.smart_type" href="#D47crunch.smart_type">smart_type</a></code></li>
 <li><code><a title="D47crunch.transpose_table" href="#D47crunch.transpose_table">transpose_table</a></code></li>
 <li><code><a title="D47crunch.w_avg" href="#D47crunch.w_avg">w_avg</a></code></li>
@@ -7070,7 +7199,6 @@ def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&
 <li><code><a title="D47crunch.D47data.R17_VSMOW" href="#D47crunch.D47data.R17_VSMOW">R17_VSMOW</a></code></li>
 <li><code><a title="D47crunch.D47data.R18_VPDB" href="#D47crunch.D47data.R18_VPDB">R18_VPDB</a></code></li>
 <li><code><a title="D47crunch.D47data.R18_VSMOW" href="#D47crunch.D47data.R18_VSMOW">R18_VSMOW</a></code></li>
-<li><code><a title="D47crunch.D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION" href="#D47crunch.D47data.SAMPLE_CONSTRAINING_WG_COMPOSITION">SAMPLE_CONSTRAINING_WG_COMPOSITION</a></code></li>
 <li><code><a title="D47crunch.D47data.assign_timestamps" href="#D47crunch.D47data.assign_timestamps">assign_timestamps</a></code></li>
 <li><code><a title="D47crunch.D47data.compute_bulk_and_clumping_deltas" href="#D47crunch.D47data.compute_bulk_and_clumping_deltas">compute_bulk_and_clumping_deltas</a></code></li>
 <li><code><a title="D47crunch.D47data.compute_bulk_delta" href="#D47crunch.D47data.compute_bulk_delta">compute_bulk_delta</a></code></li>
@@ -7113,7 +7241,6 @@ def wg_old(self, sample = &#39;&#39;, d13C_vpdb = &#39;&#39;, d18O_vpdb = &#39;&
 <li><code><a title="D47crunch.D47data.unsplit_samples" href="#D47crunch.D47data.unsplit_samples">unsplit_samples</a></code></li>
 <li><code><a title="D47crunch.D47data.vmsg" href="#D47crunch.D47data.vmsg">vmsg</a></code></li>
 <li><code><a title="D47crunch.D47data.wg" href="#D47crunch.D47data.wg">wg</a></code></li>
-<li><code><a title="D47crunch.D47data.wg_old" href="#D47crunch.D47data.wg_old">wg_old</a></code></li>
 </ul>
 </li>
 <li>
