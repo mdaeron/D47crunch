@@ -2040,8 +2040,8 @@ class D47data(list):
 
 		+ `dir`: the directory in which to save the plot
 		'''
-		fig = ppl.figure(figsize = (8,3))
-		ppl.subplots_adjust(.1,.05,.78,.9)
+		fig = ppl.figure(figsize = (8,4))
+		ppl.subplots_adjust(.1,.05,.78,.8)
 		N = len(self.anchors)
 		if N == 3:
 			colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
@@ -2087,7 +2087,17 @@ class D47data(list):
 
 		ymax = ppl.axis()[3]
 		for s in x_sessions:
-			ppl.text(x_sessions[s], ymax +1, s, va = 'bottom', ha = 'center')
+			ppl.text(
+				x_sessions[s],
+				ymax +1,
+				s,
+				va = 'bottom',
+				**(
+					dict(ha = 'center')
+					if len(self.sessions[s]['data']) > (0.15 * len(self))
+					else dict(ha = 'left', rotation = 45)
+					)
+				)
 
 		for s in self.anchors:
 			kw['marker'] = '+'
