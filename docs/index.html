@@ -431,7 +431,7 @@ __contact__   = &#39;daeron@lsce.ipsl.fr&#39;
 __copyright__ = &#39;Copyright (c) 2020 Mathieu Daëron&#39;
 __license__   = &#39;Modified BSD License - https://opensource.org/licenses/BSD-3-Clause&#39;
 __date__      = &#39;2020-12-10&#39;
-__version__   = &#39;1.0.0&#39;
+__version__   = &#39;1.0.2&#39;
 
 import os
 import numpy as np
@@ -771,10 +771,14 @@ class D47data(list):
 
 
         Nominal_D47 = {
-                &#39;ETH-1&#39;: 0.258,
-                &#39;ETH-2&#39;: 0.256,
-                &#39;ETH-3&#39;: 0.691,
-                }       # (Bernasconi et al., 2018)
+                &#39;ETH-1&#39;:   0.2052,
+                &#39;ETH-2&#39;:   0.2085,
+                &#39;ETH-3&#39;:   0.6132,
+                &#39;ETH-4&#39;:   0.4511,
+                &#39;IAEA-C1&#39;: 0.3018,
+                &#39;IAEA-C2&#39;: 0.6409,
+                &#39;MERCK&#39;:   0.5135,
+                } # I-CDES (Bernasconi et al., 2021)
         &#39;&#39;&#39;
         Nominal Δ&lt;sub&gt;47&lt;/sub&gt; values assigned to the anchor samples, used by
         `D47data.standardize()` to standardize unknown samples to an absolute Δ&lt;sub&gt;47&lt;/sub&gt;
@@ -2547,6 +2551,102 @@ class D47data(list):
                 ppl.savefig(f&#39;{dir}/D47_residuals.pdf&#39;)
                 ppl.close(fig)
 
+        def simulate(self,
+                samples = [
+                        dict(Sample = &#39;ETH-1&#39;, N = 4),
+                        dict(Sample = &#39;ETH-2&#39;, N = 4),
+                        dict(Sample = &#39;ETH-3&#39;, N = 4),
+                        dict(
+                                Sample = &#39;FOO&#39;,
+                                d47 = 0.,
+                                D47 = 0.5,
+                                N = 4,
+                                ),
+                        ],
+                a = 1.,
+                b = 0.,
+                c = -0.9,
+                rD47 = 0.015,
+                seed = 0,
+                ):
+                &#39;&#39;&#39;
+                Populate `D47data` instance with simulated analyses from a single session.
+                
+                __Parameters__
+
+                + `samples`: a list of entries; each entry is a dictionary with the following fields:
+                        * `Sample`: the name of the sample
+                        * `d47`: the δ&lt;sub&gt;47&lt;/sub&gt; value of this sample
+                        * `D47`: the absolute Δ&lt;sub&gt;47&lt;/sub&gt; value of this sample
+                        * `N`: how many analyses of this sample should be generated
+                + `a`: scrambling factor)
+                + `b`: compositional nonlinearity
+                + `c`: working gas offset
+                + `rD47`: Δ&lt;sub&gt;47&lt;/sub&gt; repeatability
+                + `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
+                
+                Here is an example of using this method to simulate a given combination of anchors and unknowns:
+
+                ````py
+                import D47crunch
+                D = D47crunch.D47data()
+                D.simulate([
+                    dict(Sample = &#39;ETH-1&#39;, N = 6),
+                    dict(Sample = &#39;ETH-2&#39;, N = 6),
+                    dict(Sample = &#39;ETH-3&#39;, N = 12),
+                    dict(Sample = &#39;FOO&#39;, d47 = -15., D47 = 0.4, N = 4),
+                    ], rD47 = 0.010)
+                D.standardize()
+                D.plot_sessions()
+                D.table_of_samples()
+                ````
+
+                &#39;&#39;&#39;
+                from numpy import random as nprandom
+                if seed:
+                        rng = nprandom.default_rng(seed)
+                else:
+                        rng = nprandom.default_rng()
+
+                N = sum([s[&#39;N&#39;] for s in samples])
+                errors = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+                errors *= rD47 / stdev(errors) # scale errors to rD47
+                
+                k = 0
+                for s in samples:
+                
+                        if &#39;d47&#39; not in s:
+                                if s[&#39;Sample&#39;] not in self.Nominal_d13C_VPDB or s[&#39;Sample&#39;] not in self.Nominal_d18O_VPDB:
+                                        raise KeyError(f&#34;Sample {s[&#39;Sample&#39;]} is missing a d47 value and it is not defined in Nominal_d13C_VPDB and Nominal_d18O_VPDB&#34;)
+                                else:
+                                        R47wg = self.compute_isobar_ratios(self.R13_VPDB, self.R18_VPDB * self.ALPHA_18O_ACID_REACTION)[2]
+                                        R47s = self.compute_isobar_ratios(
+                                                self.R13_VPDB * (1 + self.Nominal_d13C_VPDB[s[&#39;Sample&#39;]]/1000),
+                                                self.R18_VPDB * (1 + self.Nominal_d18O_VPDB[s[&#39;Sample&#39;]]/1000) * self.ALPHA_18O_ACID_REACTION,
+                                                )[2]
+                                        s[&#39;d47&#39;] = (R47s/R47wg-1)*1000
+
+                        if &#39;D47&#39; not in s:
+                                if s[&#39;Sample&#39;] not in self.Nominal_D47:
+                                        raise KeyError(f&#34;Sample {s[&#39;Sample&#39;]} is missing a D47 value and it is not defined in Nominal_D47&#34;)
+                                else:
+                                        s[&#39;D47&#39;] = self.Nominal_D47[s[&#39;Sample&#39;]]                                        
+                                        
+                        while s[&#39;N&#39;]:
+                                self.append({
+                                        &#39;Sample&#39;: s[&#39;Sample&#39;],
+                                        &#39;d13Cwg_VPDB&#39;: np.nan,
+                                        &#39;d18Owg_VSMOW&#39;: np.nan,
+                                        &#39;d13C_VPDB&#39;: np.nan,
+                                        &#39;d18O_VSMOW&#39;: np.nan,
+                                        &#39;d47&#39;: s[&#39;d47&#39;],
+                                        &#39;D47raw&#39;: a * (s[&#39;D47&#39;] + errors[k]) + b * s[&#39;d47&#39;] + c,
+                                        })
+                                s[&#39;N&#39;] -= 1
+                                k += 1
+
+                self.refresh()
+
 class SessionPlot():
         def __init__(self):
                 pass</code></pre>
@@ -3054,10 +3154,14 @@ methods.</li>
 
 
         Nominal_D47 = {
-                &#39;ETH-1&#39;: 0.258,
-                &#39;ETH-2&#39;: 0.256,
-                &#39;ETH-3&#39;: 0.691,
-                }       # (Bernasconi et al., 2018)
+                &#39;ETH-1&#39;:   0.2052,
+                &#39;ETH-2&#39;:   0.2085,
+                &#39;ETH-3&#39;:   0.6132,
+                &#39;ETH-4&#39;:   0.4511,
+                &#39;IAEA-C1&#39;: 0.3018,
+                &#39;IAEA-C2&#39;: 0.6409,
+                &#39;MERCK&#39;:   0.5135,
+                } # I-CDES (Bernasconi et al., 2021)
         &#39;&#39;&#39;
         Nominal Δ&lt;sub&gt;47&lt;/sub&gt; values assigned to the anchor samples, used by
         `D47data.standardize()` to standardize unknown samples to an absolute Δ&lt;sub&gt;47&lt;/sub&gt;
@@ -4828,7 +4932,103 @@ methods.</li>
                 ppl.ylabel(&#39;Δ$_{47}$ residuals (ppm)&#39;)
                 ppl.axis([-1, len(self), None, None])
                 ppl.savefig(f&#39;{dir}/D47_residuals.pdf&#39;)
-                ppl.close(fig)</code></pre>
+                ppl.close(fig)
+
+        def simulate(self,
+                samples = [
+                        dict(Sample = &#39;ETH-1&#39;, N = 4),
+                        dict(Sample = &#39;ETH-2&#39;, N = 4),
+                        dict(Sample = &#39;ETH-3&#39;, N = 4),
+                        dict(
+                                Sample = &#39;FOO&#39;,
+                                d47 = 0.,
+                                D47 = 0.5,
+                                N = 4,
+                                ),
+                        ],
+                a = 1.,
+                b = 0.,
+                c = -0.9,
+                rD47 = 0.015,
+                seed = 0,
+                ):
+                &#39;&#39;&#39;
+                Populate `D47data` instance with simulated analyses from a single session.
+                
+                __Parameters__
+
+                + `samples`: a list of entries; each entry is a dictionary with the following fields:
+                        * `Sample`: the name of the sample
+                        * `d47`: the δ&lt;sub&gt;47&lt;/sub&gt; value of this sample
+                        * `D47`: the absolute Δ&lt;sub&gt;47&lt;/sub&gt; value of this sample
+                        * `N`: how many analyses of this sample should be generated
+                + `a`: scrambling factor)
+                + `b`: compositional nonlinearity
+                + `c`: working gas offset
+                + `rD47`: Δ&lt;sub&gt;47&lt;/sub&gt; repeatability
+                + `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
+                
+                Here is an example of using this method to simulate a given combination of anchors and unknowns:
+
+                ````py
+                import D47crunch
+                D = D47crunch.D47data()
+                D.simulate([
+                    dict(Sample = &#39;ETH-1&#39;, N = 6),
+                    dict(Sample = &#39;ETH-2&#39;, N = 6),
+                    dict(Sample = &#39;ETH-3&#39;, N = 12),
+                    dict(Sample = &#39;FOO&#39;, d47 = -15., D47 = 0.4, N = 4),
+                    ], rD47 = 0.010)
+                D.standardize()
+                D.plot_sessions()
+                D.table_of_samples()
+                ````
+
+                &#39;&#39;&#39;
+                from numpy import random as nprandom
+                if seed:
+                        rng = nprandom.default_rng(seed)
+                else:
+                        rng = nprandom.default_rng()
+
+                N = sum([s[&#39;N&#39;] for s in samples])
+                errors = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+                errors *= rD47 / stdev(errors) # scale errors to rD47
+                
+                k = 0
+                for s in samples:
+                
+                        if &#39;d47&#39; not in s:
+                                if s[&#39;Sample&#39;] not in self.Nominal_d13C_VPDB or s[&#39;Sample&#39;] not in self.Nominal_d18O_VPDB:
+                                        raise KeyError(f&#34;Sample {s[&#39;Sample&#39;]} is missing a d47 value and it is not defined in Nominal_d13C_VPDB and Nominal_d18O_VPDB&#34;)
+                                else:
+                                        R47wg = self.compute_isobar_ratios(self.R13_VPDB, self.R18_VPDB * self.ALPHA_18O_ACID_REACTION)[2]
+                                        R47s = self.compute_isobar_ratios(
+                                                self.R13_VPDB * (1 + self.Nominal_d13C_VPDB[s[&#39;Sample&#39;]]/1000),
+                                                self.R18_VPDB * (1 + self.Nominal_d18O_VPDB[s[&#39;Sample&#39;]]/1000) * self.ALPHA_18O_ACID_REACTION,
+                                                )[2]
+                                        s[&#39;d47&#39;] = (R47s/R47wg-1)*1000
+
+                        if &#39;D47&#39; not in s:
+                                if s[&#39;Sample&#39;] not in self.Nominal_D47:
+                                        raise KeyError(f&#34;Sample {s[&#39;Sample&#39;]} is missing a D47 value and it is not defined in Nominal_D47&#34;)
+                                else:
+                                        s[&#39;D47&#39;] = self.Nominal_D47[s[&#39;Sample&#39;]]                                        
+                                        
+                        while s[&#39;N&#39;]:
+                                self.append({
+                                        &#39;Sample&#39;: s[&#39;Sample&#39;],
+                                        &#39;d13Cwg_VPDB&#39;: np.nan,
+                                        &#39;d18Owg_VSMOW&#39;: np.nan,
+                                        &#39;d13C_VPDB&#39;: np.nan,
+                                        &#39;d18O_VSMOW&#39;: np.nan,
+                                        &#39;d47&#39;: s[&#39;d47&#39;],
+                                        &#39;D47raw&#39;: a * (s[&#39;D47&#39;] + errors[k]) + b * s[&#39;d47&#39;] + c,
+                                        })
+                                s[&#39;N&#39;] -= 1
+                                k += 1
+
+                self.refresh()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -6305,6 +6505,138 @@ values of samples X and Y, respectively.</p>
                         return (0., 0.)</code></pre>
 </details>
 </dd>
+<dt id="D47crunch.D47data.simulate"><code class="name flex">
+<span>def <span class="ident">simulate</span></span>(<span>self, samples=[{'Sample': 'ETH-1', 'N': 4}, {'Sample': 'ETH-2', 'N': 4}, {'Sample': 'ETH-3', 'N': 4}, {'Sample': 'FOO', 'd47': 0.0, 'D47': 0.5, 'N': 4}], a=1.0, b=0.0, c=-0.9, rD47=0.015, seed=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Populate <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> instance with simulated analyses from a single session.</p>
+<p><strong>Parameters</strong></p>
+<ul>
+<li><code>samples</code>: a list of entries; each entry is a dictionary with the following fields:
+* <code>Sample</code>: the name of the sample
+* <code>d47</code>: the δ<sub>47</sub> value of this sample
+* <code>D47</code>: the absolute Δ<sub>47</sub> value of this sample
+* <code>N</code>: how many analyses of this sample should be generated</li>
+<li><code>a</code>: scrambling factor)</li>
+<li><code>b</code>: compositional nonlinearity</li>
+<li><code>c</code>: working gas offset</li>
+<li><code>rD47</code>: Δ<sub>47</sub> repeatability</li>
+<li><code>seed</code>: explicitly set to a non-zero value to achieve random but repeatable simulations</li>
+</ul>
+<p>Here is an example of using this method to simulate a given combination of anchors and unknowns:</p>
+<pre><code class="py">import D47crunch
+D = D47crunch.D47data()
+D.simulate([
+    dict(Sample = 'ETH-1', N = 6),
+    dict(Sample = 'ETH-2', N = 6),
+    dict(Sample = 'ETH-3', N = 12),
+    dict(Sample = 'FOO', d47 = -15., D47 = 0.4, N = 4),
+    ], rD47 = 0.010)
+D.standardize()
+D.plot_sessions()
+D.table_of_samples()
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def simulate(self,
+        samples = [
+                dict(Sample = &#39;ETH-1&#39;, N = 4),
+                dict(Sample = &#39;ETH-2&#39;, N = 4),
+                dict(Sample = &#39;ETH-3&#39;, N = 4),
+                dict(
+                        Sample = &#39;FOO&#39;,
+                        d47 = 0.,
+                        D47 = 0.5,
+                        N = 4,
+                        ),
+                ],
+        a = 1.,
+        b = 0.,
+        c = -0.9,
+        rD47 = 0.015,
+        seed = 0,
+        ):
+        &#39;&#39;&#39;
+        Populate `D47data` instance with simulated analyses from a single session.
+        
+        __Parameters__
+
+        + `samples`: a list of entries; each entry is a dictionary with the following fields:
+                * `Sample`: the name of the sample
+                * `d47`: the δ&lt;sub&gt;47&lt;/sub&gt; value of this sample
+                * `D47`: the absolute Δ&lt;sub&gt;47&lt;/sub&gt; value of this sample
+                * `N`: how many analyses of this sample should be generated
+        + `a`: scrambling factor)
+        + `b`: compositional nonlinearity
+        + `c`: working gas offset
+        + `rD47`: Δ&lt;sub&gt;47&lt;/sub&gt; repeatability
+        + `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
+        
+        Here is an example of using this method to simulate a given combination of anchors and unknowns:
+
+        ````py
+        import D47crunch
+        D = D47crunch.D47data()
+        D.simulate([
+            dict(Sample = &#39;ETH-1&#39;, N = 6),
+            dict(Sample = &#39;ETH-2&#39;, N = 6),
+            dict(Sample = &#39;ETH-3&#39;, N = 12),
+            dict(Sample = &#39;FOO&#39;, d47 = -15., D47 = 0.4, N = 4),
+            ], rD47 = 0.010)
+        D.standardize()
+        D.plot_sessions()
+        D.table_of_samples()
+        ````
+
+        &#39;&#39;&#39;
+        from numpy import random as nprandom
+        if seed:
+                rng = nprandom.default_rng(seed)
+        else:
+                rng = nprandom.default_rng()
+
+        N = sum([s[&#39;N&#39;] for s in samples])
+        errors = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+        errors *= rD47 / stdev(errors) # scale errors to rD47
+        
+        k = 0
+        for s in samples:
+        
+                if &#39;d47&#39; not in s:
+                        if s[&#39;Sample&#39;] not in self.Nominal_d13C_VPDB or s[&#39;Sample&#39;] not in self.Nominal_d18O_VPDB:
+                                raise KeyError(f&#34;Sample {s[&#39;Sample&#39;]} is missing a d47 value and it is not defined in Nominal_d13C_VPDB and Nominal_d18O_VPDB&#34;)
+                        else:
+                                R47wg = self.compute_isobar_ratios(self.R13_VPDB, self.R18_VPDB * self.ALPHA_18O_ACID_REACTION)[2]
+                                R47s = self.compute_isobar_ratios(
+                                        self.R13_VPDB * (1 + self.Nominal_d13C_VPDB[s[&#39;Sample&#39;]]/1000),
+                                        self.R18_VPDB * (1 + self.Nominal_d18O_VPDB[s[&#39;Sample&#39;]]/1000) * self.ALPHA_18O_ACID_REACTION,
+                                        )[2]
+                                s[&#39;d47&#39;] = (R47s/R47wg-1)*1000
+
+                if &#39;D47&#39; not in s:
+                        if s[&#39;Sample&#39;] not in self.Nominal_D47:
+                                raise KeyError(f&#34;Sample {s[&#39;Sample&#39;]} is missing a D47 value and it is not defined in Nominal_D47&#34;)
+                        else:
+                                s[&#39;D47&#39;] = self.Nominal_D47[s[&#39;Sample&#39;]]                                        
+                                
+                while s[&#39;N&#39;]:
+                        self.append({
+                                &#39;Sample&#39;: s[&#39;Sample&#39;],
+                                &#39;d13Cwg_VPDB&#39;: np.nan,
+                                &#39;d18Owg_VSMOW&#39;: np.nan,
+                                &#39;d13C_VPDB&#39;: np.nan,
+                                &#39;d18O_VSMOW&#39;: np.nan,
+                                &#39;d47&#39;: s[&#39;d47&#39;],
+                                &#39;D47raw&#39;: a * (s[&#39;D47&#39;] + errors[k]) + b * s[&#39;d47&#39;] + c,
+                                })
+                        s[&#39;N&#39;] -= 1
+                        k += 1
+
+        self.refresh()</code></pre>
+</details>
+</dd>
 <dt id="D47crunch.D47data.split_samples"><code class="name flex">
 <span>def <span class="ident">split_samples</span></span>(<span>self, samples_to_split='all', grouping='by_uid')</span>
 </code></dt>
@@ -7229,6 +7561,7 @@ and in <code>self.Nominal_d18O_VPDB</code>.</p></div>
 <li><code><a title="D47crunch.D47data.sample_D47_correl" href="#D47crunch.D47data.sample_D47_correl">sample_D47_correl</a></code></li>
 <li><code><a title="D47crunch.D47data.sample_D47_covar" href="#D47crunch.D47data.sample_D47_covar">sample_D47_covar</a></code></li>
 <li><code><a title="D47crunch.D47data.sample_average" href="#D47crunch.D47data.sample_average">sample_average</a></code></li>
+<li><code><a title="D47crunch.D47data.simulate" href="#D47crunch.D47data.simulate">simulate</a></code></li>
 <li><code><a title="D47crunch.D47data.split_samples" href="#D47crunch.D47data.split_samples">split_samples</a></code></li>
 <li><code><a title="D47crunch.D47data.standardization_error" href="#D47crunch.D47data.standardization_error">standardization_error</a></code></li>
 <li><code><a title="D47crunch.D47data.standardize" href="#D47crunch.D47data.standardize">standardize</a></code></li>

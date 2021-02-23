@@ -13,8 +13,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2020 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2020-12-10'
-__version__   = '1.0.1'
+__date__      = '2021-02-23'
+__version__   = '1.0.3'
 
 import os
 import numpy as np
@@ -2133,6 +2133,102 @@ class D47data(list):
 		ppl.axis([-1, len(self), None, None])
 		ppl.savefig(f'{dir}/D47_residuals.pdf')
 		ppl.close(fig)
+
+	def simulate(self,
+		samples = [
+			dict(Sample = 'ETH-1', N = 4),
+			dict(Sample = 'ETH-2', N = 4),
+			dict(Sample = 'ETH-3', N = 4),
+			dict(
+				Sample = 'FOO',
+				d47 = 0.,
+				D47 = 0.5,
+				N = 4,
+				),
+			],
+		a = 1.,
+		b = 0.,
+		c = -0.9,
+		rD47 = 0.015,
+		seed = 0,
+		):
+		'''
+		Populate `D47data` instance with simulated analyses from a single session.
+		
+		__Parameters__
+
+		+ `samples`: a list of entries; each entry is a dictionary with the following fields:
+			* `Sample`: the name of the sample
+			* `d47`: the δ<sub>47</sub> value of this sample
+			* `D47`: the absolute Δ<sub>47</sub> value of this sample
+			* `N`: how many analyses of this sample should be generated
+		+ `a`: scrambling factor)
+		+ `b`: compositional nonlinearity
+		+ `c`: working gas offset
+		+ `rD47`: Δ<sub>47</sub> repeatability
+		+ `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
+		
+		Here is an example of using this method to simulate a given combination of anchors and unknowns:
+
+		````py
+		import D47crunch
+		D = D47crunch.D47data()
+		D.simulate([
+		    dict(Sample = 'ETH-1', N = 6),
+		    dict(Sample = 'ETH-2', N = 6),
+		    dict(Sample = 'ETH-3', N = 12),
+		    dict(Sample = 'FOO', d47 = -15., D47 = 0.4, N = 4),
+		    ], rD47 = 0.010)
+		D.standardize()
+		D.plot_sessions()
+		D.table_of_samples()
+		````
+
+		'''
+		from numpy import random as nprandom
+		if seed:
+			rng = nprandom.default_rng(seed)
+		else:
+			rng = nprandom.default_rng()
+
+		N = sum([s['N'] for s in samples])
+		errors = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+		errors *= rD47 / stdev(errors) # scale errors to rD47
+		
+		k = 0
+		for s in samples:
+		
+			if 'd47' not in s:
+				if s['Sample'] not in self.Nominal_d13C_VPDB or s['Sample'] not in self.Nominal_d18O_VPDB:
+					raise KeyError(f"Sample {s['Sample']} is missing a d47 value and it is not defined in Nominal_d13C_VPDB and Nominal_d18O_VPDB")
+				else:
+					R47wg = self.compute_isobar_ratios(self.R13_VPDB, self.R18_VPDB * self.ALPHA_18O_ACID_REACTION)[2]
+					R47s = self.compute_isobar_ratios(
+						self.R13_VPDB * (1 + self.Nominal_d13C_VPDB[s['Sample']]/1000),
+						self.R18_VPDB * (1 + self.Nominal_d18O_VPDB[s['Sample']]/1000) * self.ALPHA_18O_ACID_REACTION,
+						)[2]
+					s['d47'] = (R47s/R47wg-1)*1000
+
+			if 'D47' not in s:
+				if s['Sample'] not in self.Nominal_D47:
+					raise KeyError(f"Sample {s['Sample']} is missing a D47 value and it is not defined in Nominal_D47")
+				else:
+					s['D47'] = self.Nominal_D47[s['Sample']]					
+					
+			while s['N']:
+				self.append({
+					'Sample': s['Sample'],
+					'd13Cwg_VPDB': np.nan,
+					'd18Owg_VSMOW': np.nan,
+					'd13C_VPDB': np.nan,
+					'd18O_VSMOW': np.nan,
+					'd47': s['d47'],
+					'D47raw': a * (s['D47'] + errors[k]) + b * s['d47'] + c,
+					})
+				s['N'] -= 1
+				k += 1
+
+		self.refresh()
 
 class SessionPlot():
 	def __init__(self):
