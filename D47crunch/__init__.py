@@ -14,7 +14,7 @@ __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2020 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __date__      = '2020-12-10'
-__version__   = '1.0.0'
+__version__   = '1.0.1'
 
 import os
 import numpy as np
@@ -354,10 +354,14 @@ class D47data(list):
 
 
 	Nominal_D47 = {
-		'ETH-1': 0.258,
-		'ETH-2': 0.256,
-		'ETH-3': 0.691,
-		}	# (Bernasconi et al., 2018)
+		'ETH-1':   0.2052,
+		'ETH-2':   0.2085,
+		'ETH-3':   0.6132,
+		'ETH-4':   0.4511,
+		'IAEA-C1': 0.3018,
+		'IAEA-C2': 0.6409,
+		'MERCK':   0.5135,
+		} # I-CDES (Bernasconi et al., 2021)
 	'''
 	Nominal Δ<sub>47</sub> values assigned to the anchor samples, used by
 	`D47data.standardize()` to standardize unknown samples to an absolute Δ<sub>47</sub>
