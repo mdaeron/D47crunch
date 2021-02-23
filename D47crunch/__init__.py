@@ -14,7 +14,7 @@ __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2020 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __date__      = '2021-02-23'
-__version__   = '1.0.3'
+__version__   = '1.0.4'
 
 import os
 import numpy as np
@@ -2158,15 +2158,20 @@ class D47data(list):
 		__Parameters__
 
 		+ `samples`: a list of entries; each entry is a dictionary with the following fields:
-			* `Sample`: the name of the sample
-			* `d47`: the δ<sub>47</sub> value of this sample
-			* `D47`: the absolute Δ<sub>47</sub> value of this sample
-			* `N`: how many analyses of this sample should be generated
+		    * `Sample`: the name of the sample
+		    * either `d47` (the δ<sub>47</sub> value of this sample), or `d13C_VPDB` and `d18O_VPDB` (its δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub> values)
+		    * `D47`: the absolute Δ<sub>47</sub> value of this sample
+		    * `N`: how many analyses of this sample should be generated
 		+ `a`: scrambling factor)
 		+ `b`: compositional nonlinearity
 		+ `c`: working gas offset
 		+ `rD47`: Δ<sub>47</sub> repeatability
 		+ `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
+		
+		Beware that automatically computed `d47` values for anchor samples are calculated assuming
+		a working gas with δ<sup>13</sup>C<sub>VPDB</sub>&nbsp;=&nbsp;0 and δ<sup>18</sup>O<sub>VSMOW</sub>&nbsp;=&nbsp;0.
+		Explicitly define `d47` if you are simulating a different working gas composition.
+		As a result, it is somewhat safer to define samples in using `d13C_VPDB` and `d18O_VPDB` rather than `d47`.
 		
 		Here is an example of using this method to simulate a given combination of anchors and unknowns:
 
@@ -2177,13 +2182,13 @@ class D47data(list):
 		    dict(Sample = 'ETH-1', N = 6),
 		    dict(Sample = 'ETH-2', N = 6),
 		    dict(Sample = 'ETH-3', N = 12),
-		    dict(Sample = 'FOO', d47 = -15., D47 = 0.4, N = 4),
+		    dict(Sample = 'FOO', d13C_VPDB = -5., d18O_VPDB = -10., D47 = 0.3, N = 4),
 		    ], rD47 = 0.010)
 		D.standardize()
 		D.plot_sessions()
 		D.table_of_samples()
 		````
-
+		
 		'''
 		from numpy import random as nprandom
 		if seed:
@@ -2198,22 +2203,30 @@ class D47data(list):
 		k = 0
 		for s in samples:
 		
-			if 'd47' not in s:
-				if s['Sample'] not in self.Nominal_d13C_VPDB or s['Sample'] not in self.Nominal_d18O_VPDB:
-					raise KeyError(f"Sample {s['Sample']} is missing a d47 value and it is not defined in Nominal_d13C_VPDB and Nominal_d18O_VPDB")
-				else:
-					R47wg = self.compute_isobar_ratios(self.R13_VPDB, self.R18_VPDB * self.ALPHA_18O_ACID_REACTION)[2]
-					R47s = self.compute_isobar_ratios(
-						self.R13_VPDB * (1 + self.Nominal_d13C_VPDB[s['Sample']]/1000),
-						self.R18_VPDB * (1 + self.Nominal_d18O_VPDB[s['Sample']]/1000) * self.ALPHA_18O_ACID_REACTION,
-						)[2]
-					s['d47'] = (R47s/R47wg-1)*1000
-
 			if 'D47' not in s:
 				if s['Sample'] not in self.Nominal_D47:
 					raise KeyError(f"Sample {s['Sample']} is missing a D47 value and it is not defined in Nominal_D47")
 				else:
 					s['D47'] = self.Nominal_D47[s['Sample']]					
+
+			if 'd47' not in s:
+				if s['Sample'] not in self.Nominal_d13C_VPDB or s['Sample'] not in self.Nominal_d18O_VPDB:
+					if 'd13C_VPDB' not in s or 'd18O_VPDB' not in s:
+						raise KeyError(f"Sample {s['Sample']} is missing a d47 value and it is not defined in Nominal_d13C_VPDB and Nominal_d18O_VPDB")
+					else:
+						R47wg = self.compute_isobar_ratios(self.R13_VPDB, self.R18_VPDB * self.ALPHA_18O_ACID_REACTION)[2]
+						R47s = self.compute_isobar_ratios(
+							self.R13_VPDB * (1 + s['d13C_VPDB']/1000),
+							self.R18_VPDB * (1 + s['d18O_VPDB']/1000) * self.ALPHA_18O_ACID_REACTION,
+							)[2]*(1+s['D47']/1000)
+						s['d47'] = (R47s/R47wg-1)*1000
+				else:
+					R47wg = self.compute_isobar_ratios(self.R13_VPDB, self.R18_VPDB * self.ALPHA_18O_ACID_REACTION)[2]
+					R47s = self.compute_isobar_ratios(
+						self.R13_VPDB * (1 + self.Nominal_d13C_VPDB[s['Sample']]/1000),
+						self.R18_VPDB * (1 + self.Nominal_d18O_VPDB[s['Sample']]/1000) * self.ALPHA_18O_ACID_REACTION,
+						)[2]*(1+s['D47']/1000)
+					s['d47'] = (R47s/R47wg-1)*1000
 					
 			while s['N']:
 				self.append({
