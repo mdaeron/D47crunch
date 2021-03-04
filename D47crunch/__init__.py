@@ -13,8 +13,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2020 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2021-02-23'
-__version__   = '1.0.4'
+__date__      = '2021-03-04'
+__version__   = '1.1.0'
 
 import os
 import numpy as np
@@ -2168,10 +2168,12 @@ class D47data(list):
 		+ `rD47`: Δ<sub>47</sub> repeatability
 		+ `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
 		
-		Beware that automatically computed `d47` values for anchor samples are calculated assuming
+		Beware that `d47` values computed from `d13C_VPDB` and `d18O_VPDB` are calculated assuming
 		a working gas with δ<sup>13</sup>C<sub>VPDB</sub>&nbsp;=&nbsp;0 and δ<sup>18</sup>O<sub>VSMOW</sub>&nbsp;=&nbsp;0.
-		Explicitly define `d47` if you are simulating a different working gas composition.
-		As a result, it is somewhat safer to define samples in using `d13C_VPDB` and `d18O_VPDB` rather than `d47`.
+		In the unusual case where simulating a different working gas composition is necessary, `d47` must be specified explicitly.
+		
+		Samples already defined in `D47data.Nominal_d13C_VPDB`, `D47data.Nominal_d18O_VPDB`, and `D47data.Nominal_D47`
+		do not require explicit `d47`, `D47`, `d13C_VPDB` nor `d18O_VPDB` (the nominal values will be used by default).
 		
 		Here is an example of using this method to simulate a given combination of anchors and unknowns:
 
@@ -2186,9 +2188,23 @@ class D47data(list):
 		    ], rD47 = 0.010)
 		D.standardize()
 		D.plot_sessions()
-		D.table_of_samples()
+		D.verbose = True
+		out = D.table_of_samples()
 		````
 		
+		This should output something like:
+		
+		````
+		[table_of_samples] 
+		––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+		Sample   N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
+		––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+		ETH-1    6        nan         nan  0.2052                    0.0076          
+		ETH-2    6        nan         nan  0.2085                    0.0089          
+		ETH-3   12        nan         nan  0.6132                    0.0118          
+		FOO      4        nan         nan  0.3031  0.0057  ± 0.0118  0.0104     0.572
+		––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+		````
 		'''
 		from numpy import random as nprandom
 		if seed:
