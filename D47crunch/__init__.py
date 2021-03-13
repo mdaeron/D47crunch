@@ -1092,6 +1092,7 @@ class D47data(list):
 		consolidate = True,
 		consolidate_tables = False,
 		consolidate_plots = False,
+		constraints = {},
 		):
 		'''
 		Compute absolute Δ<sub>47</sub> values for all replicate analyses and for sample averages.
@@ -1132,7 +1133,11 @@ class D47data(list):
 				params.add(f'b2_{s}', value = 0., vary = self.sessions[session]['slope_drift'])
 				params.add(f'c2_{s}', value = 0., vary = self.sessions[session]['wg_drift'])
 			for sample in self.unknowns:
-				params.add(f'D47_{pf(sample)}', value=0.6)
+				params.add(
+					f'D47_{pf(sample)}',
+					value = 0.5,
+					expr = None if f'D47_{pf(sample)}' not in constraints else constraints[f'D47_{pf(sample)}']
+					)
 
 			def residuals(p):
 				R = []
@@ -1584,7 +1589,13 @@ class D47data(list):
 				self.samples[sample]['SE_D47'] = 0.
 			for sample in self.unknowns:
 				self.samples[sample]['D47'] = self.standardization.params.valuesdict()[f'D47_{pf(sample)}']
-				self.samples[sample]['SE_D47'] = self.sample_D47_covar(sample)**.5
+				try:
+					self.samples[sample]['SE_D47'] = self.sample_D47_covar(sample)**.5
+				except ValueError:
+					# when `sample` is constrained by self.standardize(constraints = {...}),
+					# it is no longer listed in self.standardization.var_names.
+					# Temporary fix: define SE as zero for now
+					self.samples[sample]['SE_D47'] = 0.
 
 		elif self.standardization_method == 'indep_sessions':
 			for sample in self.anchors:
