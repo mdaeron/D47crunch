@@ -850,7 +850,7 @@ class D47data(list):
 			if 'D17O' not in r:
 				r['D17O'] = 0.
 			if 'UID' not in r:
-				r['UID'] = f'#{i+1}'
+				r['UID'] = f'{i+1}'
 			if 'Session' not in r:
 				r['Session'] = session
 			for k in ['d48', 'd49']:
@@ -1011,7 +1011,7 @@ class D47data(list):
 		self.refresh_samples()
 
 
-	def unsplit_samples(self, tables = True):
+	def unsplit_samples(self, tables = False):
 		'''
 		Reverse the effects of `D47data.split_samples`.
 		'''
@@ -2048,22 +2048,25 @@ class D47data(list):
 
 		return out
 
-	def plot_residuals(self, dir = 'plots'):
+	def plot_residuals(self, dir = 'plots', highlight = [], colors = None):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
 		the order of analyses in the D47data() object)
 
 		+ `dir`: the directory in which to save the plot
+		+ `highlight`: a list of samples to highlight
+		+ `colors`: a dict of {<sample>: <color>} for all samples
 		'''
 		fig = ppl.figure(figsize = (8,4))
 		ppl.subplots_adjust(.1,.05,.78,.8)
 		N = len(self.anchors)
-		if N == 3:
-			colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
-		elif N == 4:
-			colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
-		else:
-			colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+		if colors is None:
+			if N == 3:
+				colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
+			elif N == 4:
+				colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+			else:
+				colors = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
 		session = self[0]['Session']
 		x1 = 0
 # 		ymax = np.max([1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self])
@@ -2087,10 +2090,12 @@ class D47data(list):
 				marker = 'x' if singlet else '+',
 				ms = 4 if singlet else 5,
 				ls = 'None',
-				mec = colorz[r['Sample']] if r['Sample'] in colorz else (0,0,0),
+				mec = colors[r['Sample']] if r['Sample'] in colors else (0,0,0),
 				mew = 1,
 				alpha = 0.2 if singlet else 1,
 				)
+			if highlight and r['Sample'] not in highlight:
+				kw['alpha'] = 0.2
 			ppl.plot(k, 1e3 * (r['D47'] - self.samples[r['Sample']]['D47']), **kw)
 		x2 = k
 		x_sessions[session] = (x1+x2)/2
@@ -2114,10 +2119,10 @@ class D47data(list):
 					)
 				)
 
-		for s in self.anchors:
+		for s in colors:
 			kw['marker'] = '+'
 			kw['ms'] = 5
-			kw['mec'] = colorz[s]
+			kw['mec'] = colors[s]
 			kw['label'] = s
 			kw['alpha'] = 1
 			ppl.plot([], [], **kw)
