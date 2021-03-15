@@ -436,7 +436,37 @@ print(type(foo.normalization))
 # <class 'lmfit.minimizer.MinimizerResult'>
 ```
 
-#### 6.6 Legacy standardization approach (<span style="text-transform:lowercase">`indep_sessions`</span>)
+#### 6.6 Combining information from carbonate anchors and equilibrated gases
+
+The `constraints` argument to `D47data.standardize()` in the pooled regression approach may be used to specify arbitrary constraints between regression model parameters. For instance, if a data set comprises two carbonate standards (`ETH-1` and `ETH-2`) and two gas standards (`HG-1000C` and `EG-25C`), it is possible to specify the Δ<sub>47</sub> difference between `HG-1000C` and `EG-25C` explicitly, essentially constraining the scrambling factor `a` based on the gas standards while constraining the other parameters based on `ETH-1` and `ETH-2`:
+
+```python
+from D47crunch import D47data, fCO2eqD47_Wang
+
+rawdata = D47data()
+rawdata.read('foo.csv') # foo.csv not provided in this example
+rawdata.wg()
+rawdata.crunch()
+constr = {'D47_EG_25C': f'D47_HG_1000C + {fCO2eqD47_Wang(25)-fCO2eqD47_Wang(1000)}')
+rawdata.standardize(constraints = constr)
+rawdata.table_of_samples()
+
+# outputs something like:
+# 
+# [table_of_samples] 
+# ––––––––  –––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+# Sample      N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
+# ––––––––  –––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+# ETH-1     205       2.03       37.03  0.2052                    0.0089          
+# ETH-2     213     -10.17       19.88  0.2085                    0.0078          
+# EG-25C    138     -18.43       40.35  0.9195  0.0000  ± 0.0000  0.0095     1.000
+# HG-1000C  180      -7.95       26.50  0.0242  0.0007  ± 0.0014  0.0085     0.367
+# ––––––––  –––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+```
+
+Note that in the example abobe, because `HG-1000C` was constrained as a function of `EG-25C`, the SE in its Δ<sub>47</sub> value is not reported. For now, it must instead be computed based on that of `EG-25C` (in this simple case, the two standard errors are identical).
+
+#### 6.7 Legacy standardization approach (<span style="text-transform:lowercase">`indep_sessions`</span>)
 
 Following a more traditional approach, `foo.standardize(method = 'indep_sessions')` computes the best-fit standardization parameters (a,b,c) for each session using independent regression models (one per session) only taking into account the anchor samples (samples defined in `foo.Nominal_D47`), then computes the Δ<sub>47</sub> value for each analysis and  the weighted average Δ<sub>47</sub> value for each unknown sample.
 

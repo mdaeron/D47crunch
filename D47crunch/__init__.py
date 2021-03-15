@@ -1136,8 +1136,11 @@ class D47data(list):
 				params.add(
 					f'D47_{pf(sample)}',
 					value = 0.5,
-					expr = None if f'D47_{pf(sample)}' not in constraints else constraints[f'D47_{pf(sample)}']
+# 					expr = None if f'D47_{pf(sample)}' not in constraints else constraints[f'D47_{pf(sample)}']
 					)
+
+			for k in constraints:
+				params[k].expr = constraints[k]
 
 			def residuals(p):
 				R = []

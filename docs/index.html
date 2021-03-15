@@ -403,7 +403,32 @@ for k in foo.samples['IAEA-C1']:
 # output:
 # &lt;class 'lmfit.minimizer.MinimizerResult'&gt;
 </code></pre>
-<h4 id="66-legacy-standardization-approach-indep_sessions">6.6 Legacy standardization approach (<span style="text-transform:lowercase"><code>indep_sessions</code></span>)</h4>
+<h4 id="66-combining-information-from-carbonate-anchors-and-equilibrated-gases">6.6 Combining information from carbonate anchors and equilibrated gases</h4>
+<p>The <code>constraints</code> argument to <code><a title="D47crunch.D47data.standardize" href="#D47crunch.D47data.standardize">D47data.standardize()</a></code> in the pooled regression approach may be used to specify arbitrary constraints between regression model parameters. For instance, if a data set comprises two carbonate standards (<code>ETH-1</code> and <code>ETH-2</code>) and two gas standards (<code>HG-1000C</code> and <code>EG-25C</code>), it is possible to specify the Δ<sub>47</sub> difference between <code>HG-1000C</code> and <code>EG-25C</code> explicitly, essentially constraining the scrambling factor <code>a</code> based on the gas standards while constraining the other parameters based on <code>ETH-1</code> and <code>ETH-2</code>:</p>
+<pre><code class="python">from D47crunch import D47data, fCO2eqD47_Wang
+
+rawdata = D47data()
+rawdata.read('foo.csv') # foo.csv not provided in this example
+rawdata.wg()
+rawdata.crunch()
+constr = {'D47_EG_25C': f'D47_HG_1000C + {fCO2eqD47_Wang(25)-fCO2eqD47_Wang(1000)}')
+rawdata.standardize(constraints = constr)
+rawdata.table_of_samples()
+
+# outputs something like:
+# 
+# [table_of_samples] 
+# ––––––––  –––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+# Sample      N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
+# ––––––––  –––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+# ETH-1     205       2.03       37.03  0.2052                    0.0089          
+# ETH-2     213     -10.17       19.88  0.2085                    0.0078          
+# EG-25C    138     -18.43       40.35  0.9195  0.0000  ± 0.0000  0.0095     1.000
+# HG-1000C  180      -7.95       26.50  0.0242  0.0007  ± 0.0014  0.0085     0.367
+# ––––––––  –––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+</code></pre>
+<p>Note that in the example abobe, because <code>HG-1000C</code> was constrained as a function of <code>EG-25C</code>, the SE in its Δ<sub>47</sub> value is not reported. For now, it must instead be computed based on that of <code>EG-25C</code> (in this simple case, the two standard errors are identical).</p>
+<h4 id="67-legacy-standardization-approach-indep_sessions">6.7 Legacy standardization approach (<span style="text-transform:lowercase"><code>indep_sessions</code></span>)</h4>
 <p>Following a more traditional approach, <code>foo.standardize(method = 'indep_sessions')</code> computes the best-fit standardization parameters (a,b,c) for each session using independent regression models (one per session) only taking into account the anchor samples (samples defined in <code>foo.Nominal_D47</code>), then computes the Δ<sub>47</sub> value for each analysis and
 the weighted average Δ<sub>47</sub> value for each unknown sample.</p>
 <h3 id="7-viewing-and-saving-the-results">7. Viewing and saving the results</h3>
@@ -430,7 +455,7 @@ __author__    = &#39;Mathieu Daëron&#39;
 __contact__   = &#39;daeron@lsce.ipsl.fr&#39;
 __copyright__ = &#39;Copyright (c) 2020 Mathieu Daëron&#39;
 __license__   = &#39;Modified BSD License - https://opensource.org/licenses/BSD-3-Clause&#39;
-__date__      = &#39;2021-02-23&#39;
+__date__      = &#39;2021-03-04&#39;
 __version__   = &#39;1.1.0&#39;
 
 import os
@@ -1267,7 +1292,7 @@ class D47data(list):
                         if &#39;D17O&#39; not in r:
                                 r[&#39;D17O&#39;] = 0.
                         if &#39;UID&#39; not in r:
-                                r[&#39;UID&#39;] = f&#39;#{i+1}&#39;
+                                r[&#39;UID&#39;] = f&#39;{i+1}&#39;
                         if &#39;Session&#39; not in r:
                                 r[&#39;Session&#39;] = session
                         for k in [&#39;d48&#39;, &#39;d49&#39;]:
@@ -1428,7 +1453,7 @@ class D47data(list):
                 self.refresh_samples()
 
 
-        def unsplit_samples(self, tables = True):
+        def unsplit_samples(self, tables = False):
                 &#39;&#39;&#39;
                 Reverse the effects of `D47data.split_samples`.
                 &#39;&#39;&#39;
@@ -1509,6 +1534,7 @@ class D47data(list):
                 consolidate = True,
                 consolidate_tables = False,
                 consolidate_plots = False,
+                constraints = {},
                 ):
                 &#39;&#39;&#39;
                 Compute absolute Δ&lt;sub&gt;47&lt;/sub&gt; values for all replicate analyses and for sample averages.
@@ -1549,7 +1575,14 @@ class D47data(list):
                                 params.add(f&#39;b2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;slope_drift&#39;])
                                 params.add(f&#39;c2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;wg_drift&#39;])
                         for sample in self.unknowns:
-                                params.add(f&#39;D47_{pf(sample)}&#39;, value=0.6)
+                                params.add(
+                                        f&#39;D47_{pf(sample)}&#39;,
+                                        value = 0.5,
+#                                       expr = None if f&#39;D47_{pf(sample)}&#39; not in constraints else constraints[f&#39;D47_{pf(sample)}&#39;]
+                                        )
+
+                        for k in constraints:
+                                params[k].expr = constraints[k]
 
                         def residuals(p):
                                 R = []
@@ -2001,7 +2034,13 @@ class D47data(list):
                                 self.samples[sample][&#39;SE_D47&#39;] = 0.
                         for sample in self.unknowns:
                                 self.samples[sample][&#39;D47&#39;] = self.standardization.params.valuesdict()[f&#39;D47_{pf(sample)}&#39;]
-                                self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
+                                try:
+                                        self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
+                                except ValueError:
+                                        # when `sample` is constrained by self.standardize(constraints = {...}),
+                                        # it is no longer listed in self.standardization.var_names.
+                                        # Temporary fix: define SE as zero for now
+                                        self.samples[sample][&#39;SE_D47&#39;] = 0.
 
                 elif self.standardization_method == &#39;indep_sessions&#39;:
                         for sample in self.anchors:
@@ -2454,22 +2493,25 @@ class D47data(list):
 
                 return out
 
-        def plot_residuals(self, dir = &#39;plots&#39;):
+        def plot_residuals(self, dir = &#39;plots&#39;, highlight = [], colors = None):
                 &#39;&#39;&#39;
                 Plot residuals of each analysis as a function of time (actually, as a function of
                 the order of analyses in the D47data() object)
 
                 + `dir`: the directory in which to save the plot
+                + `highlight`: a list of samples to highlight
+                + `colors`: a dict of {&lt;sample&gt;: &lt;color&gt;} for all samples
                 &#39;&#39;&#39;
                 fig = ppl.figure(figsize = (8,4))
                 ppl.subplots_adjust(.1,.05,.78,.8)
                 N = len(self.anchors)
-                if N == 3:
-                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
-                elif N == 4:
-                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
-                else:
-                        colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+                if colors is None:
+                        if N == 3:
+                                colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
+                        elif N == 4:
+                                colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+                        else:
+                                colors = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
                 session = self[0][&#39;Session&#39;]
                 x1 = 0
 #               ymax = np.max([1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]) for r in self])
@@ -2493,10 +2535,12 @@ class D47data(list):
                                 marker = &#39;x&#39; if singlet else &#39;+&#39;,
                                 ms = 4 if singlet else 5,
                                 ls = &#39;None&#39;,
-                                mec = colorz[r[&#39;Sample&#39;]] if r[&#39;Sample&#39;] in colorz else (0,0,0),
+                                mec = colors[r[&#39;Sample&#39;]] if r[&#39;Sample&#39;] in colors else (0,0,0),
                                 mew = 1,
                                 alpha = 0.2 if singlet else 1,
                                 )
+                        if highlight and r[&#39;Sample&#39;] not in highlight:
+                                kw[&#39;alpha&#39;] = 0.2
                         ppl.plot(k, 1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]), **kw)
                 x2 = k
                 x_sessions[session] = (x1+x2)/2
@@ -2520,10 +2564,10 @@ class D47data(list):
                                         )
                                 )
 
-                for s in self.anchors:
+                for s in colors:
                         kw[&#39;marker&#39;] = &#39;+&#39;
                         kw[&#39;ms&#39;] = 5
-                        kw[&#39;mec&#39;] = colorz[s]
+                        kw[&#39;mec&#39;] = colors[s]
                         kw[&#39;label&#39;] = s
                         kw[&#39;alpha&#39;] = 1
                         ppl.plot([], [], **kw)
@@ -3679,7 +3723,7 @@ methods.</li>
                         if &#39;D17O&#39; not in r:
                                 r[&#39;D17O&#39;] = 0.
                         if &#39;UID&#39; not in r:
-                                r[&#39;UID&#39;] = f&#39;#{i+1}&#39;
+                                r[&#39;UID&#39;] = f&#39;{i+1}&#39;
                         if &#39;Session&#39; not in r:
                                 r[&#39;Session&#39;] = session
                         for k in [&#39;d48&#39;, &#39;d49&#39;]:
@@ -3840,7 +3884,7 @@ methods.</li>
                 self.refresh_samples()
 
 
-        def unsplit_samples(self, tables = True):
+        def unsplit_samples(self, tables = False):
                 &#39;&#39;&#39;
                 Reverse the effects of `D47data.split_samples`.
                 &#39;&#39;&#39;
@@ -3921,6 +3965,7 @@ methods.</li>
                 consolidate = True,
                 consolidate_tables = False,
                 consolidate_plots = False,
+                constraints = {},
                 ):
                 &#39;&#39;&#39;
                 Compute absolute Δ&lt;sub&gt;47&lt;/sub&gt; values for all replicate analyses and for sample averages.
@@ -3961,7 +4006,14 @@ methods.</li>
                                 params.add(f&#39;b2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;slope_drift&#39;])
                                 params.add(f&#39;c2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;wg_drift&#39;])
                         for sample in self.unknowns:
-                                params.add(f&#39;D47_{pf(sample)}&#39;, value=0.6)
+                                params.add(
+                                        f&#39;D47_{pf(sample)}&#39;,
+                                        value = 0.5,
+#                                       expr = None if f&#39;D47_{pf(sample)}&#39; not in constraints else constraints[f&#39;D47_{pf(sample)}&#39;]
+                                        )
+
+                        for k in constraints:
+                                params[k].expr = constraints[k]
 
                         def residuals(p):
                                 R = []
@@ -4413,7 +4465,13 @@ methods.</li>
                                 self.samples[sample][&#39;SE_D47&#39;] = 0.
                         for sample in self.unknowns:
                                 self.samples[sample][&#39;D47&#39;] = self.standardization.params.valuesdict()[f&#39;D47_{pf(sample)}&#39;]
-                                self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
+                                try:
+                                        self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
+                                except ValueError:
+                                        # when `sample` is constrained by self.standardize(constraints = {...}),
+                                        # it is no longer listed in self.standardization.var_names.
+                                        # Temporary fix: define SE as zero for now
+                                        self.samples[sample][&#39;SE_D47&#39;] = 0.
 
                 elif self.standardization_method == &#39;indep_sessions&#39;:
                         for sample in self.anchors:
@@ -4866,22 +4924,25 @@ methods.</li>
 
                 return out
 
-        def plot_residuals(self, dir = &#39;plots&#39;):
+        def plot_residuals(self, dir = &#39;plots&#39;, highlight = [], colors = None):
                 &#39;&#39;&#39;
                 Plot residuals of each analysis as a function of time (actually, as a function of
                 the order of analyses in the D47data() object)
 
                 + `dir`: the directory in which to save the plot
+                + `highlight`: a list of samples to highlight
+                + `colors`: a dict of {&lt;sample&gt;: &lt;color&gt;} for all samples
                 &#39;&#39;&#39;
                 fig = ppl.figure(figsize = (8,4))
                 ppl.subplots_adjust(.1,.05,.78,.8)
                 N = len(self.anchors)
-                if N == 3:
-                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
-                elif N == 4:
-                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
-                else:
-                        colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+                if colors is None:
+                        if N == 3:
+                                colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
+                        elif N == 4:
+                                colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+                        else:
+                                colors = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
                 session = self[0][&#39;Session&#39;]
                 x1 = 0
 #               ymax = np.max([1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]) for r in self])
@@ -4905,10 +4966,12 @@ methods.</li>
                                 marker = &#39;x&#39; if singlet else &#39;+&#39;,
                                 ms = 4 if singlet else 5,
                                 ls = &#39;None&#39;,
-                                mec = colorz[r[&#39;Sample&#39;]] if r[&#39;Sample&#39;] in colorz else (0,0,0),
+                                mec = colors[r[&#39;Sample&#39;]] if r[&#39;Sample&#39;] in colors else (0,0,0),
                                 mew = 1,
                                 alpha = 0.2 if singlet else 1,
                                 )
+                        if highlight and r[&#39;Sample&#39;] not in highlight:
+                                kw[&#39;alpha&#39;] = 0.2
                         ppl.plot(k, 1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]), **kw)
                 x2 = k
                 x_sessions[session] = (x1+x2)/2
@@ -4932,10 +4995,10 @@ methods.</li>
                                         )
                                 )
 
-                for s in self.anchors:
+                for s in colors:
                         kw[&#39;marker&#39;] = &#39;+&#39;
                         kw[&#39;ms&#39;] = 5
-                        kw[&#39;mec&#39;] = colorz[s]
+                        kw[&#39;mec&#39;] = colors[s]
                         kw[&#39;label&#39;] = s
                         kw[&#39;alpha&#39;] = 1
                         ppl.plot([], [], **kw)
@@ -5590,7 +5653,13 @@ def consolidate_samples(self):
                         self.samples[sample][&#39;SE_D47&#39;] = 0.
                 for sample in self.unknowns:
                         self.samples[sample][&#39;D47&#39;] = self.standardization.params.valuesdict()[f&#39;D47_{pf(sample)}&#39;]
-                        self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
+                        try:
+                                self.samples[sample][&#39;SE_D47&#39;] = self.sample_D47_covar(sample)**.5
+                        except ValueError:
+                                # when `sample` is constrained by self.standardize(constraints = {...}),
+                                # it is no longer listed in self.standardization.var_names.
+                                # Temporary fix: define SE as zero for now
+                                self.samples[sample][&#39;SE_D47&#39;] = 0.
 
         elif self.standardization_method == &#39;indep_sessions&#39;:
                 for sample in self.anchors:
@@ -5816,7 +5885,7 @@ def crunch(self, verbose = &#39;&#39;):
                 if &#39;D17O&#39; not in r:
                         r[&#39;D17O&#39;] = 0.
                 if &#39;UID&#39; not in r:
-                        r[&#39;UID&#39;] = f&#39;#{i+1}&#39;
+                        r[&#39;UID&#39;] = f&#39;{i+1}&#39;
                 if &#39;Session&#39; not in r:
                         r[&#39;Session&#39;] = session
                 for k in [&#39;d48&#39;, &#39;d49&#39;]:
@@ -5960,34 +6029,39 @@ and allow locally overriding <code>self.verbose</code></p></div>
 </details>
 </dd>
 <dt id="D47crunch.D47data.plot_residuals"><code class="name flex">
-<span>def <span class="ident">plot_residuals</span></span>(<span>self, dir='plots')</span>
+<span>def <span class="ident">plot_residuals</span></span>(<span>self, dir='plots', highlight=[], colors=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Plot residuals of each analysis as a function of time (actually, as a function of
 the order of analyses in the D47data() object)</p>
 <ul>
 <li><code>dir</code>: the directory in which to save the plot</li>
+<li><code>highlight</code>: a list of samples to highlight</li>
+<li><code>colors</code>: a dict of {<sample>: <color>} for all samples</li>
 </ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">        def plot_residuals(self, dir = &#39;plots&#39;):
+<pre><code class="python">        def plot_residuals(self, dir = &#39;plots&#39;, highlight = [], colors = None):
                 &#39;&#39;&#39;
                 Plot residuals of each analysis as a function of time (actually, as a function of
                 the order of analyses in the D47data() object)
 
                 + `dir`: the directory in which to save the plot
+                + `highlight`: a list of samples to highlight
+                + `colors`: a dict of {&lt;sample&gt;: &lt;color&gt;} for all samples
                 &#39;&#39;&#39;
                 fig = ppl.figure(figsize = (8,4))
                 ppl.subplots_adjust(.1,.05,.78,.8)
                 N = len(self.anchors)
-                if N == 3:
-                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
-                elif N == 4:
-                        colorz = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
-                else:
-                        colorz = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+                if colors is None:
+                        if N == 3:
+                                colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
+                        elif N == 4:
+                                colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+                        else:
+                                colors = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
                 session = self[0][&#39;Session&#39;]
                 x1 = 0
 #               ymax = np.max([1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]) for r in self])
@@ -6011,10 +6085,12 @@ the order of analyses in the D47data() object)</p>
                                 marker = &#39;x&#39; if singlet else &#39;+&#39;,
                                 ms = 4 if singlet else 5,
                                 ls = &#39;None&#39;,
-                                mec = colorz[r[&#39;Sample&#39;]] if r[&#39;Sample&#39;] in colorz else (0,0,0),
+                                mec = colors[r[&#39;Sample&#39;]] if r[&#39;Sample&#39;] in colors else (0,0,0),
                                 mew = 1,
                                 alpha = 0.2 if singlet else 1,
                                 )
+                        if highlight and r[&#39;Sample&#39;] not in highlight:
+                                kw[&#39;alpha&#39;] = 0.2
                         ppl.plot(k, 1e3 * (r[&#39;D47&#39;] - self.samples[r[&#39;Sample&#39;]][&#39;D47&#39;]), **kw)
                 x2 = k
                 x_sessions[session] = (x1+x2)/2
@@ -6038,10 +6114,10 @@ the order of analyses in the D47data() object)</p>
                                         )
                                 )
 
-                for s in self.anchors:
+                for s in colors:
                         kw[&#39;marker&#39;] = &#39;+&#39;
                         kw[&#39;ms&#39;] = 5
-                        kw[&#39;mec&#39;] = colorz[s]
+                        kw[&#39;mec&#39;] = colors[s]
                         kw[&#39;label&#39;] = s
                         kw[&#39;alpha&#39;] = 1
                         ppl.plot([], [], **kw)
@@ -6825,7 +6901,7 @@ different samples).</p>
 </details>
 </dd>
 <dt id="D47crunch.D47data.standardize"><code class="name flex">
-<span>def <span class="ident">standardize</span></span>(<span>self, method='pooled', weighted_sessions=[], consolidate=True, consolidate_tables=False, consolidate_plots=False)</span>
+<span>def <span class="ident">standardize</span></span>(<span>self, method='pooled', weighted_sessions=[], consolidate=True, consolidate_tables=False, consolidate_plots=False, constraints={})</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute absolute Δ<sub>47</sub> values for all replicate analyses and for sample averages.
@@ -6845,6 +6921,7 @@ session independently, based only on anchors analyses.</p></div>
                 consolidate = True,
                 consolidate_tables = False,
                 consolidate_plots = False,
+                constraints = {},
                 ):
                 &#39;&#39;&#39;
                 Compute absolute Δ&lt;sub&gt;47&lt;/sub&gt; values for all replicate analyses and for sample averages.
@@ -6885,7 +6962,14 @@ session independently, based only on anchors analyses.</p></div>
                                 params.add(f&#39;b2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;slope_drift&#39;])
                                 params.add(f&#39;c2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;wg_drift&#39;])
                         for sample in self.unknowns:
-                                params.add(f&#39;D47_{pf(sample)}&#39;, value=0.6)
+                                params.add(
+                                        f&#39;D47_{pf(sample)}&#39;,
+                                        value = 0.5,
+#                                       expr = None if f&#39;D47_{pf(sample)}&#39; not in constraints else constraints[f&#39;D47_{pf(sample)}&#39;]
+                                        )
+
+                        for k in constraints:
+                                params[k].expr = constraints[k]
 
                         def residuals(p):
                                 R = []
@@ -7371,7 +7455,7 @@ def table_of_sessions(self,
 </details>
 </dd>
 <dt id="D47crunch.D47data.unsplit_samples"><code class="name flex">
-<span>def <span class="ident">unsplit_samples</span></span>(<span>self, tables=True)</span>
+<span>def <span class="ident">unsplit_samples</span></span>(<span>self, tables=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reverse the effects of <code><a title="D47crunch.D47data.split_samples" href="#D47crunch.D47data.split_samples">D47data.split_samples()</a></code>.</p></div>
@@ -7379,7 +7463,7 @@ def table_of_sessions(self,
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">        def unsplit_samples(self, tables = True):
+<pre><code class="python">        def unsplit_samples(self, tables = False):
                 &#39;&#39;&#39;
                 Reverse the effects of `D47data.split_samples`.
                 &#39;&#39;&#39;
@@ -7598,7 +7682,8 @@ and in <code>self.Nominal_d18O_VPDB</code>.</p></div>
 <li><a href="#63-d47datasamples-d47dataanchors-and-d47dataunknowns">6.3 D47data().samples, D47data().anchors, and D47data().unknowns</a></li>
 <li><a href="#64-d47datarepeatability">6.4 D47data.()repeatability</a></li>
 <li><a href="#65-d47dataresult">6.5 D47data.()result</a></li>
-<li><a href="#66-legacy-standardization-approach-indep_sessions">6.6 Legacy standardization approach (indep_sessions)</a></li>
+<li><a href="#66-combining-information-from-carbonate-anchors-and-equilibrated-gases">6.6 Combining information from carbonate anchors and equilibrated gases</a></li>
+<li><a href="#67-legacy-standardization-approach-indep_sessions">6.7 Legacy standardization approach (indep_sessions)</a></li>
 </ul>
 </li>
 <li><a href="#7-viewing-and-saving-the-results">7. Viewing and saving the results</a></li>
