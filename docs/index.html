@@ -455,8 +455,8 @@ __author__    = &#39;Mathieu Daëron&#39;
 __contact__   = &#39;daeron@lsce.ipsl.fr&#39;
 __copyright__ = &#39;Copyright (c) 2020 Mathieu Daëron&#39;
 __license__   = &#39;Modified BSD License - https://opensource.org/licenses/BSD-3-Clause&#39;
-__date__      = &#39;2021-03-04&#39;
-__version__   = &#39;1.1.0&#39;
+__date__      = &#39;2021-03-15&#39;
+__version__   = &#39;1.1.1&#39;
 
 import os
 import numpy as np
@@ -1575,11 +1575,7 @@ class D47data(list):
                                 params.add(f&#39;b2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;slope_drift&#39;])
                                 params.add(f&#39;c2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;wg_drift&#39;])
                         for sample in self.unknowns:
-                                params.add(
-                                        f&#39;D47_{pf(sample)}&#39;,
-                                        value = 0.5,
-#                                       expr = None if f&#39;D47_{pf(sample)}&#39; not in constraints else constraints[f&#39;D47_{pf(sample)}&#39;]
-                                        )
+                                params.add(f&#39;D47_{pf(sample)}&#39;, value = 0.5)
 
                         for k in constraints:
                                 params[k].expr = constraints[k]
@@ -4006,11 +4002,7 @@ methods.</li>
                                 params.add(f&#39;b2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;slope_drift&#39;])
                                 params.add(f&#39;c2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;wg_drift&#39;])
                         for sample in self.unknowns:
-                                params.add(
-                                        f&#39;D47_{pf(sample)}&#39;,
-                                        value = 0.5,
-#                                       expr = None if f&#39;D47_{pf(sample)}&#39; not in constraints else constraints[f&#39;D47_{pf(sample)}&#39;]
-                                        )
+                                params.add(f&#39;D47_{pf(sample)}&#39;, value = 0.5)
 
                         for k in constraints:
                                 params[k].expr = constraints[k]
@@ -6962,11 +6954,7 @@ session independently, based only on anchors analyses.</p></div>
                                 params.add(f&#39;b2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;slope_drift&#39;])
                                 params.add(f&#39;c2_{s}&#39;, value = 0., vary = self.sessions[session][&#39;wg_drift&#39;])
                         for sample in self.unknowns:
-                                params.add(
-                                        f&#39;D47_{pf(sample)}&#39;,
-                                        value = 0.5,
-#                                       expr = None if f&#39;D47_{pf(sample)}&#39; not in constraints else constraints[f&#39;D47_{pf(sample)}&#39;]
-                                        )
+                                params.add(f&#39;D47_{pf(sample)}&#39;, value = 0.5)
 
                         for k in constraints:
                                 params[k].expr = constraints[k]

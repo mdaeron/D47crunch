@@ -13,8 +13,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2020 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2021-03-04'
-__version__   = '1.1.0'
+__date__      = '2021-03-15'
+__version__   = '1.1.1'
 
 import os
 import numpy as np
@@ -1133,11 +1133,7 @@ class D47data(list):
 				params.add(f'b2_{s}', value = 0., vary = self.sessions[session]['slope_drift'])
 				params.add(f'c2_{s}', value = 0., vary = self.sessions[session]['wg_drift'])
 			for sample in self.unknowns:
-				params.add(
-					f'D47_{pf(sample)}',
-					value = 0.5,
-# 					expr = None if f'D47_{pf(sample)}' not in constraints else constraints[f'D47_{pf(sample)}']
-					)
+				params.add(f'D47_{pf(sample)}', value = 0.5)
 
 			for k in constraints:
 				params[k].expr = constraints[k]
