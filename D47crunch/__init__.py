@@ -2047,7 +2047,7 @@ class D47data(list):
 
 		return out
 
-	def plot_residuals(self, dir = 'plots', highlight = [], colors = None):
+	def plot_residuals(self, dir = 'plots', filename = 'D47_residuals.pdf', highlight = [], colors = None):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
 		the order of analyses in the D47data() object)
@@ -2146,7 +2146,10 @@ class D47data(list):
 		ppl.xticks([])
 		ppl.ylabel('Δ$_{47}$ residuals (ppm)')
 		ppl.axis([-1, len(self), None, None])
-		ppl.savefig(f'{dir}/D47_residuals.pdf')
+
+		if not os.path.exists(dir):
+			os.makedirs(dir)
+		ppl.savefig(f'{dir}/{filename}')
 		ppl.close(fig)
 
 	def simulate(self,
@@ -2273,6 +2276,66 @@ class D47data(list):
 				k += 1
 
 		self.refresh()
+
+	def plot_distribution_of_analyses(self, dir = 'plots', filename = 'distribution_of_analyses.pdf', vs_time = False):
+		'''
+		Plot temporal distribution of all analyses.
+		
+		__Parameters__
+
+		+ `vs_time`: if `True`, plot as a function of `TimeTag` rather than sequentially.
+		'''
+
+		asamples = [s for s in self.anchors]
+		usamples = [s for s in self.unknowns]
+		fig = ppl.figure(figsize = (8,8))
+		ppl.subplots_adjust(left = 0.1, right = 0.7)
+		Xmax = max([r['TimeTag'] if vs_time else j for j,r in enumerate(self)])
+		for k, s in enumerate(asamples + usamples):
+			if vs_time:
+				X = [r['TimeTag'] for r in self if r['Sample'] == s]
+			else:
+				X = [x for x,r in enumerate(self) if r['Sample'] == s]
+			Y = [k for x in X]
+			ppl.plot(X, Y, 'o', mec = None, mew = 0, mfc = 'b' if s in usamples else 'r', ms = 3)
+			ppl.axhline(k, color = 'b' if s in usamples else 'r', lw = .75, alpha = .25)
+			ppl.text(Xmax, k, f'  {s}', va = 'center', ha = 'left')
+		if vs_time:
+			t = [r['TimeTag'] for r in self]
+			t1, t2 = min(t), max(t)
+			tspan = t2 - t1
+			t1 -= tspan / len(self)
+			t2 += tspan / len(self)
+			ppl.axis([t1, t2, -1, k+1])
+		else:
+			ppl.axis([-1, len(self), -1, k+1])
+			
+
+		x2 = 0
+		for session in self.sessions:
+			x1 = min([r['TimeTag'] if vs_time else j for j,r in enumerate(self) if r['Session'] == session])
+			if vs_time:
+				ppl.axvline(x1, color = 'k', lw = .75)
+			if k:
+				if vs_time:
+					ppl.axvspan(x1,x2,color = 'k', zorder = -100, alpha = .2)
+				else:
+					ppl.axvline((x1+x2)/2, color = 'k', lw = .75)
+			x2 = max([r['TimeTag'] if vs_time else j for j,r in enumerate(self) if r['Session'] == session])
+# 			from xlrd import xldate_as_datetime
+# 			print(session, xldate_as_datetime(x1, 0), xldate_as_datetime(x2, 0))
+			if vs_time:
+				ppl.axvline(x2, color = 'k', lw = .75)
+			ppl.text((2*x1+x2)/3, k+1, session, ha = 'left', va = 'bottom', rotation = 45)
+
+		ppl.xticks([])
+		ppl.yticks([])
+		if not os.path.exists(dir):
+			os.makedirs(dir)
+		ppl.savefig(f'{dir}/{filename}')
+# 		ppl.show()
+		ppl.close(fig)
+		
 
 class SessionPlot():
 	def __init__(self):
