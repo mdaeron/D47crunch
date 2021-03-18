@@ -2132,14 +2132,14 @@ class D47data(list):
 			kw['marker'] = 'x'
 			kw['ms'] = 4
 			kw['alpha'] = .2
-			kw['label'] = 'unknowns (N$\\,$=$\\,$1)' if one_or_more_multiplets else 'unknowns'
+			kw['label'] = 'other (N$\\,$=$\\,$1)' if one_or_more_multiplets else 'other'
 			ppl.plot([], [], **kw)
 
 		if one_or_more_multiplets:
 			kw['marker'] = '+'
 			kw['ms'] = 4
 			kw['alpha'] = 1
-			kw['label'] = 'unknowns (N$\\,$>$\\,$1)' if one_or_more_singlets else 'unknowns'
+			kw['label'] = 'other (N$\\,$>$\\,$1)' if one_or_more_singlets else 'other'
 			ppl.plot([], [], **kw)
 
 		ppl.legend(loc = 'lower left', bbox_to_anchor = (1.03, 0), borderaxespad = 0)
@@ -2149,6 +2149,8 @@ class D47data(list):
 
 		if not os.path.exists(dir):
 			os.makedirs(dir)
+		if filename is None:
+			return fig
 		ppl.savefig(f'{dir}/{filename}')
 		ppl.close(fig)
 
@@ -2277,7 +2279,7 @@ class D47data(list):
 
 		self.refresh()
 
-	def plot_distribution_of_analyses(self, dir = 'plots', filename = 'distribution_of_analyses.pdf', vs_time = False):
+	def plot_distribution_of_analyses(self, dir = 'plots', filename = 'distribution_of_analyses.pdf', vs_time = False, output = None):
 		'''
 		Plot temporal distribution of all analyses.
 		
@@ -2288,8 +2290,9 @@ class D47data(list):
 
 		asamples = [s for s in self.anchors]
 		usamples = [s for s in self.unknowns]
-		fig = ppl.figure(figsize = (8,8))
-		ppl.subplots_adjust(left = 0.1, right = 0.7)
+		if output is None or output == 'fig':
+			fig = ppl.figure(figsize = (6,4))
+			ppl.subplots_adjust(0.02, 0.03, 0.9, 0.8)
 		Xmax = max([r['TimeTag'] if vs_time else j for j,r in enumerate(self)])
 		for k, s in enumerate(asamples + usamples):
 			if vs_time:
@@ -2297,9 +2300,9 @@ class D47data(list):
 			else:
 				X = [x for x,r in enumerate(self) if r['Sample'] == s]
 			Y = [k for x in X]
-			ppl.plot(X, Y, 'o', mec = None, mew = 0, mfc = 'b' if s in usamples else 'r', ms = 3)
-			ppl.axhline(k, color = 'b' if s in usamples else 'r', lw = .75, alpha = .25)
-			ppl.text(Xmax, k, f'  {s}', va = 'center', ha = 'left')
+			ppl.plot(X, Y, 'o', mec = None, mew = 0, mfc = 'b' if s in usamples else 'r', ms = 3, alpha = .5)
+			ppl.axhline(k, color = 'b' if s in usamples else 'r', lw = .5, alpha = .25)
+			ppl.text(Xmax, k, f'  {s}', va = 'center', ha = 'left', size = 7)
 		if vs_time:
 			t = [r['TimeTag'] for r in self]
 			t1, t2 = min(t), max(t)
@@ -2326,15 +2329,21 @@ class D47data(list):
 # 			print(session, xldate_as_datetime(x1, 0), xldate_as_datetime(x2, 0))
 			if vs_time:
 				ppl.axvline(x2, color = 'k', lw = .75)
-			ppl.text((2*x1+x2)/3, k+1, session, ha = 'left', va = 'bottom', rotation = 45)
+			ppl.text((2*x1+x2)/3, k+1, session, ha = 'left', va = 'bottom', rotation = 45, size = 8)
 
 		ppl.xticks([])
 		ppl.yticks([])
-		if not os.path.exists(dir):
-			os.makedirs(dir)
-		ppl.savefig(f'{dir}/{filename}')
-# 		ppl.show()
-		ppl.close(fig)
+
+		if output is None:
+			if not os.path.exists(dir):
+				os.makedirs(dir)
+			ppl.savefig(f'{dir}/{filename}')
+			ppl.close(fig)
+		elif output == 'ax':
+			return ppl.gca()
+		elif output == 'fig':
+			return fig
+			
 		
 
 class SessionPlot():
