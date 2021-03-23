@@ -985,7 +985,7 @@ class D47data(list):
 		# Return isobar ratios
 		return R45, R46, R47, R48, R49
 
-	def split_samples(self, samples_to_split = 'all', grouping = 'by_uid'):
+	def split_samples(self, samples_to_split = 'all', grouping = 'by_session'):
 		'''
 		Split unknown samples by UID (treat all analyses as different samples)
 		or by session (treat analyses of a given sample in different sessions as
@@ -2060,12 +2060,23 @@ class D47data(list):
 		ppl.subplots_adjust(.1,.05,.78,.8)
 		N = len(self.anchors)
 		if colors is None:
-			if N == 3:
-				colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
-			elif N == 4:
-				colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+			if len(highlight) > 0:
+				Nh = len(highlight)
+				if Nh == 1:
+					colors = {highlight[0]: (0,0,0)}
+				elif Nh == 3:
+					colors = {a: c for a,c in zip(highlight, [(0,0,1), (1,0,0), (0,2/3,0)])}
+				elif Nh == 4:
+					colors = {a: c for a,c in zip(highlight, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+				else:
+					colors = {a: hls_to_rgb(k/Nh, .4, 1) for k,a in enumerate(highlight)}
 			else:
-				colors = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+				if N == 3:
+					colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
+				elif N == 4:
+					colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+				else:
+					colors = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
 		session = self[0]['Session']
 		x1 = 0
 # 		ymax = np.max([1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self])
