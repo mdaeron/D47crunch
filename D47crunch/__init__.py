@@ -596,7 +596,7 @@ class D47data(list):
 		if sep == '':
 			sep = sorted(',;\t', key = lambda x: - txt.count(x))[0]
 		txt = [[x.strip() for x in l.split(sep)] for l in txt.splitlines() if l.strip()]
-		data = [{k: v if k in ['UID', 'Session', 'Sample'] else smart_type(v) for k,v in zip(txt[0], l)} for l in txt[1:]]
+		data = [{k: v if k in ['UID', 'Session', 'Sample'] else smart_type(v) for k,v in zip(txt[0], l) if v != ''} for l in txt[1:]]
 
 		if session != '':
 			for r in data:
