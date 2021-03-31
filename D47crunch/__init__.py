@@ -1172,7 +1172,7 @@ class D47data(list):
 				return R
 
 			M = Minimizer(residuals, params)
-			result = M.leastsq()
+			result = M.least_squares()
 			self.Nf = result.nfree
 			self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
 # 			if self.verbose:
