@@ -1887,7 +1887,8 @@ class D47data(list):
 
 		if normalize:
 			s = sum(weights)
-			weights = [w/s for w in weights]
+			if s:
+				weights = [w/s for w in weights]
 
 		try:
 # 			indices = [self.standardization.var_names.index(f'D47_{pf(sample)}') for sample in samples]
