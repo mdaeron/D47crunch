@@ -1063,26 +1063,35 @@ class D47data(list):
 			self.table_of_samples()
 
 
-	def combine_samples(self, groups, tables = False):
+	def combine_samples(self, sample_groups):
 		'''
-		Combine analyses of different samples to compute weighted average Δ<sub>47</sub>O
-		and new error (co)variances corresponding to the groups defined by the `groups`
+		Combine analyses of different samples to compute weighted average Δ<sub>47</sub>
+		and new error (co)variances corresponding to the groups defined by the `sample_groups`
 		dictionary.
+		
+		Returns a tuplet of:
+		+ the list of group names
+		+ an array of the corresponding Δ<sub>47</sub> values
+		+ the corresponding (co)variance matrix
 		
 		__Parameters__
 
-		+ `groups`: a dictionary of the form `dict(group1 = [sample_1', 'sample_2'], group2 = ['sample_3', 'sample_4'])`
+		+ `sample_groups`: a dictionary of the form `dict(group1 = [sample_1', 'sample_2'], group2 = ['sample_3', 'sample_4'])`
 		'''
 		
-		### THIS IS UNFINISHED AND NON-FUNCTIONAL FOR NOW
+		samples = [s for k in sorted(sample_groups.keys()) for s in sorted(sample_groups[k])]
+		groups = sorted(sample_groups.keys())
+		group_total_weights = {k: sum([self.samples[s]['N'] for s in sample_groups[k]]) for k in groups}
+		D47_old = np.array([[self.samples[x]['D47']] for x in samples])
+		CM_old = np.array([[self.sample_D47_covar(x,y) for x in samples] for y in samples])
+		W = np.array([
+			[self.samples[i]['N']/group_total_weights[j] if i in sample_groups[j] else 0 for i in samples]
+			for j in groups])
+		D47_new = W @ D47_old
+		CM_new = W @ CM_old @ W.T
+
+		return groups, D47_new[:,0], CM_new
 		
-		unknowns_old = sorted({s for s in self.unknowns})
-		CM_old = self.standardization.covar[:,:]
-		VD_old = self.standardization.params.valuesdict().copy()
-		vars_old = self.standardization.var_names
-
-		unknowns_new = sorted({k for k in groups})
-
 
 	def assign_timestamps(self):
 		'''
