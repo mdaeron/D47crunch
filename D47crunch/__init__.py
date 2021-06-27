@@ -1063,6 +1063,27 @@ class D47data(list):
 			self.table_of_samples()
 
 
+	def combine_samples(self, groups, tables = False):
+		'''
+		Combine analyses of different samples to compute weighted average Δ<sub>47</sub>O
+		and new error (co)variances corresponding to the groups defined by the `groups`
+		dictionary.
+		
+		__Parameters__
+
+		+ `groups`: a dictionary of the form `dict(group1 = [sample_1', 'sample_2'], group2 = ['sample_3', 'sample_4'])`
+		'''
+		
+		### THIS IS UNFINISHED AND NON-FUNCTIONAL FOR NOW
+		
+		unknowns_old = sorted({s for s in self.unknowns})
+		CM_old = self.standardization.covar[:,:]
+		VD_old = self.standardization.params.valuesdict().copy()
+		vars_old = self.standardization.var_names
+
+		unknowns_new = sorted({k for k in groups})
+
+
 	def assign_timestamps(self):
 		'''
 		Assign a time field `t` of type `float` to each analysis.
