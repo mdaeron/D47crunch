@@ -1888,7 +1888,9 @@ class D47data(list):
 					chisq += np.sum([ (x-self.samples[sample]['D47'])**2 for x in X ])
 					if sample in self.unknowns:
 						Nf += len(X) - 1
-			Nf += sum([self.sessions[s]['Np'] for s in sessions])
+					else:
+						Nf += len(X)
+			Nf -= sum([self.sessions[s]['Np'] for s in sessions])
 			r = (chisq / Nf)**.5 if Nf > 0 else 0
 
 		else: # if key != 'D47'
