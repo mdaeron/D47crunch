@@ -1219,6 +1219,13 @@ class D47data(list):
 				r['D47'] = (r['D47raw'] - c - b * r['d47'] - c2 * r['t'] - b2 * r['t'] * r['d47']) / (a + a2 * r['t'])
 
 			self.standardization = result
+
+			for session in self.sessions:
+				self.sessions[session]['Np'] = 3
+				for k in ['scrambling', 'slope', 'wg']:
+					if self.sessions[session][f'{k}_drift']:
+						self.sessions[session]['Np'] += 1
+
 			if consolidate:
 				self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
 			return result
@@ -1694,11 +1701,6 @@ class D47data(list):
 		if self.standardization_method == 'pooled':
 			for session in self.sessions:
 
-				self.sessions[session]['Np'] = 3
-				for k in ['scrambling', 'slope', 'wg']:
-					if self.sessions[session][f'{k}_drift']:
-						self.sessions[session]['Np'] += 1
-
 				self.sessions[session]['a'] = self.standardization.params.valuesdict()[f'a_{pf(session)}']
 				i = self.standardization.var_names.index(f'a_{pf(session)}')
 				self.sessions[session]['SE_a'] = self.standardization.covar[i,i]**.5
@@ -1794,16 +1796,16 @@ class D47data(list):
 		N_anchor_analyses = len([r for r in self if r['Sample'] in self.anchors])
 
 		self.repeatability['r_D47a'] = self.compute_r('D47', samples = 'anchors')
-		self.repeatability['r_D47a'] /= (
-			(N_anchor_analyses - np.sum([self.sessions[s]['Np'] for s in self.sessions])) / (N_anchor_analyses - len(self.anchors))
-			)**.5
+# 		self.repeatability['r_D47a'] /= (
+# 			(N_anchor_analyses - np.sum([self.sessions[s]['Np'] for s in self.sessions])) / (N_anchor_analyses - len(self.anchors))
+# 			)**.5
 
 		self.repeatability['r_D47u'] = self.compute_r('D47', samples = 'unknowns')
 
 		self.repeatability['r_D47'] = self.compute_r('D47', samples = 'all samples')
-		self.repeatability['r_D47'] /= (
-			(len(self) - len(self.unknowns) - np.sum([self.sessions[s]['Np'] for s in self.sessions])) / (len(self) - len(self.samples))
-			)**.5
+# 		self.repeatability['r_D47'] /= (
+# 			(len(self) - len(self.unknowns) - np.sum([self.sessions[s]['Np'] for s in self.sessions])) / (len(self) - len(self.samples))
+# 			)**.5
 
 
 	@make_verbal
@@ -1878,13 +1880,26 @@ class D47data(list):
 		if sessions == 'all sessions':
 			sessions = [k for k in self.sessions]
 
-		chisq, Nf = 0, 0
-		for sample in mysamples :
-			X = [ r[key] for r in self if r['Sample'] == sample and r['Session'] in sessions ]
-			if len(X) > 1 :
-				Nf += len(X) - 1
-				chisq += np.sum([ (x-np.mean(X))**2 for x in X ])
-		r = (chisq / Nf)**.5 if Nf > 0 else 0
+		if key == 'D47':
+			chisq, Nf = 0, 0
+			for sample in mysamples :
+				X = [ r[key] for r in self if r['Sample'] == sample and r['Session'] in sessions ]
+				if len(X) > 1 :
+					chisq += np.sum([ (x-self.samples[sample]['D47'])**2 for x in X ])
+					if sample in self.unknowns:
+						Nf += len(X) - 1
+			Nf += sum([self.sessions[s]['Np'] for s in sessions])
+			r = (chisq / Nf)**.5 if Nf > 0 else 0
+
+		else: # if key != 'D47'
+			chisq, Nf = 0, 0
+			for sample in mysamples :
+				X = [ r[key] for r in self if r['Sample'] == sample and r['Session'] in sessions ]
+				if len(X) > 1 :
+					Nf += len(X) - 1
+					chisq += np.sum([ (x-np.mean(X))**2 for x in X ])
+			r = (chisq / Nf)**.5 if Nf > 0 else 0
+
 		self.msg(f'Repeatability of r["{key}"] is {1000*r:.1f} ppm for {samples}.')
 		return r
 
