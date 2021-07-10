@@ -1400,7 +1400,6 @@ class D47data(list):
 				fid.write(make_csv(out))
 		if print_out:
 			self.msg('\n' + pretty_table(out, header = 0))
-		return out
 
 
 	@make_verbal
@@ -1559,7 +1558,7 @@ class D47data(list):
 				fid.write(make_csv(out))
 		if print_out:
 			self.msg('\n'+pretty_table(out))
-		return out
+
 
 	def plot_sessions(self, dir = 'plots', figsize = (8,8)):
 		'''
@@ -1890,7 +1889,8 @@ class D47data(list):
 						Nf += len(X) - 1
 					else:
 						Nf += len(X)
-			Nf -= sum([self.sessions[s]['Np'] for s in sessions])
+			if samples in ['anchors', 'all samples']:
+				Nf -= sum([self.sessions[s]['Np'] for s in sessions])
 			r = (chisq / Nf)**.5 if Nf > 0 else 0
 
 		else: # if key != 'D47'
@@ -2268,7 +2268,7 @@ class D47data(list):
 		D.standardize()
 		D.plot_sessions()
 		D.verbose = True
-		out = D.table_of_samples()
+		D.table_of_samples()
 		````
 		
 		This should output something like:
