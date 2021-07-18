@@ -1056,7 +1056,7 @@ class D47data(list):
 
 		self.refresh_samples()
 		self.consolidate_samples()
-		self.repeatabilies()
+		self.repeatabilities()
 
 		if tables:
 			self.table_of_analyses()
@@ -1782,7 +1782,7 @@ class D47data(list):
 
 
 	@make_verbal
-	def repeatabilies(self):
+	def repeatabilities(self):
 		'''
 		Compute analytical repeatabilities for δ<sup>13</sup>C<sub>VPDB</sub>,
 		δ<sup>18</sup>O<sub>VSMOW</sub>, Δ<sub>47</sub> (for all samples, for anchors,
@@ -1814,7 +1814,7 @@ class D47data(list):
 		'''
 		self.consolidate_samples()
 		self.consolidate_sessions()
-		self.repeatabilies()
+		self.repeatabilities()
 
 		if tables:
 			self.summary()
