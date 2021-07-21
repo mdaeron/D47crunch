@@ -413,7 +413,7 @@ class D4xdata(list):
 
 		Returns a `D47data` object derived from `list`.
 		'''
-		self.4x = mass
+		self._4x = mass
 		self.verbose = verbose
 		self.prefix = 'D4xdata'
 		self.logfile = logfile
@@ -895,7 +895,7 @@ class D4xdata(list):
 		unknowns_new = sorted({r['Sample_original'] for r in self if 'Sample_original' in r})
 
 		Ns = len(vars_old) - len(unknowns_old)
-		vars_new = vars_old[:Ns] + [f'D{self.4x}_{pf(u)}' for u in unknowns_new]
+		vars_new = vars_old[:Ns] + [f'D{self._4x}_{pf(u)}' for u in unknowns_new]
 		VD_new = {k: VD_old[k] for k in vars_old[:Ns]}
 
 		W = np.zeros((len(vars_new), len(vars_old)))
@@ -903,12 +903,12 @@ class D4xdata(list):
 		for u in unknowns_new:
 			splits = sorted({r['Sample'] for r in self if 'Sample_original' in r and r['Sample_original'] == u})
 			if self.grouping == 'by_session':
-				weights = [self.samples[s][f'SE_D{self.4x}']**-2 for s in splits]
+				weights = [self.samples[s][f'SE_D{self._4x}']**-2 for s in splits]
 			elif self.grouping == 'by_uid':
 				weights = [1 for s in splits]
 			sw = sum(weights)
 			weights = [w/sw for w in weights]
-			W[vars_new.index(f'D{self.4x}_{pf(u)}'),[vars_old.index(f'D{self.4x}_{pf(s)}') for s in splits]] = weights[:]
+			W[vars_new.index(f'D{self._4x}_{pf(u)}'),[vars_old.index(f'D{self._4x}_{pf(s)}') for s in splits]] = weights[:]
 
 		CM_new = W @ CM_old @ W.T
 		V = W @ np.array([[VD_old[k]] for k in vars_old])
@@ -979,7 +979,7 @@ class D4xdata(list):
 		samples = [s for k in sorted(sample_groups.keys()) for s in sorted(sample_groups[k])]
 		groups = sorted(sample_groups.keys())
 		group_total_weights = {k: sum([self.samples[s]['N'] for s in sample_groups[k]]) for k in groups}
-		D4x_old = np.array([[self.samples[x][f'D{self.4x}']] for x in samples])
+		D4x_old = np.array([[self.samples[x][f'D{self._4x}']] for x in samples])
 		CM_old = np.array([[self.sample_D4x_covar(x,y) for x in samples] for y in samples])
 		W = np.array([
 			[self.samples[i]['N']/group_total_weights[j] if i in sample_groups[j] else 0 for i in samples]
@@ -1014,18 +1014,18 @@ class D4xdata(list):
 		if method == 'pooled':
 			if weighted_sessions:
 				for session_group in weighted_sessions:
-					X = D4xdata([r for r in self if r['Session'] in session_group], mass = self.4x)
+					X = D4xdata([r for r in self if r['Session'] in session_group], mass = self._4x)
 					X.Nominal_D4x = self.Nominal_D4x.copy()
 					X.refresh()
 					result = X.standardize(method = 'pooled', weighted_sessions = [], consolidate = False)
 					w = np.sqrt(result.redchi)
 					self.msg(f'Session group {session_group} MRSWD = {w:.4f}')
 					for r in X:
-						r[f'wD{self.4x}raw'] *= w
+						r[f'wD{self._4x}raw'] *= w
 			else:
-				self.msg(f'All D{self.4x}raw weights set to 1 ‰')
+				self.msg(f'All D{self._4x}raw weights set to 1 ‰')
 				for r in self:
-					r[f'wD{self.4x}raw'] = 1.
+					r[f'wD{self._4x}raw'] = 1.
 
 			params = Parameters()
 			for k,session in enumerate(self.sessions):
@@ -1040,7 +1040,7 @@ class D4xdata(list):
 				params.add(f'b2_{s}', value = 0., vary = self.sessions[session]['slope_drift'])
 				params.add(f'c2_{s}', value = 0., vary = self.sessions[session]['wg_drift'])
 			for sample in self.unknowns:
-				params.add(f'D{self.4x}_{pf(sample)}', value = 0.5)
+				params.add(f'D{self._4x}_{pf(sample)}', value = 0.5)
 
 			for k in constraints:
 				params[k].expr = constraints[k]
@@ -1052,30 +1052,30 @@ class D4xdata(list):
 					sample = pf(r['Sample'])
 					if r['Sample'] in self.Nominal_D47:
 						R += [ (
-							r[f'D{self.4x}raw'] - (
+							r[f'D{self._4x}raw'] - (
 								p[f'a_{session}'] * self.Nominal_D4x[r['Sample']]
-								+ p[f'b_{session}'] * r[f'd{self.4x}']
+								+ p[f'b_{session}'] * r[f'd{self._4x}']
 								+	p[f'c_{session}']
 								+ r['t'] * (
 									p[f'a2_{session}'] * self.Nominal_D4x[r['Sample']]
-									+ p[f'b2_{session}'] * r[f'd{self.4x}']
+									+ p[f'b2_{session}'] * r[f'd{self._4x}']
 									+	p[f'c2_{session}']
 									)
 								)
-							) / r[f'wD{self.4x}raw'] ]
+							) / r[f'wD{self._4x}raw'] ]
 					else:
 						R += [ (
-							r[f'D{self.4x}raw'] - (
-								p[f'a_{session}'] * p[f'D{self.4x}_{sample}']
-								+ p[f'b_{session}'] * r[f'd{self.4x}']
+							r[f'D{self._4x}raw'] - (
+								p[f'a_{session}'] * p[f'D{self._4x}_{sample}']
+								+ p[f'b_{session}'] * r[f'd{self._4x}']
 								+	p[f'c_{session}']
 								+ r['t'] * (
-									p[f'a2_{session}'] * p[f'D{self.4x}_{sample}']
-									+ p[f'b2_{session}'] * r[f'd{self.4x}']
+									p[f'a2_{session}'] * p[f'D{self._4x}_{sample}']
+									+ p[f'b2_{session}'] * r[f'd{self._4x}']
 									+	p[f'c2_{session}']
 									)
 								)
-							) / r[f'wD{self.4x}raw'] ]
+							) / r[f'wD{self._4x}raw'] ]
 				return R
 
 			M = Minimizer(residuals, params)
@@ -1093,7 +1093,7 @@ class D4xdata(list):
 				a2 = result.params.valuesdict()[f'a2_{s}']
 				b2 = result.params.valuesdict()[f'b2_{s}']
 				c2 = result.params.valuesdict()[f'c2_{s}']
-				r[f'D{self.4x}'] = (r[f'D{self.4x}raw'] - c - b * r[f'd{self.4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self.4x}']) / (a + a2 * r['t'])
+				r[f'D{self._4x}'] = (r[f'D{self._4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
 
 			self.standardization = result
 
@@ -1112,16 +1112,16 @@ class D4xdata(list):
 
 			if weighted_sessions:
 				for session_group in weighted_sessions:
-					X = D4xdata([r for r in self if r['Session'] in session_group], mass = self.4x)
+					X = D4xdata([r for r in self if r['Session'] in session_group], mass = self._4x)
 					X.Nominal_D4x = self.Nominal_D4x.copy()
 					X.refresh()
 					# This is only done to assign r['wD47raw'] for r in X:
 					X.standardize(method = method, weighted_sessions = [], consolidate = False)
-					self.msg(f'D{self.4x}raw weights set to {1000*X[0][f"wD{self.4x}raw"]:.1f} ppm for sessions in {session_group}')
+					self.msg(f'D{self._4x}raw weights set to {1000*X[0][f"wD{self._4x}raw"]:.1f} ppm for sessions in {session_group}')
 			else:
 				self.msg('All weights set to 1 ‰')
 				for r in self:
-					r[f'wD{self.4x}raw'] = 1
+					r[f'wD{self._4x}raw'] = 1
 
 			for session in self.sessions:
 				s = self.sessions[session]
@@ -1132,16 +1132,16 @@ class D4xdata(list):
 
 				A = np.array([
 					[
-						self.Nominal_D4x[r['Sample']] / r[f'wD{self.4x}raw'],
-						r[f'd{self.4x}'] / r[f'wD{self.4x}raw'],
-						1 / r[f'wD{self.4x}raw'],
-						self.Nominal_D4x[r['Sample']] * r['t'] / r[f'wD{self.4x}raw'],
-						r[f'd{self.4x}'] * r['t'] / r[f'wD{self.4x}raw'],
-						r['t'] / r[f'wD{self.4x}raw']
+						self.Nominal_D4x[r['Sample']] / r[f'wD{self._4x}raw'],
+						r[f'd{self._4x}'] / r[f'wD{self._4x}raw'],
+						1 / r[f'wD{self._4x}raw'],
+						self.Nominal_D4x[r['Sample']] * r['t'] / r[f'wD{self._4x}raw'],
+						r[f'd{self._4x}'] * r['t'] / r[f'wD{self._4x}raw'],
+						r['t'] / r[f'wD{self._4x}raw']
 						]
 					for r in sdata if r['Sample'] in self.anchors
 					])[:,p_active] # only keep columns for the active parameters
-				Y = np.array([[r[f'D{self.4x}raw'] / r[f'wD{self.4x}raw']] for r in sdata if r['Sample'] in self.anchors])
+				Y = np.array([[r[f'D{self._4x}raw'] / r[f'wD{self._4x}raw']] for r in sdata if r['Sample'] in self.anchors])
 				s['Na'] = Y.size
 				CM = linalg.inv(A.T @ A)
 				bf = (CM @ A.T @ Y).T[0,:]
@@ -1157,8 +1157,8 @@ class D4xdata(list):
 
 				for r in sdata :
 					a, b, c, a2, b2, c2 = s['a'], s['b'], s['c'], s['a2'], s['b2'], s['c2']
-					r[f'D{self.4x}'] = (r[f'D{self.4x}raw'] - c - b * r[f'd{self.4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self.4x}']) / (a + a2 * r['t'])
-					r[f'wD{self.4x}'] /= (a + a2 * r['t'])
+					r[f'D{self._4x}'] = (r[f'D{self._4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
+					r[f'wD{self._4x}'] /= (a + a2 * r['t'])
 
 				s['CM'] = np.zeros((6,6))
 				i = 0
@@ -1171,8 +1171,8 @@ class D4xdata(list):
 			if not weighted_sessions:
 				w = self.rmswd()['rmswd']
 				for r in self:
-						r[f'wD{self.4x}'] *= w
-						r[f'wD{self.4x}raw'] *= w
+						r[f'wD{self._4x}'] *= w
+						r[f'wD{self._4x}raw'] *= w
 				for session in self.sessions:
 					self.sessions[session]['CM'] *= w**2
 
@@ -1195,19 +1195,18 @@ class D4xdata(list):
 			self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
 
 			avgD4x = {
-				sample: np.mean([r[f'D{self.4x}'] for r in self if r['Sample'] == sample])
+				sample: np.mean([r[f'D{self._4x}'] for r in self if r['Sample'] == sample])
 				for sample in self.samples
 				}
-			chi2 = np.sum([(r[f'D{self.4x}'] - avgD4x[r['Sample']])**2 for r in self])
+			chi2 = np.sum([(r[f'D{self._4x}'] - avgD4x[r['Sample']])**2 for r in self])
 			rD4x = (chi2/self.Nf)**.5
-			self.repeatability[f'sigma_{self.4x}'] = rD4x
+			self.repeatability[f'sigma_{self._4x}'] = rD4x
 
 			if consolidate:
 				self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
 
 
-	#### THIS IS WHERE I STOPPED ####
-	def standardization_error(self, session, d47, D47, t = 0):
+	def standardization_error(self, session, d4x, D4x, t = 0):
 		'''
 		Compute standardization error for a given session and
 		(δ<sub>47</sub>, Δ<sub>47</sub>) composition.
@@ -1220,7 +1219,7 @@ class D4xdata(list):
 		c2 = self.sessions[session]['c2']
 		CM = self.sessions[session]['CM']
 
-		x, y = D47, d47
+		x, y = D4x, d4x
 		z = a * x + b * y + c + a2 * x * t + b2 * y * t + c2 * t
 # 		x = (z - b*y - b2*y*t - c - c2*t) / (a+a2*t)
 		dxdy = -(b+b2*t) / (a+a2*t)
@@ -1238,10 +1237,11 @@ class D4xdata(list):
 
 	@make_verbal
 	def summary(self,
-		dir = 'results',
-		filename = 'summary.csv',
+		dir = 'output',
+		filename = None,
 		save_to_file = True,
-		print_out = True):
+		print_out = True,
+		):
 		'''
 		Print out an/or save to disk a summary of the standardization results.
 
@@ -1258,9 +1258,9 @@ class D4xdata(list):
 		out += [['N analyses (anchors + unknowns)', f"{len(self)} ({len([r for r in self if r['Sample'] in self.anchors])} + {len([r for r in self if r['Sample'] in self.unknowns])})"]]
 		out += [['Repeatability of δ13C_VPDB', f"{1000 * self.repeatability['r_d13C_VPDB']:.1f} ppm"]]
 		out += [['Repeatability of δ18O_VSMOW', f"{1000 * self.repeatability['r_d18O_VSMOW']:.1f} ppm"]]
-		out += [['Repeatability of Δ47 (anchors)', f"{1000 * self.repeatability['r_D47a']:.1f} ppm"]]
-		out += [['Repeatability of Δ47 (unknowns)', f"{1000 * self.repeatability['r_D47u']:.1f} ppm"]]
-		out += [['Repeatability of Δ47 (all)', f"{1000 * self.repeatability['r_D47']:.1f} ppm"]]
+		out += [[f'Repeatability of Δ{self._4x} (anchors)', f"{1000 * self.repeatability[f'r_D{self._4x}a']:.1f} ppm"]]
+		out += [[f'Repeatability of Δ{self._4x} (unknowns)', f"{1000 * self.repeatability[f'r_D{self._4x}u']:.1f} ppm"]]
+		out += [[f'Repeatability of Δ{self._4x} (all)', f"{1000 * self.repeatability[f'r_D{self._4x}']:.1f} ppm"]]
 		out += [['Model degrees of freedom', f"{self.Nf}"]]
 		out += [['Student\'s 95% t-factor', f"{self.t95:.2f}"]]
 		out += [['Standardization method', self.standardization_method]]
@@ -1268,6 +1268,8 @@ class D4xdata(list):
 		if save_to_file:
 			if not os.path.exists(dir):
 				os.makedirs(dir)
+			if filename is None:
+				filename = f'D{self._4x}_summary.csv'
 			with open(f'{dir}/{filename}', 'w') as fid:
 				fid.write(make_csv(out))
 		if print_out:
@@ -1276,10 +1278,11 @@ class D4xdata(list):
 
 	@make_verbal
 	def table_of_sessions(self,
-		dir = 'results',
-		filename = 'sessions.csv',
+		dir = 'output',
+		filename = None,
 		save_to_file = True,
-		print_out = True):
+		print_out = True,
+		):
 		'''
 		Print out an/or save to disk a table of sessions.
 
@@ -1294,7 +1297,7 @@ class D4xdata(list):
 		include_b2 = any([self.sessions[session]['slope_drift'] for session in self.sessions])
 		include_c2 = any([self.sessions[session]['wg_drift'] for session in self.sessions])
 
-		out = [['Session','Na','Nu','d13Cwg_VPDB','d18Owg_VSMOW','r_d13C','r_d18O','r_D47','a ± SE','1e3 x b ± SE','c ± SE']]
+		out = [['Session','Na','Nu','d13Cwg_VPDB','d18Owg_VSMOW','r_d13C','r_d18O',f'r_D{self._4x}','a ± SE','1e3 x b ± SE','c ± SE']]
 		if include_a2:
 			out[-1] += ['a2 ± SE']
 		if include_b2:
@@ -1310,7 +1313,7 @@ class D4xdata(list):
 				f"{self.sessions[session]['d18Owg_VSMOW']:.3f}",
 				f"{self.sessions[session]['r_d13C_VPDB']:.4f}",
 				f"{self.sessions[session]['r_d18O_VSMOW']:.4f}",
-				f"{self.sessions[session]['r_D47']:.4f}",
+				f"{self.sessions[session][f'r_D{self._4x}']:.4f}",
 				f"{self.sessions[session]['a']:.3f} ± {self.sessions[session]['SE_a']:.3f}",
 				f"{1e3*self.sessions[session]['b']:.3f} ± {1e3*self.sessions[session]['SE_b']:.3f}",
 				f"{self.sessions[session]['c']:.3f} ± {self.sessions[session]['SE_c']:.3f}",
@@ -1334,6 +1337,8 @@ class D4xdata(list):
 		if save_to_file:
 			if not os.path.exists(dir):
 				os.makedirs(dir)
+			if filename is None:
+				filename = f'D{self._4x}_sessions.csv'
 			with open(f'{dir}/{filename}', 'w') as fid:
 				fid.write(make_csv(out))
 		if print_out:
@@ -1342,7 +1347,13 @@ class D4xdata(list):
 
 
 	@make_verbal
-	def table_of_analyses(self, dir = 'results', filename = 'analyses.csv', save_to_file = True, print_out = True):
+	def table_of_analyses(
+		self,
+		dir = 'output',
+		filename = None,
+		save_to_file = True,
+		print_out = True,
+		):
 		'''
 		Print out an/or save to disk a table of analyses.
 
@@ -1358,7 +1369,7 @@ class D4xdata(list):
 		extra_fields = [f for f in [('SampleMass','.2f'),('ColdFingerPressure','.1f'),('AcidReactionYield','.3f')] if f[0] in {k for r in self for k in r}]
 		for f in extra_fields:
 			out[-1] += [f[0]]
-		out[-1] += ['d13Cwg_VPDB','d18Owg_VSMOW','d45','d46','d47','d48','d49','d13C_VPDB','d18O_VSMOW','D47raw','D48raw','D49raw','D47']
+		out[-1] += ['d13Cwg_VPDB','d18Owg_VSMOW','d45','d46','d47','d48','d49','d13C_VPDB','d18O_VSMOW','D47raw','D48raw','D49raw',f'D{self._4x}']
 		for r in self:
 			out += [[f"{r['UID']}",f"{r['Session']}",f"{r['Sample']}"]]
 			for f in extra_fields:
@@ -1376,11 +1387,13 @@ class D4xdata(list):
 				f"{r['D47raw']:.6f}",
 				f"{r['D48raw']:.6f}",
 				f"{r['D49raw']:.6f}",
-				f"{r['D47']:.6f}"
+				f"{r[f'D{self._4x}']:.6f}"
 				]
 		if save_to_file:
 			if not os.path.exists(dir):
 				os.makedirs(dir)
+			if filename is None:
+				filename = f'D{self._4x}_analyses.csv'
 			with open(f'{dir}/{filename}', 'w') as fid:
 				fid.write(make_csv(out))
 		if print_out:
@@ -1389,7 +1402,13 @@ class D4xdata(list):
 
 
 	@make_verbal
-	def table_of_samples(self, dir = 'results', filename = 'samples.csv', save_to_file = True, print_out = True):
+	def table_of_samples(
+		self,
+		dir = 'output',
+		filename = None,
+		save_to_file = True,
+		print_out = True,
+		):
 		'''
 		Print out an/or save to disk a table of samples.
 
@@ -1401,15 +1420,15 @@ class D4xdata(list):
 		+ `print_out`: whether to print out the table
 		'''
 
-		out = [['Sample','N','d13C_VPDB','d18O_VSMOW','D47','SE','95% CL','SD','p_Levene']]
+		out = [['Sample','N','d13C_VPDB','d18O_VSMOW',f'D{self._4x}','SE','95% CL','SD','p_Levene']]
 		for sample in self.anchors:
 			out += [[
 				f"{sample}",
 				f"{self.samples[sample]['N']}",
 				f"{self.samples[sample]['d13C_VPDB']:.2f}",
 				f"{self.samples[sample]['d18O_VSMOW']:.2f}",
-				f"{self.samples[sample]['D47']:.4f}",'','',
-				f"{self.samples[sample]['SD_D47']:.4f}" if self.samples[sample]['N'] > 1 else '', ''
+				f"{self.samples[sample][f'D{self._4x}']:.4f}",'','',
+				f"{self.samples[sample][f'SD_D{self._4x}']:.4f}" if self.samples[sample]['N'] > 1 else '', ''
 				]]
 		for sample in self.unknowns:
 			out += [[
@@ -1417,22 +1436,24 @@ class D4xdata(list):
 				f"{self.samples[sample]['N']}",
 				f"{self.samples[sample]['d13C_VPDB']:.2f}",
 				f"{self.samples[sample]['d18O_VSMOW']:.2f}",
-				f"{self.samples[sample]['D47']:.4f}",
-				f"{self.samples[sample]['SE_D47']:.4f}",
-				f"± {self.samples[sample]['SE_D47']*self.t95:.4f}",
-				f"{self.samples[sample]['SD_D47']:.4f}" if self.samples[sample]['N'] > 1 else '',
+				f"{self.samples[sample][f'D{self._4x}']:.4f}",
+				f"{self.samples[sample][f'SE_D{self._4x}']:.4f}",
+				f"± {self.samples[sample][f'SE_D{self._4x}'] * self.t95:.4f}",
+				f"{self.samples[sample][f'SD_D{self._4x}']:.4f}" if self.samples[sample]['N'] > 1 else '',
 				f"{self.samples[sample]['p_Levene']:.3f}" if self.samples[sample]['N'] > 2 else ''
 				]]
 		if save_to_file:
 			if not os.path.exists(dir):
 				os.makedirs(dir)
+			if filename is None:
+				filename = f'D{self._4x}_samples.csv'
 			with open(f'{dir}/{filename}', 'w') as fid:
 				fid.write(make_csv(out))
 		if print_out:
 			self.msg('\n'+pretty_table(out))
 
 
-	def plot_sessions(self, dir = 'plots', figsize = (8,8)):
+	def plot_sessions(self, dir = 'output', figsize = (8,8)):
 		'''
 		Generate session plots and save them to disk.
 
@@ -1446,7 +1467,7 @@ class D4xdata(list):
 
 		for session in self.sessions:
 			sp = self.plot_single_session(session, xylimits = 'constant')
-			ppl.savefig(f'{dir}/D47model_{session}.pdf')
+			ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.pdf')
 			ppl.close(sp.fig)
 
 
@@ -1477,57 +1498,57 @@ class D4xdata(list):
 
 		[Levene test]: https://en.wikipedia.org/wiki/Levene%27s_test
 		'''
-		D47_ref_pop = [r['D47'] for r in self.samples[self.LEVENE_REF_SAMPLE]['data']]
+		D4x_ref_pop = [r[f'D{self._4x}'] for r in self.samples[self.LEVENE_REF_SAMPLE]['data']]
 		for sample in self.samples:
 			self.samples[sample]['N'] = len(self.samples[sample]['data'])
 			if self.samples[sample]['N'] > 1:
-				self.samples[sample]['SD_D47'] = stdev([r['D47'] for r in self.samples[sample]['data']])
+				self.samples[sample][f'SD_D{self._4x}'] = stdev([r[f'D{self._4x}'] for r in self.samples[sample]['data']])
 
 			self.samples[sample]['d13C_VPDB'] = np.mean([r['d13C_VPDB'] for r in self.samples[sample]['data']])
 			self.samples[sample]['d18O_VSMOW'] = np.mean([r['d18O_VSMOW'] for r in self.samples[sample]['data']])
 
-			D47_pop = [r['D47'] for r in self.samples[sample]['data']]
-			if len(D47_pop) > 2:
-				self.samples[sample]['p_Levene'] = levene(D47_ref_pop, D47_pop, center = 'median')[1]
+			D4x_pop = [r[f'D{self._4x}'] for r in self.samples[sample]['data']]
+			if len(D4x_pop) > 2:
+				self.samples[sample]['p_Levene'] = levene(D4x_ref_pop, D4x_pop, center = 'median')[1]
 
 		if self.standardization_method == 'pooled':
 			for sample in self.anchors:
-				self.samples[sample]['D47'] = self.Nominal_D47[sample]
-				self.samples[sample]['SE_D47'] = 0.
+				self.samples[sample][f'D{self._4x}'] = self.Nominal_D4x[sample]
+				self.samples[sample][f'SE_D{self._4x}'] = 0.
 			for sample in self.unknowns:
-				self.samples[sample]['D47'] = self.standardization.params.valuesdict()[f'D47_{pf(sample)}']
+				self.samples[sample][f'D{self._4x}'] = self.standardization.params.valuesdict()[f'D{self._4x}_{pf(sample)}']
 				try:
-					self.samples[sample]['SE_D47'] = self.sample_D47_covar(sample)**.5
+					self.samples[sample][f'SE_D{self._4x}'] = self.sample_D4x_covar(sample)**.5
 				except ValueError:
 					# when `sample` is constrained by self.standardize(constraints = {...}),
 					# it is no longer listed in self.standardization.var_names.
 					# Temporary fix: define SE as zero for now
-					self.samples[sample]['SE_D47'] = 0.
+					self.samples[sample][f'SE_D4{self._4x}'] = 0.
 
 		elif self.standardization_method == 'indep_sessions':
 			for sample in self.anchors:
-				self.samples[sample]['D47'] = self.Nominal_D47[sample]
-				self.samples[sample]['SE_D47'] = 0.
+				self.samples[sample][f'D{self._4x}'] = self.Nominal_D4x[sample]
+				self.samples[sample][f'SE_D{self._4x}'] = 0.
 			for sample in self.unknowns:
 				self.msg(f'Consolidating sample {sample}')
-				self.unknowns[sample]['session_D47'] = {}
+				self.unknowns[sample][f'session_D{self._4x}'] = {}
 				session_avg = []
 				for session in self.sessions:
 					sdata = [r for r in self.sessions[session]['data'] if r['Sample'] == sample]
 					if sdata:
 						self.msg(f'{sample} found in session {session}')
-						avg_D47 = np.mean([r['D47'] for r in sdata])
-						avg_d47 = np.mean([r['d47'] for r in sdata])
+						avg_D4x = np.mean([r[f'D{self._4x}'] for r in sdata])
+						avg_d4x = np.mean([r[f'd{self._4x}'] for r in sdata])
 						# !! TODO: sigma_s below does not account for temporal changes in standardization error
-						sigma_s = self.standardization_error(session, avg_d47, avg_D47)
-						sigma_u = sdata[0]['wD47raw'] / self.sessions[session]['a'] / len(sdata)**.5
-						session_avg.append([avg_D47, (sigma_u**2 + sigma_s**2)**.5])
-						self.unknowns[sample]['session_D47'][session] = session_avg[-1]
-				self.samples[sample]['D47'], self.samples[sample]['SE_D47'] = w_avg(*zip(*session_avg))
-				weights = {s: self.unknowns[sample]['session_D47'][s][1]**-2 for s in self.unknowns[sample]['session_D47']}
+						sigma_s = self.standardization_error(session, avg_d4x, avg_D4x)
+						sigma_u = sdata[0][f'wD{self._4x}raw'] / self.sessions[session]['a'] / len(sdata)**.5
+						session_avg.append([avg_D4x, (sigma_u**2 + sigma_s**2)**.5])
+						self.unknowns[sample][f'session_D{self._4x}'][session] = session_avg[-1]
+				self.samples[sample][f'D{self._4x}'], self.samples[sample][f'SE_D{self._4x}'] = w_avg(*zip(*session_avg))
+				weights = {s: self.unknowns[sample][f'session_D{self._4x}'][s][1]**-2 for s in self.unknowns[sample][f'session_D{self._4x}']}
 				wsum = sum([weights[s] for s in weights])
 				for s in weights:
-					self.unknowns[sample]['session_D47'][s] += [self.unknowns[sample]['session_D47'][s][1]**-2 / wsum]
+					self.unknowns[sample][f'session_D{self._4x}'][s] += [self.unknowns[sample][f'session_D{self._4x}'][s][1]**-2 / wsum]
 
 
 	def consolidate_sessions(self):
@@ -1567,7 +1588,7 @@ class D4xdata(list):
 			self.msg(f'Computing repeatabilities for session {session}')
 			self.sessions[session]['r_d13C_VPDB'] = self.compute_r('d13C_VPDB', samples = 'anchors', sessions = [session])
 			self.sessions[session]['r_d18O_VSMOW'] = self.compute_r('d18O_VSMOW', samples = 'anchors', sessions = [session])
-			self.sessions[session]['r_D47'] = self.compute_r('D47', sessions = [session])
+			self.sessions[session][f'r_D{self._4x}'] = self.compute_r(f'D{self._4x}', sessions = [session])
 
 		if self.standardization_method == 'pooled':
 			for session in self.sessions:
@@ -1650,7 +1671,7 @@ class D4xdata(list):
 				self.sessions[session]['CM'] = CM
 
 		elif self.standardization_method == 'indep_sessions':
-			pass
+			pass # Not implemented yet
 
 
 	@make_verbal
@@ -1661,22 +1682,12 @@ class D4xdata(list):
 		and for unknowns).
 		'''
 		self.msg('Computing reproducibilities for all sessions')
+
 		self.repeatability['r_d13C_VPDB'] = self.compute_r('d13C_VPDB', samples = 'anchors')
 		self.repeatability['r_d18O_VSMOW'] = self.compute_r('d18O_VSMOW', samples = 'anchors')
-
-		N_anchor_analyses = len([r for r in self if r['Sample'] in self.anchors])
-
-		self.repeatability['r_D47a'] = self.compute_r('D47', samples = 'anchors')
-# 		self.repeatability['r_D47a'] /= (
-# 			(N_anchor_analyses - np.sum([self.sessions[s]['Np'] for s in self.sessions])) / (N_anchor_analyses - len(self.anchors))
-# 			)**.5
-
-		self.repeatability['r_D47u'] = self.compute_r('D47', samples = 'unknowns')
-
-		self.repeatability['r_D47'] = self.compute_r('D47', samples = 'all samples')
-# 		self.repeatability['r_D47'] /= (
-# 			(len(self) - len(self.unknowns) - np.sum([self.sessions[s]['Np'] for s in self.sessions])) / (len(self) - len(self.samples))
-# 			)**.5
+		self.repeatability[f'r_D{self._4x}a'] = self.compute_r(f'D{self._4x}', samples = 'anchors')
+		self.repeatability[f'r_D{self._4x}u'] = self.compute_r(f'D{self._4x}', samples = 'unknowns')
+		self.repeatability[f'r_D{self._4x}'] = self.compute_r(f'D{self._4x}', samples = 'all samples')
 
 
 	@make_verbal
@@ -1704,8 +1715,10 @@ class D4xdata(list):
 		sessions = 'all sessions',
 		):
 		'''
-		Compute the root mean squared weighted deviation, χ2 and
-		corresponding degrees of freedom of `[r['D47'] for r in self]`
+		Compute the root mean squared weighted deviation, χ<sup>2</sup> and
+		corresponding degrees of freedom of `[r['D47'] for r in self]`.
+		
+		Currently used only in `D4xdata.standardize(method = 'indep_sessions')`
 		'''
 		if samples == 'all samples':
 			mysamples = [k for k in self.samples]
@@ -1723,13 +1736,15 @@ class D4xdata(list):
 		for sample in mysamples :
 			G = [ r for r in self if r['Sample'] == sample and r['Session'] in sessions ]
 			if len(G) > 1 :
-				X, sX = w_avg([r['D47'] for r in G], [r['wD47'] for r in G])
+				X, sX = w_avg([r[f'D{self._4x}'] for r in G], [r[f'wD{self._4x}'] for r in G])
 				Nf += (len(G) - 1)
-				chisq += np.sum([ ((r['D47']-X)/r['wD47'])**2 for r in G])
+				chisq += np.sum([ ((r[f'D{self._4x}']-X)/r[f'wD{self._4x}'])**2 for r in G])
 		r = (chisq / Nf)**.5 if Nf > 0 else 0
-		self.msg(f'RMSWD of r["D47"] is {r:.6f} for {samples}.')
+		self.msg(f'RMSWD of r[\'{f"D{self._4x}"}\'] is {r:.6f} for {samples}.')
 		return {'rmswd': r, 'chisq': chisq, 'Nf': Nf}
 
+	
+	### I STOPPED HERE ###
 	@make_verbal
 	def compute_r(self, key, samples = 'all samples', sessions = 'all sessions'):
 		'''
