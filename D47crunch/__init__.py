@@ -11,10 +11,10 @@ from low-level data out of a dual-inlet mass spectrometer to final, “absolute�
 
 __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
-__copyright__ = 'Copyright (c) 2020 Mathieu Daëron'
+__copyright__ = 'Copyright (c) 2021 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2021-06-30'
-__version__   = '1.2.0'
+__date__      = '2021-07-21'
+__version__   = '2.0-beta'
 
 import os
 import numpy as np
