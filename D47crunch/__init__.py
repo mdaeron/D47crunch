@@ -54,7 +54,7 @@ Petersen_etal_CO2eqD47 = np.array([[-12, 1.147113572], [-11, 1.139961218], [-10,
 _fCO2eqD47_Petersen = interp1d(Petersen_etal_CO2eqD47[:,0], Petersen_etal_CO2eqD47[:,1])
 def fCO2eqD47_Petersen(T):
 	'''
-	CO<sub>2</sub> equilibrium Δ<sub>47</sub> value as a function of `T` (in degrees C)
+	CO<sub>2</sub> equilibrium Δ<sub>47</sub> value as a function of T (in degrees C)
 	according to [Petersen et al. (2019)].
 
 	[Petersen et al. (2019)]: https://doi.org/10.1029/2018GC008127
@@ -75,17 +75,23 @@ def fCO2eqD47_Wang(T):
 	return float(_fCO2eqD47_Wang(T))
 
 
-def correlated_sum(X, C, f = None):
+def correlated_sum(X, C, w = None):
 	'''
 	Compute covariance-aware linear combinations
 
-	Return the mean and SE of the sum of the elements of `X`, with optional
-	weights corresponding to the elements of `f`, accounting for `C`,
-	the covariance matrix of `X`.
+	__Parameters__
+	
+	+ `X`: list or 1-D array of values to sum
+	+ `C`: covariance matrix for the elements of `X`
+	+ `w`: list or 1-D array of weights to apply to the elements of `X`
+	       (all equal to 1 by default)
+
+	Return the sum (and its SE) of the elements of `X`, with optional weights equal
+	to the elements of `w`, accounting for covariances between the elements of `X`.
 	'''
-	if f is None:
-		f = [1 for x in X]
-	return np.dot(f,X), (np.dot(f,np.dot(C,f)))**.5
+	if w is None:
+		w = [1 for x in X]
+	return np.dot(w,X), (np.dot(w,np.dot(C,w)))**.5
 
 
 def make_csv(x, hsep = ',', vsep = '\n'):
@@ -95,19 +101,18 @@ def make_csv(x, hsep = ',', vsep = '\n'):
 	__Parameters__
 
 	+ `x`: the list of lists of strings to format
-	+ `hsep`: the field separator (a comma, by default)
-	+ `vsep`: the line-ending convention to use (`'\\n'` by default)
+	+ `hsep`: the field separator (`,` by default)
+	+ `vsep`: the line-ending convention to use (`\\n` by default)
 
 	__Example__
 
-	```python
-	x = [['a', 'b', 'c'], ['d', 'e', 'f']]
-	print(make_csv(x))
+	```py
+	print(make_csv([['a', 'b', 'c'], ['d', 'e', 'f']]))
 	```
 
-	output:
+	outputs:
 
-	```python
+	```py
 	a,b,c
 	d,e,f
 	```
@@ -266,8 +271,8 @@ def read_csv(filename, sep = ''):
 
 class D4xdata(list):
 	'''
-	Store and process data for a large set of Δ<sub>4x</sub> analyses,
-	usually comprising more than one analytical session.
+	Store and process data for a large set of Δ<sub>47</sub> and/or Δ<sub>48</sub>
+	analyses, usually comprising more than one analytical session.
 	'''
 
 	### 17O CORRECTION PARAMETERS
@@ -318,8 +323,8 @@ class D4xdata(list):
 
 	LEVENE_REF_SAMPLE = 'ETH-3'
 	'''
-	After the Δ<sub>47</sub> standardization step, each sample is tested to
-	assess whether the Δ<sub>47</sub> variance within all analyses for that
+	After the Δ<sub>4x</sub> standardization step, each sample is tested to
+	assess whether the Δ<sub>4x</sub> variance within all analyses for that
 	sample differs significantly from that observed for a given reference
 	sample (using [Levene's test], which yields a p-value corresponding to
 	the null hypothesis that the underlying variances are equal).
@@ -333,8 +338,8 @@ class D4xdata(list):
 	ALPHA_18O_ACID_REACTION = round(np.exp(3.59 / (90 + 273.15) - 1.79e-3), 6)  # (Kim et al., 2007, calcite)
 	'''
 	Specifies the <sup>18</sup>O/<sup>16</sup>O fractionation factor generally applicable
-	to acid reactions in the dataset. Currently used by `D47data.wg()`,
-	`D47data.standardize_d13C`, and `D47data.standardize_d18O`.
+	to acid reactions in the dataset. Currently used by `D4xdata.wg()`,
+	`D4xdata.standardize_d13C`, and `D4xdata.standardize_d18O`.
 
 	By default equal to 1.008129 (calcite reacted at 90 °C, [Kim et al., 2007]).
 
@@ -348,7 +353,7 @@ class D4xdata(list):
 		}	# (Bernasconi et al., 2018)
 	'''
 	Nominal δ<sup>13</sup>C<sub>VPDB</sub> values assigned to carbonate standards, used by
-	`D47data.standardize_d13C()`.
+	`D4xdata.standardize_d13C()`.
 
 	By default equal to `{'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71}` after
 	[Bernasconi et al. (2018)].
@@ -363,7 +368,7 @@ class D4xdata(list):
 		}	# (Bernasconi et al., 2018)
 	'''
 	Nominal δ<sup>18</sup>O<sub>VPDB</sub> values assigned to carbonate standards, used by
-	`D47data.standardize_d18O()`.
+	`D4xdata.standardize_d18O()`.
 
 	By default equal to `{'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78}` after
 	[Bernasconi et al. (2018)].
@@ -405,11 +410,9 @@ class D4xdata(list):
 
 		+ `l`: a list of dictionaries, with each dictionary including at least the keys
 		`Sample`, `d45`, `d46`, and `d47` or `d48`.
-		+ `logfile`: if specified, write detailed logs to this file path when calling `D47data`
-		methods.
+		+ `logfile`: if specified, write detailed logs to this file path when calling `D4xdata` methods.
 		+ `session`: define session name for analyses without a `Session` key
-		+ `verbose`: if `True`, print out detailed logs when calling `D47data`
-		methods.
+		+ `verbose`: if `True`, print out detailed logs when calling `D4xdata` methods.
 
 		Returns a `D47data` object derived from `list`.
 		'''
@@ -425,8 +428,7 @@ class D4xdata(list):
 
 	def make_verbal(oldfun):
 		'''
-		Decorator to temporarily change `self.prefix`
-		and allow locally overriding `self.verbose`
+		Decorator: allow temporarily changing `self.prefix` and overriding `self.verbose`.
 		'''
 		@wraps(oldfun)
 		def newfun(*args, verbose = '', **kwargs):
@@ -521,11 +523,11 @@ class D4xdata(list):
 		+ `UID`: a unique identifier
 		+ `Session`: an identifier for the analytical session
 		+ `Sample`: a sample identifier
-		+ `d45`, `d46`, `d47`: the working-gas delta values
+		+ `d45`, `d46`, and at least one of `d47` or `d48`: the working-gas delta values
 
 		Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
-		VSMOW, λ = `self.lambda_17`), and are otherwise assumed to be zero. Working-gas deltas `d48`
-		and `d49` may also be provided, and are also set to 0 otherwise.
+		VSMOW, λ = `self.lambda_17`), and are otherwise assumed to be zero. Working-gas deltas `d47`, `d48`
+		and `d49` are optional, and set to NaN by default.
 
 		__Parameters__
 
@@ -549,11 +551,11 @@ class D4xdata(list):
 		+ `UID`: a unique identifier
 		+ `Session`: an identifier for the analytical session
 		+ `Sample`: a sample identifier
-		+ `d45`, `d46`, `d47`: the working-gas delta values
+		+ `d45`, `d46`, and at least one of `d47` or `d48`: the working-gas delta values
 
 		Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
-		VSMOW, λ = `self.lambda_17`), and are otherwise assumed to be zero. Working-gas deltas `d48`
-		and `d49` may also be provided, and are also set to 0 otherwise.
+		VSMOW, λ = `self.lambda_17`), and are otherwise assumed to be zero. Working-gas deltas `d47`, `d48`
+		and `d49` are optional, and set to NaN by default.
 
 		__Parameters__
 
@@ -576,21 +578,21 @@ class D4xdata(list):
 
 
 	@make_verbal
-	def wg(self, samples = '', a18_acid = ''):
+	def wg(self, samples = None, a18_acid = None):
 		'''
-		Compute bulk composition of the working gas for each session
-		based on the carbonate standards defined both in `self.Nominal_d13C_VPDB`
-		and in `self.Nominal_d18O_VPDB`.
+		Compute bulk composition of the working gas for each session based on
+		the carbonate standards defined in both `self.Nominal_d13C_VPDB` and
+		`self.Nominal_d18O_VPDB`.
 		'''
 
 		self.msg('Computing WG composition:')
 
-		if a18_acid == '':
+		if a18_acid is None:
 			a18_acid = self.ALPHA_18O_ACID_REACTION
-		if samples == '':
+		if samples is None:
 			samples = [s for s in self.Nominal_d13C_VPDB if s in self.Nominal_d18O_VPDB]
 
-		assert a18_acid, f'Acid fractionation value should differ from zero.'
+		assert a18_acid, f'Acid fractionation factor should not be zero.'
 
 		samples = [s for s in samples if s in self.Nominal_d13C_VPDB and s in self.Nominal_d18O_VPDB]
 		R45R46_standards = {}
@@ -885,7 +887,15 @@ class D4xdata(list):
 
 	def unsplit_samples(self, tables = False):
 		'''
-		Reverse the effects of `D47data.split_samples`.
+		Reverse the effects of `D47data.split_samples()`.
+		
+		This should only be used after `D4xdata.standardize()` with `method='pooled'`.
+		
+		After `D4xdata.standardize()` with `method='indep_sessions'`, one should
+		probably use `D4xdata.combine_samples()` instead to reverse the effects of
+		`D47data.split_samples()` with `grouping='by_uid'`, or `w_avg()` to reverse the
+		effects of `D47data.split_samples()` with `grouping='by_sessions'` (because in
+		that case session-averaged Δ<sub>4x</sub> values are statistically independent).
 		'''
 		unknowns_old = sorted({s for s in self.unknowns})
 		CM_old = self.standardization.covar[:,:]
@@ -966,14 +976,23 @@ class D4xdata(list):
 		and new error (co)variances corresponding to the groups defined by the `sample_groups`
 		dictionary.
 		
+		Caution: samples are weighted by number of replicate analyses, which is a
+		reasonable default behavior but is not always optimal (e.g., in the case of strongly
+		correlated analytical errors for one or more samples).
+		
 		Returns a tuplet of:
+		
 		+ the list of group names
 		+ an array of the corresponding Δ<sub>47</sub> values
 		+ the corresponding (co)variance matrix
 		
 		__Parameters__
 
-		+ `sample_groups`: a dictionary of the form `dict(group1 = [sample_1', 'sample_2'], group2 = ['sample_3', 'sample_4'])`
+		+ `sample_groups`: a dictionary of the form:
+		```py
+		{'group1': ['sample_1', 'sample_2'],
+		 'group2': ['sample_3', 'sample_4', 'sample_5']}
+		```
 		'''
 		
 		samples = [s for k in sorted(sample_groups.keys()) for s in sorted(sample_groups[k])]
