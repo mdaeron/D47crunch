@@ -4,7 +4,10 @@ Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotop
 
 Process and standardize carbonate and/or CO<sub>2</sub> clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
-Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates.
+Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates
+([Daëron, 2021]).
+
+[Daëron, 2021]: https://doi.org/10.1029/2020GC009592
 
 .. include:: ../docs/documentation.md
 '''
@@ -966,13 +969,14 @@ class D4xdata(list):
 	def report(self):
 		'''
 		Prints a report on the standardization fit.
+		Only applicable after `D4xdata.standardize(method='pooled')`.
 		'''
 		report_fit(self.standardization)
 
 
 	def combine_samples(self, sample_groups):
 		'''
-		Combine analyses of different samples to compute weighted average Δ<sub>47</sub>
+		Combine analyses of different samples to compute weighted average Δ<sub>4x</sub>
 		and new error (co)variances corresponding to the groups defined by the `sample_groups`
 		dictionary.
 		
@@ -983,7 +987,7 @@ class D4xdata(list):
 		Returns a tuplet of:
 		
 		+ the list of group names
-		+ an array of the corresponding Δ<sub>47</sub> values
+		+ an array of the corresponding Δ<sub>4x</sub> values
 		+ the corresponding (co)variance matrix
 		
 		__Parameters__
@@ -1019,12 +1023,15 @@ class D4xdata(list):
 		constraints = {},
 		):
 		'''
-		Compute absolute Δ<sub>47</sub> values for all replicate analyses and for sample averages.
+		Compute absolute Δ<sub>4x</sub> values for all replicate analyses and for sample averages.
 		If `method` argument is set to `'pooled'`, the standardization processes all sessions
 		in a single step, assuming that all samples (anchors and unknowns alike) are
-		homogeneous (i.e. that their true Δ<sub>47</sub> value does not change between sessions).
+		homogeneous, i.e. that their true Δ<sub>4x</sub> value does not change between sessions,
+		([Daëron, 2021]).
 		If `method` argument is set to `'indep_sessions'`, the standardization processes each
 		session independently, based only on anchors analyses.
+		
+		[Daëron, 2021]: https://doi.org/10.1029/2020GC009592
 		'''
 
 		self.standardization_method = method
@@ -1497,22 +1504,22 @@ class D4xdata(list):
 
 		For each anchor sample:
 
-		+ `D47`: the nominal Δ<sub>47</sub> value for this anchor, specified by `self.Nominal_D47`
-		+ `SE_D47`: set to zero by definition
+		+ `D47` or `D48`: the nominal Δ<sub>4x</sub> value for this anchor, specified by `self.Nominal_D4x`
+		+ `SE_D47` or `SE_D48`: set to zero by definition
 
 		For each unknown sample:
 
-		+ `D47`: the standardized Δ<sub>47</sub> value for this unknown
-		+ `SE_D47`: the standard error of Δ<sub>47</sub> for this unknown
+		+ `D47` or `D48`: the standardized Δ<sub>4x</sub> value for this unknown
+		+ `SE_D47` or `SE_D48`: the standard error of Δ<sub>4x</sub> for this unknown
 
 		For each anchor and unknown:
 
 		+ `N`: the total number of analyses of this sample
-		+ `SD_D47`: the “sample” (in the statistical sense) standard deviation for this sample
+		+ `SD_D47` or `SD_D48`: the “sample” (in the statistical sense) standard deviation for this sample
 		+ `d13C_VPDB`: the average δ<sup>13</sup>C<sub>VPDB</sub> value for this sample
 		+ `d18O_VSMOW`: the average δ<sup>18</sup>O<sub>VSMOW</sub> value for this sample (as CO<sub>2</sub>)
 		+ `p_Levene`: the p-value from a [Levene test] of equal variance, indicating whether
-		the Δ<sub>47</sub> repeatability this sample differs significantly from that observed
+		the Δ<sub>4x</sub> repeatability this sample differs significantly from that observed
 		for the reference sample specified by `self.LEVENE_REF_SAMPLE`.
 
 		[Levene test]: https://en.wikipedia.org/wiki/Levene%27s_test
@@ -1572,13 +1579,13 @@ class D4xdata(list):
 
 	def consolidate_sessions(self):
 		'''
-		Compile various statistics for each session.
+		Compute various statistics for each session.
 
 		+ `Na`: Number of anchor analyses in the session
 		+ `Nu`: Number of unknown analyses in the session
 		+ `r_d13C_VPDB`: δ<sup>13</sup>C<sub>VPDB</sub> repeatability of analyses within the session
 		+ `r_d18O_VSMOW`: δ<sup>18</sup>O<sub>VSMOW</sub> repeatability of analyses within the session
-		+ `r_D47`: Δ<sub>47</sub> repeatability of analyses within the session
+		+ `r_D47` or `r_D48`: Δ<sub>4x</sub> repeatability of analyses within the session
 		+ `a`: scrambling factor
 		+ `b`: compositional slope
 		+ `c`: WG offset
@@ -1697,7 +1704,7 @@ class D4xdata(list):
 	def repeatabilities(self):
 		'''
 		Compute analytical repeatabilities for δ<sup>13</sup>C<sub>VPDB</sub>,
-		δ<sup>18</sup>O<sub>VSMOW</sub>, Δ<sub>47</sub> (for all samples, for anchors,
+		δ<sup>18</sup>O<sub>VSMOW</sub>, Δ<sub>4x</sub> (for all samples, for anchors,
 		and for unknowns).
 		'''
 		self.msg('Computing reproducibilities for all sessions')
@@ -1734,10 +1741,11 @@ class D4xdata(list):
 		sessions = 'all sessions',
 		):
 		'''
-		Compute the root mean squared weighted deviation, χ<sup>2</sup> and
-		corresponding degrees of freedom of `[r['D47'] for r in self]`.
+		Compute the χ<sup>2</sup>, root mean squared weighted deviation
+		(i.e. reduced χ<sup>2</sup>), and corresponding degrees of freedom of the
+		Δ<sub>4x</sub> values for samples in `samples` and sessions in `sessions`.
 		
-		Currently used only in `D4xdata.standardize(method = 'indep_sessions')`
+		Only used in `D4xdata.standardize()` with `method='indep_sessions'`.
 		'''
 		if samples == 'all samples':
 			mysamples = [k for k in self.samples]
@@ -1812,9 +1820,9 @@ class D4xdata(list):
 
 	def sample_average(self, samples, weights = 'equal', normalize = True):
 		'''
-		Weighted average Δ<sub>47</sub> value of a group of samples, accounting for covariance.
+		Weighted average Δ<sub>4x</sub> value of a group of samples, accounting for covariance.
 
-		Returns the weighed average Δ47 value and associated SE
+		Returns the weighed average Δ<sub>4x</sub> value and associated SE
 		of a group of samples. Weights are equal by default. If `normalize` is
 		true, `weights` will be rescaled so that their sum equals 1.
 
@@ -1824,15 +1832,15 @@ class D4xdata(list):
 		self.sample_average(['X','Y'], [1, 2])
 		```
 
-		returns the value and SE of [Δ<sub>47</sub>(X) + 2 Δ<sub>47</sub>(Y)]/3,
-		where Δ<sub>47</sub>(X) and Δ<sub>47</sub>(Y) are the average Δ<sub>47</sub>
+		returns the value and SE of [Δ<sub>4x</sub>(X) + 2 Δ<sub>4x</sub>(Y)]/3,
+		where Δ<sub>4x</sub>(X) and Δ<sub>4x</sub>(Y) are the average Δ<sub>4x</sub>
 		values of samples X and Y, respectively.
 
 		```python
 		self.sample_average(['X','Y'], [1, -1], normalize = False)
 		```
 
-		returns the value and SE of the difference Δ<sub>47</sub>(X) - Δ<sub>47</sub>(Y).
+		returns the value and SE of the difference Δ<sub>4x</sub>(X) - Δ<sub>4x</sub>(Y).
 		'''
 		if weights == 'equal':
 			weights = [1/len(samples)] * len(samples)
@@ -1854,11 +1862,11 @@ class D4xdata(list):
 
 	def sample_D4x_covar(self, sample1, sample2 = None):
 		'''
-		Covariance between Δ<sub>47</sub> values of samples
+		Covariance between Δ<sub>4x</sub> values of samples
 
-		Returns the error covariance between the average Δ<sub>47</sub> values of two
+		Returns the error covariance between the average Δ<sub>4x</sub> values of two
 		samples. If if only `sample_1` is specified, or if `sample_1 == sample_2`),
-		returns the Δ<sub>47</sub> variance for that sample.
+		returns the Δ<sub>4x</sub> variance for that sample.
 		'''
 		if sample2 is None:
 			sample2 = sample1
@@ -1893,9 +1901,9 @@ class D4xdata(list):
 
 	def sample_D4x_correl(self, sample1, sample2 = None):
 		'''
-		Correlation between Δ<sub>47</sub> errors of samples
+		Correlation between Δ<sub>4x</sub> errors of samples
 
-		Returns the error correlation between the average Δ47 values of two samples.
+		Returns the error correlation between the average Δ4x values of two samples.
 		'''
 		if sample2 is None or sample2 == sample1:
 			return 1.
@@ -2007,7 +2015,7 @@ class D4xdata(list):
 	def plot_residuals(self, dir = 'output', filename = None, highlight = [], colors = None):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
-		the order of analyses in the D47data() object)
+		the order of analyses in the D4xdata() object)
 
 		+ `dir`: the directory in which to save the plot
 		+ `highlight`: a list of samples to highlight
@@ -2133,27 +2141,27 @@ class D4xdata(list):
 		seed = 0,
 		):
 		'''
-		Populate `D47data` instance with simulated analyses from a single session.
+		Populate `D4xdata` instance with simulated analyses from a single session.
 		
 		__Parameters__
 
 		+ `samples`: a list of entries; each entry is a dictionary with the following fields:
 		    * `Sample`: the name of the sample
-		    * either `d47` (the δ<sub>47</sub> value of this sample), or `d13C_VPDB` and `d18O_VPDB` (its δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub> values)
-		    * `D47`: the absolute Δ<sub>47</sub> value of this sample
+		    * either `d47`/`d48` (the δ<sub>4x</sub> value of this sample), or `d13C_VPDB` and `d18O_VPDB` (its δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub> values)
+		    * `D47`/`D48`: the absolute Δ<sub>4x</sub> value of this sample
 		    * `N`: how many analyses of this sample should be generated
 		+ `a`: scrambling factor)
 		+ `b`: compositional nonlinearity
 		+ `c`: working gas offset
-		+ `rD47`: Δ<sub>47</sub> repeatability
+		+ `rD47`/`rD48`: Δ<sub>4x</sub> repeatability
 		+ `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
 		
-		Beware that `d47` values computed from `d13C_VPDB` and `d18O_VPDB` are calculated assuming
+		Beware that δ<sub>4x</sub> values computed from `d13C_VPDB` and `d18O_VPDB` are calculated assuming
 		a working gas with δ<sup>13</sup>C<sub>VPDB</sub>&nbsp;=&nbsp;0 and δ<sup>18</sup>O<sub>VSMOW</sub>&nbsp;=&nbsp;0.
-		In the unusual case where simulating a different working gas composition is necessary, `d47` must be specified explicitly.
+		In the unusual case where simulating a different working gas composition is necessary, `d47`/`d48` must be specified explicitly.
 		
-		Samples already defined in `D47data.Nominal_d13C_VPDB`, `D47data.Nominal_d18O_VPDB`, and `D47data.Nominal_D47`
-		do not require explicit `d47`, `D47`, `d13C_VPDB` nor `d18O_VPDB` (the nominal values will be used by default).
+		Samples already defined in `D4xdata.Nominal_d13C_VPDB`, `D4xdata.Nominal_d18O_VPDB`, and `D4xdata.Nominal_D4x`
+		do not require explicit `d47`/`d48`, `D47`/`D48`, `d13C_VPDB` nor `d18O_VPDB` (the nominal values will be used by default).
 		
 		Here is an example of using this method to simulate a given combination of anchors and unknowns:
 
@@ -2253,7 +2261,7 @@ class D4xdata(list):
 
 	def plot_distribution_of_analyses(self, dir = 'output', filename = None, vs_time = False, output = None):
 		'''
-		Plot temporal distribution of all analyses.
+		Plot temporal distribution of all analyses in the data set.
 		
 		__Parameters__
 

@@ -59,7 +59,8 @@ color : #AAA
 <p>Standardization and analytical error propagation of Δ<sub>47</sub> and Δ48 clumped-isotope measurements</p>
 <p>Process and standardize carbonate and/or CO<sub>2</sub> clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
-Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates.</p>
+Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates
+(<a href="https://doi.org/10.1029/2020GC009592">Daëron, 2021</a>).</p>
 <h2 id="usage">Usage</h2>
 <h3 id="1-create-d47data-object">1. Create <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object</h3>
 <p>Start by creating a <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object which will store and process your data.</p>
@@ -450,7 +451,10 @@ Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotop
 
 Process and standardize carbonate and/or CO&lt;sub&gt;2&lt;/sub&gt; clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
-Δ&lt;sub&gt;47&lt;/sub&gt; and Δ&lt;sub&gt;48&lt;/sub&gt; values with fully propagated analytical error estimates.
+Δ&lt;sub&gt;47&lt;/sub&gt; and Δ&lt;sub&gt;48&lt;/sub&gt; values with fully propagated analytical error estimates
+([Daëron, 2021]).
+
+[Daëron, 2021]: https://doi.org/10.1029/2020GC009592
 
 .. include:: ../docs/documentation.md
 &#39;&#39;&#39;
@@ -1412,13 +1416,14 @@ class D4xdata(list):
         def report(self):
                 &#39;&#39;&#39;
                 Prints a report on the standardization fit.
+                Only applicable after `D4xdata.standardize(method=&#39;pooled&#39;)`.
                 &#39;&#39;&#39;
                 report_fit(self.standardization)
 
 
         def combine_samples(self, sample_groups):
                 &#39;&#39;&#39;
-                Combine analyses of different samples to compute weighted average Δ&lt;sub&gt;47&lt;/sub&gt;
+                Combine analyses of different samples to compute weighted average Δ&lt;sub&gt;4x&lt;/sub&gt;
                 and new error (co)variances corresponding to the groups defined by the `sample_groups`
                 dictionary.
                 
@@ -1429,7 +1434,7 @@ class D4xdata(list):
                 Returns a tuplet of:
                 
                 + the list of group names
-                + an array of the corresponding Δ&lt;sub&gt;47&lt;/sub&gt; values
+                + an array of the corresponding Δ&lt;sub&gt;4x&lt;/sub&gt; values
                 + the corresponding (co)variance matrix
                 
                 __Parameters__
@@ -1465,12 +1470,15 @@ class D4xdata(list):
                 constraints = {},
                 ):
                 &#39;&#39;&#39;
-                Compute absolute Δ&lt;sub&gt;47&lt;/sub&gt; values for all replicate analyses and for sample averages.
+                Compute absolute Δ&lt;sub&gt;4x&lt;/sub&gt; values for all replicate analyses and for sample averages.
                 If `method` argument is set to `&#39;pooled&#39;`, the standardization processes all sessions
                 in a single step, assuming that all samples (anchors and unknowns alike) are
-                homogeneous (i.e. that their true Δ&lt;sub&gt;47&lt;/sub&gt; value does not change between sessions).
+                homogeneous, i.e. that their true Δ&lt;sub&gt;4x&lt;/sub&gt; value does not change between sessions,
+                ([Daëron, 2021]).
                 If `method` argument is set to `&#39;indep_sessions&#39;`, the standardization processes each
                 session independently, based only on anchors analyses.
+                
+                [Daëron, 2021]: https://doi.org/10.1029/2020GC009592
                 &#39;&#39;&#39;
 
                 self.standardization_method = method
@@ -1943,22 +1951,22 @@ class D4xdata(list):
 
                 For each anchor sample:
 
-                + `D47`: the nominal Δ&lt;sub&gt;47&lt;/sub&gt; value for this anchor, specified by `self.Nominal_D47`
-                + `SE_D47`: set to zero by definition
+                + `D47` or `D48`: the nominal Δ&lt;sub&gt;4x&lt;/sub&gt; value for this anchor, specified by `self.Nominal_D4x`
+                + `SE_D47` or `SE_D48`: set to zero by definition
 
                 For each unknown sample:
 
-                + `D47`: the standardized Δ&lt;sub&gt;47&lt;/sub&gt; value for this unknown
-                + `SE_D47`: the standard error of Δ&lt;sub&gt;47&lt;/sub&gt; for this unknown
+                + `D47` or `D48`: the standardized Δ&lt;sub&gt;4x&lt;/sub&gt; value for this unknown
+                + `SE_D47` or `SE_D48`: the standard error of Δ&lt;sub&gt;4x&lt;/sub&gt; for this unknown
 
                 For each anchor and unknown:
 
                 + `N`: the total number of analyses of this sample
-                + `SD_D47`: the “sample” (in the statistical sense) standard deviation for this sample
+                + `SD_D47` or `SD_D48`: the “sample” (in the statistical sense) standard deviation for this sample
                 + `d13C_VPDB`: the average δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; value for this sample
                 + `d18O_VSMOW`: the average δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; value for this sample (as CO&lt;sub&gt;2&lt;/sub&gt;)
                 + `p_Levene`: the p-value from a [Levene test] of equal variance, indicating whether
-                the Δ&lt;sub&gt;47&lt;/sub&gt; repeatability this sample differs significantly from that observed
+                the Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability this sample differs significantly from that observed
                 for the reference sample specified by `self.LEVENE_REF_SAMPLE`.
 
                 [Levene test]: https://en.wikipedia.org/wiki/Levene%27s_test
@@ -2018,13 +2026,13 @@ class D4xdata(list):
 
         def consolidate_sessions(self):
                 &#39;&#39;&#39;
-                Compile various statistics for each session.
+                Compute various statistics for each session.
 
                 + `Na`: Number of anchor analyses in the session
                 + `Nu`: Number of unknown analyses in the session
                 + `r_d13C_VPDB`: δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; repeatability of analyses within the session
                 + `r_d18O_VSMOW`: δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; repeatability of analyses within the session
-                + `r_D47`: Δ&lt;sub&gt;47&lt;/sub&gt; repeatability of analyses within the session
+                + `r_D47` or `r_D48`: Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability of analyses within the session
                 + `a`: scrambling factor
                 + `b`: compositional slope
                 + `c`: WG offset
@@ -2143,7 +2151,7 @@ class D4xdata(list):
         def repeatabilities(self):
                 &#39;&#39;&#39;
                 Compute analytical repeatabilities for δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;,
-                δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, Δ&lt;sub&gt;47&lt;/sub&gt; (for all samples, for anchors,
+                δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, Δ&lt;sub&gt;4x&lt;/sub&gt; (for all samples, for anchors,
                 and for unknowns).
                 &#39;&#39;&#39;
                 self.msg(&#39;Computing reproducibilities for all sessions&#39;)
@@ -2180,10 +2188,11 @@ class D4xdata(list):
                 sessions = &#39;all sessions&#39;,
                 ):
                 &#39;&#39;&#39;
-                Compute the root mean squared weighted deviation, χ&lt;sup&gt;2&lt;/sup&gt; and
-                corresponding degrees of freedom of `[r[&#39;D47&#39;] for r in self]`.
+                Compute the χ&lt;sup&gt;2&lt;/sup&gt;, root mean squared weighted deviation
+                (i.e. reduced χ&lt;sup&gt;2&lt;/sup&gt;), and corresponding degrees of freedom of the
+                Δ&lt;sub&gt;4x&lt;/sub&gt; values for samples in `samples` and sessions in `sessions`.
                 
-                Currently used only in `D4xdata.standardize(method = &#39;indep_sessions&#39;)`
+                Only used in `D4xdata.standardize()` with `method=&#39;indep_sessions&#39;`.
                 &#39;&#39;&#39;
                 if samples == &#39;all samples&#39;:
                         mysamples = [k for k in self.samples]
@@ -2258,9 +2267,9 @@ class D4xdata(list):
 
         def sample_average(self, samples, weights = &#39;equal&#39;, normalize = True):
                 &#39;&#39;&#39;
-                Weighted average Δ&lt;sub&gt;47&lt;/sub&gt; value of a group of samples, accounting for covariance.
+                Weighted average Δ&lt;sub&gt;4x&lt;/sub&gt; value of a group of samples, accounting for covariance.
 
-                Returns the weighed average Δ47 value and associated SE
+                Returns the weighed average Δ&lt;sub&gt;4x&lt;/sub&gt; value and associated SE
                 of a group of samples. Weights are equal by default. If `normalize` is
                 true, `weights` will be rescaled so that their sum equals 1.
 
@@ -2270,15 +2279,15 @@ class D4xdata(list):
                 self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])
                 ```
 
-                returns the value and SE of [Δ&lt;sub&gt;47&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;47&lt;/sub&gt;(Y)]/3,
-                where Δ&lt;sub&gt;47&lt;/sub&gt;(X) and Δ&lt;sub&gt;47&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;47&lt;/sub&gt;
+                returns the value and SE of [Δ&lt;sub&gt;4x&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;4x&lt;/sub&gt;(Y)]/3,
+                where Δ&lt;sub&gt;4x&lt;/sub&gt;(X) and Δ&lt;sub&gt;4x&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;4x&lt;/sub&gt;
                 values of samples X and Y, respectively.
 
                 ```python
                 self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)
                 ```
 
-                returns the value and SE of the difference Δ&lt;sub&gt;47&lt;/sub&gt;(X) - Δ&lt;sub&gt;47&lt;/sub&gt;(Y).
+                returns the value and SE of the difference Δ&lt;sub&gt;4x&lt;/sub&gt;(X) - Δ&lt;sub&gt;4x&lt;/sub&gt;(Y).
                 &#39;&#39;&#39;
                 if weights == &#39;equal&#39;:
                         weights = [1/len(samples)] * len(samples)
@@ -4473,13 +4482,14 @@ analyses, usually comprising more than one analytical session.</p>
         def report(self):
                 &#39;&#39;&#39;
                 Prints a report on the standardization fit.
+                Only applicable after `D4xdata.standardize(method=&#39;pooled&#39;)`.
                 &#39;&#39;&#39;
                 report_fit(self.standardization)
 
 
         def combine_samples(self, sample_groups):
                 &#39;&#39;&#39;
-                Combine analyses of different samples to compute weighted average Δ&lt;sub&gt;47&lt;/sub&gt;
+                Combine analyses of different samples to compute weighted average Δ&lt;sub&gt;4x&lt;/sub&gt;
                 and new error (co)variances corresponding to the groups defined by the `sample_groups`
                 dictionary.
                 
@@ -4490,7 +4500,7 @@ analyses, usually comprising more than one analytical session.</p>
                 Returns a tuplet of:
                 
                 + the list of group names
-                + an array of the corresponding Δ&lt;sub&gt;47&lt;/sub&gt; values
+                + an array of the corresponding Δ&lt;sub&gt;4x&lt;/sub&gt; values
                 + the corresponding (co)variance matrix
                 
                 __Parameters__
@@ -4526,12 +4536,15 @@ analyses, usually comprising more than one analytical session.</p>
                 constraints = {},
                 ):
                 &#39;&#39;&#39;
-                Compute absolute Δ&lt;sub&gt;47&lt;/sub&gt; values for all replicate analyses and for sample averages.
+                Compute absolute Δ&lt;sub&gt;4x&lt;/sub&gt; values for all replicate analyses and for sample averages.
                 If `method` argument is set to `&#39;pooled&#39;`, the standardization processes all sessions
                 in a single step, assuming that all samples (anchors and unknowns alike) are
-                homogeneous (i.e. that their true Δ&lt;sub&gt;47&lt;/sub&gt; value does not change between sessions).
+                homogeneous, i.e. that their true Δ&lt;sub&gt;4x&lt;/sub&gt; value does not change between sessions,
+                ([Daëron, 2021]).
                 If `method` argument is set to `&#39;indep_sessions&#39;`, the standardization processes each
                 session independently, based only on anchors analyses.
+                
+                [Daëron, 2021]: https://doi.org/10.1029/2020GC009592
                 &#39;&#39;&#39;
 
                 self.standardization_method = method
@@ -5004,22 +5017,22 @@ analyses, usually comprising more than one analytical session.</p>
 
                 For each anchor sample:
 
-                + `D47`: the nominal Δ&lt;sub&gt;47&lt;/sub&gt; value for this anchor, specified by `self.Nominal_D47`
-                + `SE_D47`: set to zero by definition
+                + `D47` or `D48`: the nominal Δ&lt;sub&gt;4x&lt;/sub&gt; value for this anchor, specified by `self.Nominal_D4x`
+                + `SE_D47` or `SE_D48`: set to zero by definition
 
                 For each unknown sample:
 
-                + `D47`: the standardized Δ&lt;sub&gt;47&lt;/sub&gt; value for this unknown
-                + `SE_D47`: the standard error of Δ&lt;sub&gt;47&lt;/sub&gt; for this unknown
+                + `D47` or `D48`: the standardized Δ&lt;sub&gt;4x&lt;/sub&gt; value for this unknown
+                + `SE_D47` or `SE_D48`: the standard error of Δ&lt;sub&gt;4x&lt;/sub&gt; for this unknown
 
                 For each anchor and unknown:
 
                 + `N`: the total number of analyses of this sample
-                + `SD_D47`: the “sample” (in the statistical sense) standard deviation for this sample
+                + `SD_D47` or `SD_D48`: the “sample” (in the statistical sense) standard deviation for this sample
                 + `d13C_VPDB`: the average δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; value for this sample
                 + `d18O_VSMOW`: the average δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; value for this sample (as CO&lt;sub&gt;2&lt;/sub&gt;)
                 + `p_Levene`: the p-value from a [Levene test] of equal variance, indicating whether
-                the Δ&lt;sub&gt;47&lt;/sub&gt; repeatability this sample differs significantly from that observed
+                the Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability this sample differs significantly from that observed
                 for the reference sample specified by `self.LEVENE_REF_SAMPLE`.
 
                 [Levene test]: https://en.wikipedia.org/wiki/Levene%27s_test
@@ -5079,13 +5092,13 @@ analyses, usually comprising more than one analytical session.</p>
 
         def consolidate_sessions(self):
                 &#39;&#39;&#39;
-                Compile various statistics for each session.
+                Compute various statistics for each session.
 
                 + `Na`: Number of anchor analyses in the session
                 + `Nu`: Number of unknown analyses in the session
                 + `r_d13C_VPDB`: δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; repeatability of analyses within the session
                 + `r_d18O_VSMOW`: δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; repeatability of analyses within the session
-                + `r_D47`: Δ&lt;sub&gt;47&lt;/sub&gt; repeatability of analyses within the session
+                + `r_D47` or `r_D48`: Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability of analyses within the session
                 + `a`: scrambling factor
                 + `b`: compositional slope
                 + `c`: WG offset
@@ -5204,7 +5217,7 @@ analyses, usually comprising more than one analytical session.</p>
         def repeatabilities(self):
                 &#39;&#39;&#39;
                 Compute analytical repeatabilities for δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;,
-                δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, Δ&lt;sub&gt;47&lt;/sub&gt; (for all samples, for anchors,
+                δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, Δ&lt;sub&gt;4x&lt;/sub&gt; (for all samples, for anchors,
                 and for unknowns).
                 &#39;&#39;&#39;
                 self.msg(&#39;Computing reproducibilities for all sessions&#39;)
@@ -5241,10 +5254,11 @@ analyses, usually comprising more than one analytical session.</p>
                 sessions = &#39;all sessions&#39;,
                 ):
                 &#39;&#39;&#39;
-                Compute the root mean squared weighted deviation, χ&lt;sup&gt;2&lt;/sup&gt; and
-                corresponding degrees of freedom of `[r[&#39;D47&#39;] for r in self]`.
+                Compute the χ&lt;sup&gt;2&lt;/sup&gt;, root mean squared weighted deviation
+                (i.e. reduced χ&lt;sup&gt;2&lt;/sup&gt;), and corresponding degrees of freedom of the
+                Δ&lt;sub&gt;4x&lt;/sub&gt; values for samples in `samples` and sessions in `sessions`.
                 
-                Currently used only in `D4xdata.standardize(method = &#39;indep_sessions&#39;)`
+                Only used in `D4xdata.standardize()` with `method=&#39;indep_sessions&#39;`.
                 &#39;&#39;&#39;
                 if samples == &#39;all samples&#39;:
                         mysamples = [k for k in self.samples]
@@ -5319,9 +5333,9 @@ analyses, usually comprising more than one analytical session.</p>
 
         def sample_average(self, samples, weights = &#39;equal&#39;, normalize = True):
                 &#39;&#39;&#39;
-                Weighted average Δ&lt;sub&gt;47&lt;/sub&gt; value of a group of samples, accounting for covariance.
+                Weighted average Δ&lt;sub&gt;4x&lt;/sub&gt; value of a group of samples, accounting for covariance.
 
-                Returns the weighed average Δ47 value and associated SE
+                Returns the weighed average Δ&lt;sub&gt;4x&lt;/sub&gt; value and associated SE
                 of a group of samples. Weights are equal by default. If `normalize` is
                 true, `weights` will be rescaled so that their sum equals 1.
 
@@ -5331,15 +5345,15 @@ analyses, usually comprising more than one analytical session.</p>
                 self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])
                 ```
 
-                returns the value and SE of [Δ&lt;sub&gt;47&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;47&lt;/sub&gt;(Y)]/3,
-                where Δ&lt;sub&gt;47&lt;/sub&gt;(X) and Δ&lt;sub&gt;47&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;47&lt;/sub&gt;
+                returns the value and SE of [Δ&lt;sub&gt;4x&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;4x&lt;/sub&gt;(Y)]/3,
+                where Δ&lt;sub&gt;4x&lt;/sub&gt;(X) and Δ&lt;sub&gt;4x&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;4x&lt;/sub&gt;
                 values of samples X and Y, respectively.
 
                 ```python
                 self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)
                 ```
 
-                returns the value and SE of the difference Δ&lt;sub&gt;47&lt;/sub&gt;(X) - Δ&lt;sub&gt;47&lt;/sub&gt;(Y).
+                returns the value and SE of the difference Δ&lt;sub&gt;4x&lt;/sub&gt;(X) - Δ&lt;sub&gt;4x&lt;/sub&gt;(Y).
                 &#39;&#39;&#39;
                 if weights == &#39;equal&#39;:
                         weights = [1/len(samples)] * len(samples)
@@ -5968,7 +5982,7 @@ in the dataset and <code>t</code> is defined as above.</p></div>
 <span>def <span class="ident">combine_samples</span></span>(<span>self, sample_groups)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Combine analyses of different samples to compute weighted average Δ<sub>47</sub>
+<div class="desc"><p>Combine analyses of different samples to compute weighted average Δ<sub>4x</sub>
 and new error (co)variances corresponding to the groups defined by the <code>sample_groups</code>
 dictionary.</p>
 <p>Caution: samples are weighted by number of replicate analyses, which is a
@@ -5977,7 +5991,7 @@ correlated analytical errors for one or more samples).</p>
 <p>Returns a tuplet of:</p>
 <ul>
 <li>the list of group names</li>
-<li>an array of the corresponding Δ<sub>47</sub> values</li>
+<li>an array of the corresponding Δ<sub>4x</sub> values</li>
 <li>the corresponding (co)variance matrix</li>
 </ul>
 <p><strong>Parameters</strong></p>
@@ -5993,7 +6007,7 @@ correlated analytical errors for one or more samples).</p>
 </summary>
 <pre><code class="python">def combine_samples(self, sample_groups):
         &#39;&#39;&#39;
-        Combine analyses of different samples to compute weighted average Δ&lt;sub&gt;47&lt;/sub&gt;
+        Combine analyses of different samples to compute weighted average Δ&lt;sub&gt;4x&lt;/sub&gt;
         and new error (co)variances corresponding to the groups defined by the `sample_groups`
         dictionary.
         
@@ -6004,7 +6018,7 @@ correlated analytical errors for one or more samples).</p>
         Returns a tuplet of:
         
         + the list of group names
-        + an array of the corresponding Δ&lt;sub&gt;47&lt;/sub&gt; values
+        + an array of the corresponding Δ&lt;sub&gt;4x&lt;/sub&gt; values
         + the corresponding (co)variance matrix
         
         __Parameters__
@@ -6277,22 +6291,22 @@ def consolidate(self, tables = True, plots = True):
 <div class="desc"><p>Compile various statistics for each sample.</p>
 <p>For each anchor sample:</p>
 <ul>
-<li><code>D47</code>: the nominal Δ<sub>47</sub> value for this anchor, specified by <code>self.Nominal_D47</code></li>
-<li><code>SE_D47</code>: set to zero by definition</li>
+<li><code>D47</code> or <code>D48</code>: the nominal Δ<sub>4x</sub> value for this anchor, specified by <code>self.Nominal_D4x</code></li>
+<li><code>SE_D47</code> or <code>SE_D48</code>: set to zero by definition</li>
 </ul>
 <p>For each unknown sample:</p>
 <ul>
-<li><code>D47</code>: the standardized Δ<sub>47</sub> value for this unknown</li>
-<li><code>SE_D47</code>: the standard error of Δ<sub>47</sub> for this unknown</li>
+<li><code>D47</code> or <code>D48</code>: the standardized Δ<sub>4x</sub> value for this unknown</li>
+<li><code>SE_D47</code> or <code>SE_D48</code>: the standard error of Δ<sub>4x</sub> for this unknown</li>
 </ul>
 <p>For each anchor and unknown:</p>
 <ul>
 <li><code>N</code>: the total number of analyses of this sample</li>
-<li><code>SD_D47</code>: the “sample” (in the statistical sense) standard deviation for this sample</li>
+<li><code>SD_D47</code> or <code>SD_D48</code>: the “sample” (in the statistical sense) standard deviation for this sample</li>
 <li><code>d13C_VPDB</code>: the average δ<sup>13</sup>C<sub>VPDB</sub> value for this sample</li>
 <li><code>d18O_VSMOW</code>: the average δ<sup>18</sup>O<sub>VSMOW</sub> value for this sample (as CO<sub>2</sub>)</li>
 <li><code>p_Levene</code>: the p-value from a <a href="https://en.wikipedia.org/wiki/Levene%27s_test">Levene test</a> of equal variance, indicating whether
-the Δ<sub>47</sub> repeatability this sample differs significantly from that observed
+the Δ<sub>4x</sub> repeatability this sample differs significantly from that observed
 for the reference sample specified by <code>self.LEVENE_REF_SAMPLE</code>.</li>
 </ul></div>
 <details class="source">
@@ -6306,22 +6320,22 @@ def consolidate_samples(self):
 
         For each anchor sample:
 
-        + `D47`: the nominal Δ&lt;sub&gt;47&lt;/sub&gt; value for this anchor, specified by `self.Nominal_D47`
-        + `SE_D47`: set to zero by definition
+        + `D47` or `D48`: the nominal Δ&lt;sub&gt;4x&lt;/sub&gt; value for this anchor, specified by `self.Nominal_D4x`
+        + `SE_D47` or `SE_D48`: set to zero by definition
 
         For each unknown sample:
 
-        + `D47`: the standardized Δ&lt;sub&gt;47&lt;/sub&gt; value for this unknown
-        + `SE_D47`: the standard error of Δ&lt;sub&gt;47&lt;/sub&gt; for this unknown
+        + `D47` or `D48`: the standardized Δ&lt;sub&gt;4x&lt;/sub&gt; value for this unknown
+        + `SE_D47` or `SE_D48`: the standard error of Δ&lt;sub&gt;4x&lt;/sub&gt; for this unknown
 
         For each anchor and unknown:
 
         + `N`: the total number of analyses of this sample
-        + `SD_D47`: the “sample” (in the statistical sense) standard deviation for this sample
+        + `SD_D47` or `SD_D48`: the “sample” (in the statistical sense) standard deviation for this sample
         + `d13C_VPDB`: the average δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; value for this sample
         + `d18O_VSMOW`: the average δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; value for this sample (as CO&lt;sub&gt;2&lt;/sub&gt;)
         + `p_Levene`: the p-value from a [Levene test] of equal variance, indicating whether
-        the Δ&lt;sub&gt;47&lt;/sub&gt; repeatability this sample differs significantly from that observed
+        the Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability this sample differs significantly from that observed
         for the reference sample specified by `self.LEVENE_REF_SAMPLE`.
 
         [Levene test]: https://en.wikipedia.org/wiki/Levene%27s_test
@@ -6383,13 +6397,13 @@ def consolidate_samples(self):
 <span>def <span class="ident">consolidate_sessions</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compile various statistics for each session.</p>
+<div class="desc"><p>Compute various statistics for each session.</p>
 <ul>
 <li><code>Na</code>: Number of anchor analyses in the session</li>
 <li><code>Nu</code>: Number of unknown analyses in the session</li>
 <li><code>r_d13C_VPDB</code>: δ<sup>13</sup>C<sub>VPDB</sub> repeatability of analyses within the session</li>
 <li><code>r_d18O_VSMOW</code>: δ<sup>18</sup>O<sub>VSMOW</sub> repeatability of analyses within the session</li>
-<li><code>r_D47</code>: Δ<sub>47</sub> repeatability of analyses within the session</li>
+<li><code>r_D47</code> or <code>r_D48</code>: Δ<sub>4x</sub> repeatability of analyses within the session</li>
 <li><code>a</code>: scrambling factor</li>
 <li><code>b</code>: compositional slope</li>
 <li><code>c</code>: WG offset</li>
@@ -6413,13 +6427,13 @@ def consolidate_samples(self):
 </summary>
 <pre><code class="python">def consolidate_sessions(self):
         &#39;&#39;&#39;
-        Compile various statistics for each session.
+        Compute various statistics for each session.
 
         + `Na`: Number of anchor analyses in the session
         + `Nu`: Number of unknown analyses in the session
         + `r_d13C_VPDB`: δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; repeatability of analyses within the session
         + `r_d18O_VSMOW`: δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; repeatability of analyses within the session
-        + `r_D47`: Δ&lt;sub&gt;47&lt;/sub&gt; repeatability of analyses within the session
+        + `r_D47` or `r_D48`: Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability of analyses within the session
         + `a`: scrambling factor
         + `b`: compositional slope
         + `c`: WG offset
@@ -7197,7 +7211,7 @@ to <code>False</code> for all sessions.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute analytical repeatabilities for δ<sup>13</sup>C<sub>VPDB</sub>,
-δ<sup>18</sup>O<sub>VSMOW</sub>, Δ<sub>47</sub> (for all samples, for anchors,
+δ<sup>18</sup>O<sub>VSMOW</sub>, Δ<sub>4x</sub> (for all samples, for anchors,
 and for unknowns).</p></div>
 <details class="source">
 <summary>
@@ -7207,7 +7221,7 @@ and for unknowns).</p></div>
 def repeatabilities(self):
         &#39;&#39;&#39;
         Compute analytical repeatabilities for δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;,
-        δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, Δ&lt;sub&gt;47&lt;/sub&gt; (for all samples, for anchors,
+        δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, Δ&lt;sub&gt;4x&lt;/sub&gt; (for all samples, for anchors,
         and for unknowns).
         &#39;&#39;&#39;
         self.msg(&#39;Computing reproducibilities for all sessions&#39;)
@@ -7223,7 +7237,8 @@ def repeatabilities(self):
 <span>def <span class="ident">report</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Prints a report on the standardization fit.</p></div>
+<div class="desc"><p>Prints a report on the standardization fit.
+Only applicable after <code>D4xdata.standardize(method='pooled')</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -7231,6 +7246,7 @@ def repeatabilities(self):
 <pre><code class="python">def report(self):
         &#39;&#39;&#39;
         Prints a report on the standardization fit.
+        Only applicable after `D4xdata.standardize(method=&#39;pooled&#39;)`.
         &#39;&#39;&#39;
         report_fit(self.standardization)</code></pre>
 </details>
@@ -7239,9 +7255,10 @@ def repeatabilities(self):
 <span>def <span class="ident">rmswd</span></span>(<span>self, samples='all samples', sessions='all sessions')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute the root mean squared weighted deviation, χ<sup>2</sup> and
-corresponding degrees of freedom of <code>[r['D47'] for r in self]</code>.</p>
-<p>Currently used only in <code>D4xdata.standardize(method = 'indep_sessions')</code></p></div>
+<div class="desc"><p>Compute the χ<sup>2</sup>, root mean squared weighted deviation
+(i.e. reduced χ<sup>2</sup>), and corresponding degrees of freedom of the
+Δ<sub>4x</sub> values for samples in <code>samples</code> and sessions in <code>sessions</code>.</p>
+<p>Only used in <code><a title="D47crunch.D4xdata.standardize" href="#D47crunch.D4xdata.standardize">D4xdata.standardize()</a></code> with <code>method='indep_sessions'</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -7252,10 +7269,11 @@ def rmswd(self,
         sessions = &#39;all sessions&#39;,
         ):
         &#39;&#39;&#39;
-        Compute the root mean squared weighted deviation, χ&lt;sup&gt;2&lt;/sup&gt; and
-        corresponding degrees of freedom of `[r[&#39;D47&#39;] for r in self]`.
+        Compute the χ&lt;sup&gt;2&lt;/sup&gt;, root mean squared weighted deviation
+        (i.e. reduced χ&lt;sup&gt;2&lt;/sup&gt;), and corresponding degrees of freedom of the
+        Δ&lt;sub&gt;4x&lt;/sub&gt; values for samples in `samples` and sessions in `sessions`.
         
-        Currently used only in `D4xdata.standardize(method = &#39;indep_sessions&#39;)`
+        Only used in `D4xdata.standardize()` with `method=&#39;indep_sessions&#39;`.
         &#39;&#39;&#39;
         if samples == &#39;all samples&#39;:
                 mysamples = [k for k in self.samples]
@@ -7362,28 +7380,28 @@ returns the Δ<sub>47</sub> variance for that sample.</p></div>
 <span>def <span class="ident">sample_average</span></span>(<span>self, samples, weights='equal', normalize=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Weighted average Δ<sub>47</sub> value of a group of samples, accounting for covariance.</p>
-<p>Returns the weighed average Δ47 value and associated SE
+<div class="desc"><p>Weighted average Δ<sub>4x</sub> value of a group of samples, accounting for covariance.</p>
+<p>Returns the weighed average Δ<sub>4x</sub> value and associated SE
 of a group of samples. Weights are equal by default. If <code>normalize</code> is
 true, <code>weights</code> will be rescaled so that their sum equals 1.</p>
 <p><strong>Examples</strong></p>
 <pre><code class="language-python">self.sample_average(['X','Y'], [1, 2])
 </code></pre>
-<p>returns the value and SE of [Δ<sub>47</sub>(X) + 2 Δ<sub>47</sub>(Y)]/3,
-where Δ<sub>47</sub>(X) and Δ<sub>47</sub>(Y) are the average Δ<sub>47</sub>
+<p>returns the value and SE of [Δ<sub>4x</sub>(X) + 2 Δ<sub>4x</sub>(Y)]/3,
+where Δ<sub>4x</sub>(X) and Δ<sub>4x</sub>(Y) are the average Δ<sub>4x</sub>
 values of samples X and Y, respectively.</p>
 <pre><code class="language-python">self.sample_average(['X','Y'], [1, -1], normalize = False)
 </code></pre>
-<p>returns the value and SE of the difference Δ<sub>47</sub>(X) - Δ<sub>47</sub>(Y).</p></div>
+<p>returns the value and SE of the difference Δ<sub>4x</sub>(X) - Δ<sub>4x</sub>(Y).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">        def sample_average(self, samples, weights = &#39;equal&#39;, normalize = True):
                 &#39;&#39;&#39;
-                Weighted average Δ&lt;sub&gt;47&lt;/sub&gt; value of a group of samples, accounting for covariance.
+                Weighted average Δ&lt;sub&gt;4x&lt;/sub&gt; value of a group of samples, accounting for covariance.
 
-                Returns the weighed average Δ47 value and associated SE
+                Returns the weighed average Δ&lt;sub&gt;4x&lt;/sub&gt; value and associated SE
                 of a group of samples. Weights are equal by default. If `normalize` is
                 true, `weights` will be rescaled so that their sum equals 1.
 
@@ -7393,15 +7411,15 @@ values of samples X and Y, respectively.</p>
                 self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])
                 ```
 
-                returns the value and SE of [Δ&lt;sub&gt;47&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;47&lt;/sub&gt;(Y)]/3,
-                where Δ&lt;sub&gt;47&lt;/sub&gt;(X) and Δ&lt;sub&gt;47&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;47&lt;/sub&gt;
+                returns the value and SE of [Δ&lt;sub&gt;4x&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;4x&lt;/sub&gt;(Y)]/3,
+                where Δ&lt;sub&gt;4x&lt;/sub&gt;(X) and Δ&lt;sub&gt;4x&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;4x&lt;/sub&gt;
                 values of samples X and Y, respectively.
 
                 ```python
                 self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)
                 ```
 
-                returns the value and SE of the difference Δ&lt;sub&gt;47&lt;/sub&gt;(X) - Δ&lt;sub&gt;47&lt;/sub&gt;(Y).
+                returns the value and SE of the difference Δ&lt;sub&gt;4x&lt;/sub&gt;(X) - Δ&lt;sub&gt;4x&lt;/sub&gt;(Y).
                 &#39;&#39;&#39;
                 if weights == &#39;equal&#39;:
                         weights = [1/len(samples)] * len(samples)
@@ -7688,10 +7706,11 @@ different samples).</p>
 <span>def <span class="ident">standardize</span></span>(<span>self, method='pooled', weighted_sessions=[], consolidate=True, consolidate_tables=False, consolidate_plots=False, constraints={})</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute absolute Δ<sub>47</sub> values for all replicate analyses and for sample averages.
+<div class="desc"><p>Compute absolute Δ<sub>4x</sub> values for all replicate analyses and for sample averages.
 If <code>method</code> argument is set to <code>'pooled'</code>, the standardization processes all sessions
 in a single step, assuming that all samples (anchors and unknowns alike) are
-homogeneous (i.e. that their true Δ<sub>47</sub> value does not change between sessions).
+homogeneous, i.e. that their true Δ<sub>4x</sub> value does not change between sessions,
+(<a href="https://doi.org/10.1029/2020GC009592">Daëron, 2021</a>).
 If <code>method</code> argument is set to <code>'indep_sessions'</code>, the standardization processes each
 session independently, based only on anchors analyses.</p></div>
 <details class="source">
@@ -7708,12 +7727,15 @@ session independently, based only on anchors analyses.</p></div>
                 constraints = {},
                 ):
                 &#39;&#39;&#39;
-                Compute absolute Δ&lt;sub&gt;47&lt;/sub&gt; values for all replicate analyses and for sample averages.
+                Compute absolute Δ&lt;sub&gt;4x&lt;/sub&gt; values for all replicate analyses and for sample averages.
                 If `method` argument is set to `&#39;pooled&#39;`, the standardization processes all sessions
                 in a single step, assuming that all samples (anchors and unknowns alike) are
-                homogeneous (i.e. that their true Δ&lt;sub&gt;47&lt;/sub&gt; value does not change between sessions).
+                homogeneous, i.e. that their true Δ&lt;sub&gt;4x&lt;/sub&gt; value does not change between sessions,
+                ([Daëron, 2021]).
                 If `method` argument is set to `&#39;indep_sessions&#39;`, the standardization processes each
                 session independently, based only on anchors analyses.
+                
+                [Daëron, 2021]: https://doi.org/10.1029/2020GC009592
                 &#39;&#39;&#39;
 
                 self.standardization_method = method
