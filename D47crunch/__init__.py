@@ -4,7 +4,7 @@ Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotop
 
 Process and standardize carbonate and/or CO<sub>2</sub> clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
-Δ<sub>47</sub> and Δ<sub>478</sub> values with fully propagated analytical error estimates.
+Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates.
 
 .. include:: ../docs/documentation.md
 '''
