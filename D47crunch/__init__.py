@@ -16,8 +16,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2021 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2021-07-21'
-__version__   = '2.0-beta'
+__date__      = '2021-07-26'
+__version__   = '2.0.0-beta'
 
 import os
 import numpy as np
@@ -2472,3 +2472,4 @@ class D48data(D4xdata):
 class SessionPlot():
 	def __init__(self):
 		pass
+
