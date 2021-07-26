@@ -1930,9 +1930,9 @@ class D4xdata(list):
 		Generate plot for a single session
 		'''
 		if x_label is None:
-			x_label = f'δ$_{{{self._4x}}}$ (‰)',
+			x_label = f'δ$_{{{self._4x}}}$ (‰)'
 		if y_label is None:
-			y_label = f'Δ$_{{{self._4x}}}$ (‰)',
+			y_label = f'Δ$_{{{self._4x}}}$ (‰)'
 
 		out = SessionPlot()
 		anchors = [a for a in self.anchors if [r for r in self.sessions[session]['data'] if r['Sample'] == a]]
@@ -1956,14 +1956,14 @@ class D4xdata(list):
 				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
 				]) for sample in anchors]).T,
 			np.array([ np.array([0, 0]) + self.Nominal_D4x[sample] for sample in anchors]).T,
-			'-', **kw_plot_anchor_avg)
+			**kw_plot_anchor_avg)
 		out.unknown_avg = ppl.plot(
 			np.array([ np.array([
 				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
 				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
 				]) for sample in unknowns]).T,
 			np.array([ np.array([0, 0]) + self.unknowns[sample][f'D{self._4x}'] for sample in unknowns]).T,
-			'-', **kw_plot_unknown_avg)
+			**kw_plot_unknown_avg)
 		if xylimits == 'constant':
 			x = [r[f'd{self._4x}'] for r in self]
 			y = [r[f'D{self._4x}'] for r in self]
