@@ -2201,7 +2201,12 @@ class D4xdata(list):
 			rng = nprandom.default_rng()
 		
 		if samples is None:
-			samples = [dict(Sample = s, N = 4) for s in self.Nominal_D4x]
+			samples = [
+				dict(Sample = s, N = 4)
+				for s in self.Nominal_D4x
+				if s in self.Nominal_d13C_VPDB
+				and s in self.Nominal_d18O_VPDB
+				]
 			samples += [{
 				'Sample': 'FOO',
 				f'd{self._4x}': 0.,
@@ -2245,12 +2250,13 @@ class D4xdata(list):
 				s[f'd{self._4x}'] = (R4xs/R4xwg-1)*1000
 					
 			while s['N']:
+				print(s['Sample'], s['N'])
 				self.append({
 					'Sample': s['Sample'],
 					'd13Cwg_VPDB': 0.,
 					'd18Owg_VSMOW': (self.R18_VSMOW * self.ALPHA_18O_ACID_REACTION - 1) * 1000,
-					'd13C_VPDB': self['d13C_VPDB'],
-					'd18O_VSMOW': self['d18O_VPDB'],
+					'd13C_VPDB': s['d13C_VPDB'] if 'd13C_VPDB' in s else np.nan,
+					'd18O_VSMOW': ((1000 + s['d18O_VPDB']) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000) if 'd18O_VPDB' in s else np.nan,
 					f'd{self._4x}': s[f'd{self._4x}'],
 					f'D{self._4x}raw': a * (s[f'D{self._4x}'] + errors[k]) + b * s[f'd{self._4x}'] + c,
 					})
