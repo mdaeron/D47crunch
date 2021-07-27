@@ -2250,7 +2250,6 @@ class D4xdata(list):
 				s[f'd{self._4x}'] = (R4xs/R4xwg-1)*1000
 					
 			while s['N']:
-				print(s['Sample'], s['N'])
 				self.append({
 					'Sample': s['Sample'],
 					'd13Cwg_VPDB': 0.,
