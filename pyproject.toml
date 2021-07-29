@@ -1,26 +1,27 @@
-[tool.poetry]
-name = "D47crunch"
-version = "2.0.0-beta"
-description = "Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotope measurements"
-authors = ["Mathieu Daëron <mathieu@daeron.fr>"]
-license = "3-Clause BSD"
-packages = [
-    { include = "D47crunch" },
-]
-
-[tool.poetry.dependencies]
-python = ">= 3.8, < 3.10"
-numpy = "^1.21.1"
-scipy = "^1.7.0"
-lmfit = "^1.0.2"
-matplotlib = "^3.4.2"
-flit = "^3.2.0"
-
-[tool.poetry.dev-dependencies]
-pdoc3 = "^0.9.2"
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
 
+[tool.flit.metadata]
+module = "D47crunch"
+author = "Mathieu Daëron"
+author-email = "daeron@lsce.ipsl.fr"
+home-page = "https://github.com/mdaeron/D47crunch"
+requires = [
+	"lmfit >= 1.0.2",
+	"matplotlib >= 3.4.2",
+	"numpy >= 1.21.1",
+	"scipy >= 1.7.0",
+	]
+description-file = "README.md"
+requires-python = ">=3.8"
+keywords = "geochemistry, clumped isotopes"
+license = "BSD-3-Clause"
+classifiers = [
+	"Programming Language :: Python :: 3",
+	"License :: OSI Approved :: BSD License",
+	"Operating System :: OS Independent",
+	]
 
+[tool.flit.metadata.urls]
+Documentation = "https://mdaeron.github.io/D47crunch"
