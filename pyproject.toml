@@ -8,10 +8,10 @@ author = "Mathieu Daëron"
 author-email = "daeron@lsce.ipsl.fr"
 home-page = "https://github.com/mdaeron/D47crunch"
 requires = [
-	"lmfit >= 1.0.2",
-	"matplotlib >= 3.4.2",
-	"numpy >= 1.21.1",
-	"scipy >= 1.7.0",
+	"lmfit ~= 1.0",
+	"matplotlib ~= 3.4",
+	"numpy ~= 1.21",
+	"scipy ~= 1.7",
 	]
 description-file = "readme.md"
 requires-python = ">=3.8"
