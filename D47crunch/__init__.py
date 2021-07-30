@@ -1184,7 +1184,7 @@ class D4xdata(list):
 				for r in sdata :
 					a, b, c, a2, b2, c2 = s['a'], s['b'], s['c'], s['a2'], s['b2'], s['c2']
 					r[f'D{self._4x}'] = (r[f'D{self._4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
-					r[f'wD{self._4x}'] /= (a + a2 * r['t'])
+					r[f'wD{self._4x}'] = r[f'wD{self._4x}raw'] / (a + a2 * r['t'])
 
 				s['CM'] = np.zeros((6,6))
 				i = 0
