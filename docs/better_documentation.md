@@ -34,9 +34,9 @@ To load the analyses saved in `rawdata.csv` into our `D47data` object and proces
 
 ```python
 mydata.read('rawdata.csv')
-mydata.wg()
-mydata.crunch()
-mydata.standardize()
+mydata.wg()          # compute δ13C, δ18O of working gas
+mydata.crunch()      # compute all δ13C, δ18O and raw Δ47 values
+mydata.standardize() # compute absolute Δ47 values
 ```
 
 We can now print a summary of the data processing:
@@ -58,9 +58,9 @@ Standardization method              pooled
 –––––––––––––––––––––––––––––––  –––––––––
 ```
 
-This tells us that our data set contains 5 different samples: 3 anchors (ETH-1, ETH-2, ETH-3) and 2 unknowns (MYSAMPLE-1, MYSAMPLE-2). The total number of analyses is 8, with 5 anchor analyses and 3 unknown analyses. We get an estimate of the analytical repeatability (i.e. the overall, pooled standard deviation) for δ<sup>13</sup>C, δ<sup>18</sup>O and Δ<sub>47</sub>, as well as the number of degrees of freedom (here, 3) that these estimated standard deviations are based on, along with the corresponding Student's t-factor (here, 3.18) for 95&nbsp;% confidence limits. Finally, the summary indicates that a pooled standardization approach was used (see [Daëron, 2021](https://dx.doi.org/10.1029/2020GC009592)).
+This tells us that our data set contains 5 different samples: 3 anchors (ETH-1, ETH-2, ETH-3) and 2 unknowns (MYSAMPLE-1, MYSAMPLE-2). The total number of analyses is 8, with 5 anchor analyses and 3 unknown analyses. We get an estimate of the analytical repeatability (i.e. the overall, pooled standard deviation) for δ<sup>13</sup>C, δ<sup>18</sup>O and Δ<sub>47</sub>, as well as the number of degrees of freedom (here, 3) that these estimated standard deviations are based on, along with the corresponding Student's t-factor (here, 3.18) for 95&nbsp;% confidence limits. Finally, the summary indicates that we used a “pooled” standardization approach (see [Daëron, 2021](https://dx.doi.org/10.1029/2020GC009592)).
 
-To see the results:
+To see the actual results:
 
 ```csv
 >>> mydata.table_of_samples(verbose = True, save_to_file = False)
@@ -78,7 +78,7 @@ MYSAMPLE-2  2      -8.17       30.05  0.6600  0.0115  ± 0.0366  0.0025
 
 This table lists, for each sample, the number of analytical replicates, average δ<sup>13</sup>C and δ<sup>18</sup>O values (for the analyte CO<sub>2</sub> , _not_ for the carbonate itself), the average Δ<sub>47</sub> value and the SD of Δ<sub>47</sub> for all replicates of this sample. For unknown samples, the SE and 95 % confidence limits for mean Δ<sub>47</sub> are also listed These 95 % CL take into account the number of degrees of freedom of the regression model, so that in large datasets the 95 % CL will tend to 1.96 times the SE, but in this case the applicable t-factor is much larger.
 
-We can also generate a table of all analyses in the data set:
+We can also generate a table of all analyses in the data set (again, note that `d18O_VSMOW` is the composition of the CO<sub>2</sub> analyte):
 
 ```csv
 >>> mydata.table_of_analyses(verbose = True, save_to_file = False)
@@ -96,8 +96,6 @@ A07  mySession       ETH-1       -3.807        24.921   5.788210  11.559100   16
 A08  mySession  MYSAMPLE-2       -3.807        24.921  -3.876920   4.868890    0.521850   10.403900  1.070320   -8.173486   30.011134  -0.245768   0.636159   -4.324964  0.661803
 –––  –––––––––  ––––––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––
 ```
-
-This table lists, for
 
 ## How-to
 
