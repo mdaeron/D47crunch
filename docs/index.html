@@ -463,8 +463,8 @@ __author__    = &#39;Mathieu Daëron&#39;
 __contact__   = &#39;daeron@lsce.ipsl.fr&#39;
 __copyright__ = &#39;Copyright (c) 2021 Mathieu Daëron&#39;
 __license__   = &#39;Modified BSD License - https://opensource.org/licenses/BSD-3-Clause&#39;
-__date__      = &#39;2021-07-21&#39;
-__version__   = &#39;2.0-beta&#39;
+__date__      = &#39;2021-07-26&#39;
+__version__   = &#39;2.0.0-beta&#39;
 
 import os
 import numpy as np
@@ -1631,7 +1631,7 @@ class D4xdata(list):
                                 for r in sdata :
                                         a, b, c, a2, b2, c2 = s[&#39;a&#39;], s[&#39;b&#39;], s[&#39;c&#39;], s[&#39;a2&#39;], s[&#39;b2&#39;], s[&#39;c2&#39;]
                                         r[f&#39;D{self._4x}&#39;] = (r[f&#39;D{self._4x}raw&#39;] - c - b * r[f&#39;d{self._4x}&#39;] - c2 * r[&#39;t&#39;] - b2 * r[&#39;t&#39;] * r[f&#39;d{self._4x}&#39;]) / (a + a2 * r[&#39;t&#39;])
-                                        r[f&#39;wD{self._4x}&#39;] /= (a + a2 * r[&#39;t&#39;])
+                                        r[f&#39;wD{self._4x}&#39;] = r[f&#39;wD{self._4x}raw&#39;] / (a + a2 * r[&#39;t&#39;])
 
                                 s[&#39;CM&#39;] = np.zeros((6,6))
                                 i = 0
@@ -2377,9 +2377,9 @@ class D4xdata(list):
                 Generate plot for a single session
                 &#39;&#39;&#39;
                 if x_label is None:
-                        x_label = f&#39;δ$_{{{self._4x}}}$ (‰)&#39;,
+                        x_label = f&#39;δ$_{{{self._4x}}}$ (‰)&#39;
                 if y_label is None:
-                        y_label = f&#39;Δ$_{{{self._4x}}}$ (‰)&#39;,
+                        y_label = f&#39;Δ$_{{{self._4x}}}$ (‰)&#39;
 
                 out = SessionPlot()
                 anchors = [a for a in self.anchors if [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == a]]
@@ -2403,14 +2403,14 @@ class D4xdata(list):
                                 np.max([r[f&#39;d{self._4x}&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
                                 ]) for sample in anchors]).T,
                         np.array([ np.array([0, 0]) + self.Nominal_D4x[sample] for sample in anchors]).T,
-                        &#39;-&#39;, **kw_plot_anchor_avg)
+                        **kw_plot_anchor_avg)
                 out.unknown_avg = ppl.plot(
                         np.array([ np.array([
                                 np.min([r[f&#39;d{self._4x}&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) - 1,
                                 np.max([r[f&#39;d{self._4x}&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
                                 ]) for sample in unknowns]).T,
                         np.array([ np.array([0, 0]) + self.unknowns[sample][f&#39;D{self._4x}&#39;] for sample in unknowns]).T,
-                        &#39;-&#39;, **kw_plot_unknown_avg)
+                        **kw_plot_unknown_avg)
                 if xylimits == &#39;constant&#39;:
                         x = [r[f&#39;d{self._4x}&#39;] for r in self]
                         y = [r[f&#39;D{self._4x}&#39;] for r in self]
@@ -2648,7 +2648,12 @@ class D4xdata(list):
                         rng = nprandom.default_rng()
                 
                 if samples is None:
-                        samples = [dict(Sample = s, N = 4) for s in self.Nominal_D4x]
+                        samples = [
+                                dict(Sample = s, N = 4)
+                                for s in self.Nominal_D4x
+                                if s in self.Nominal_d13C_VPDB
+                                and s in self.Nominal_d18O_VPDB
+                                ]
                         samples += [{
                                 &#39;Sample&#39;: &#39;FOO&#39;,
                                 f&#39;d{self._4x}&#39;: 0.,
@@ -2696,8 +2701,8 @@ class D4xdata(list):
                                         &#39;Sample&#39;: s[&#39;Sample&#39;],
                                         &#39;d13Cwg_VPDB&#39;: 0.,
                                         &#39;d18Owg_VSMOW&#39;: (self.R18_VSMOW * self.ALPHA_18O_ACID_REACTION - 1) * 1000,
-                                        &#39;d13C_VPDB&#39;: self[&#39;d13C_VPDB&#39;],
-                                        &#39;d18O_VSMOW&#39;: self[&#39;d18O_VPDB&#39;],
+                                        &#39;d13C_VPDB&#39;: s[&#39;d13C_VPDB&#39;] if &#39;d13C_VPDB&#39; in s else np.nan,
+                                        &#39;d18O_VSMOW&#39;: ((1000 + s[&#39;d18O_VPDB&#39;]) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000) if &#39;d18O_VPDB&#39; in s else np.nan,
                                         f&#39;d{self._4x}&#39;: s[f&#39;d{self._4x}&#39;],
                                         f&#39;D{self._4x}raw&#39;: a * (s[f&#39;D{self._4x}&#39;] + errors[k]) + b * s[f&#39;d{self._4x}&#39;] + c,
                                         })
@@ -4697,7 +4702,7 @@ analyses, usually comprising more than one analytical session.</p>
                                 for r in sdata :
                                         a, b, c, a2, b2, c2 = s[&#39;a&#39;], s[&#39;b&#39;], s[&#39;c&#39;], s[&#39;a2&#39;], s[&#39;b2&#39;], s[&#39;c2&#39;]
                                         r[f&#39;D{self._4x}&#39;] = (r[f&#39;D{self._4x}raw&#39;] - c - b * r[f&#39;d{self._4x}&#39;] - c2 * r[&#39;t&#39;] - b2 * r[&#39;t&#39;] * r[f&#39;d{self._4x}&#39;]) / (a + a2 * r[&#39;t&#39;])
-                                        r[f&#39;wD{self._4x}&#39;] /= (a + a2 * r[&#39;t&#39;])
+                                        r[f&#39;wD{self._4x}&#39;] = r[f&#39;wD{self._4x}raw&#39;] / (a + a2 * r[&#39;t&#39;])
 
                                 s[&#39;CM&#39;] = np.zeros((6,6))
                                 i = 0
@@ -5443,9 +5448,9 @@ analyses, usually comprising more than one analytical session.</p>
                 Generate plot for a single session
                 &#39;&#39;&#39;
                 if x_label is None:
-                        x_label = f&#39;δ$_{{{self._4x}}}$ (‰)&#39;,
+                        x_label = f&#39;δ$_{{{self._4x}}}$ (‰)&#39;
                 if y_label is None:
-                        y_label = f&#39;Δ$_{{{self._4x}}}$ (‰)&#39;,
+                        y_label = f&#39;Δ$_{{{self._4x}}}$ (‰)&#39;
 
                 out = SessionPlot()
                 anchors = [a for a in self.anchors if [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == a]]
@@ -5469,14 +5474,14 @@ analyses, usually comprising more than one analytical session.</p>
                                 np.max([r[f&#39;d{self._4x}&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
                                 ]) for sample in anchors]).T,
                         np.array([ np.array([0, 0]) + self.Nominal_D4x[sample] for sample in anchors]).T,
-                        &#39;-&#39;, **kw_plot_anchor_avg)
+                        **kw_plot_anchor_avg)
                 out.unknown_avg = ppl.plot(
                         np.array([ np.array([
                                 np.min([r[f&#39;d{self._4x}&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) - 1,
                                 np.max([r[f&#39;d{self._4x}&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
                                 ]) for sample in unknowns]).T,
                         np.array([ np.array([0, 0]) + self.unknowns[sample][f&#39;D{self._4x}&#39;] for sample in unknowns]).T,
-                        &#39;-&#39;, **kw_plot_unknown_avg)
+                        **kw_plot_unknown_avg)
                 if xylimits == &#39;constant&#39;:
                         x = [r[f&#39;d{self._4x}&#39;] for r in self]
                         y = [r[f&#39;D{self._4x}&#39;] for r in self]
@@ -5714,7 +5719,12 @@ analyses, usually comprising more than one analytical session.</p>
                         rng = nprandom.default_rng()
                 
                 if samples is None:
-                        samples = [dict(Sample = s, N = 4) for s in self.Nominal_D4x]
+                        samples = [
+                                dict(Sample = s, N = 4)
+                                for s in self.Nominal_D4x
+                                if s in self.Nominal_d13C_VPDB
+                                and s in self.Nominal_d18O_VPDB
+                                ]
                         samples += [{
                                 &#39;Sample&#39;: &#39;FOO&#39;,
                                 f&#39;d{self._4x}&#39;: 0.,
@@ -5762,8 +5772,8 @@ analyses, usually comprising more than one analytical session.</p>
                                         &#39;Sample&#39;: s[&#39;Sample&#39;],
                                         &#39;d13Cwg_VPDB&#39;: 0.,
                                         &#39;d18Owg_VSMOW&#39;: (self.R18_VSMOW * self.ALPHA_18O_ACID_REACTION - 1) * 1000,
-                                        &#39;d13C_VPDB&#39;: self[&#39;d13C_VPDB&#39;],
-                                        &#39;d18O_VSMOW&#39;: self[&#39;d18O_VPDB&#39;],
+                                        &#39;d13C_VPDB&#39;: s[&#39;d13C_VPDB&#39;] if &#39;d13C_VPDB&#39; in s else np.nan,
+                                        &#39;d18O_VSMOW&#39;: ((1000 + s[&#39;d18O_VPDB&#39;]) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000) if &#39;d18O_VPDB&#39; in s else np.nan,
                                         f&#39;d{self._4x}&#39;: s[f&#39;d{self._4x}&#39;],
                                         f&#39;D{self._4x}raw&#39;: a * (s[f&#39;D{self._4x}&#39;] + errors[k]) + b * s[f&#39;d{self._4x}&#39;] + c,
                                         })
@@ -7002,9 +7012,9 @@ the order of analyses in the D4xdata() object)</p>
         Generate plot for a single session
         &#39;&#39;&#39;
         if x_label is None:
-                x_label = f&#39;δ$_{{{self._4x}}}$ (‰)&#39;,
+                x_label = f&#39;δ$_{{{self._4x}}}$ (‰)&#39;
         if y_label is None:
-                y_label = f&#39;Δ$_{{{self._4x}}}$ (‰)&#39;,
+                y_label = f&#39;Δ$_{{{self._4x}}}$ (‰)&#39;
 
         out = SessionPlot()
         anchors = [a for a in self.anchors if [r for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == a]]
@@ -7028,14 +7038,14 @@ the order of analyses in the D4xdata() object)</p>
                         np.max([r[f&#39;d{self._4x}&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
                         ]) for sample in anchors]).T,
                 np.array([ np.array([0, 0]) + self.Nominal_D4x[sample] for sample in anchors]).T,
-                &#39;-&#39;, **kw_plot_anchor_avg)
+                **kw_plot_anchor_avg)
         out.unknown_avg = ppl.plot(
                 np.array([ np.array([
                         np.min([r[f&#39;d{self._4x}&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) - 1,
                         np.max([r[f&#39;d{self._4x}&#39;] for r in self.sessions[session][&#39;data&#39;] if r[&#39;Sample&#39;] == sample]) + 1
                         ]) for sample in unknowns]).T,
                 np.array([ np.array([0, 0]) + self.unknowns[sample][f&#39;D{self._4x}&#39;] for sample in unknowns]).T,
-                &#39;-&#39;, **kw_plot_unknown_avg)
+                **kw_plot_unknown_avg)
         if xylimits == &#39;constant&#39;:
                 x = [r[f&#39;d{self._4x}&#39;] for r in self]
                 y = [r[f&#39;D{self._4x}&#39;] for r in self]
@@ -7562,7 +7572,12 @@ FOO      4        nan         nan  0.3031  0.0057  ± 0.0118  0.0104     0.572
                 rng = nprandom.default_rng()
         
         if samples is None:
-                samples = [dict(Sample = s, N = 4) for s in self.Nominal_D4x]
+                samples = [
+                        dict(Sample = s, N = 4)
+                        for s in self.Nominal_D4x
+                        if s in self.Nominal_d13C_VPDB
+                        and s in self.Nominal_d18O_VPDB
+                        ]
                 samples += [{
                         &#39;Sample&#39;: &#39;FOO&#39;,
                         f&#39;d{self._4x}&#39;: 0.,
@@ -7610,8 +7625,8 @@ FOO      4        nan         nan  0.3031  0.0057  ± 0.0118  0.0104     0.572
                                 &#39;Sample&#39;: s[&#39;Sample&#39;],
                                 &#39;d13Cwg_VPDB&#39;: 0.,
                                 &#39;d18Owg_VSMOW&#39;: (self.R18_VSMOW * self.ALPHA_18O_ACID_REACTION - 1) * 1000,
-                                &#39;d13C_VPDB&#39;: self[&#39;d13C_VPDB&#39;],
-                                &#39;d18O_VSMOW&#39;: self[&#39;d18O_VPDB&#39;],
+                                &#39;d13C_VPDB&#39;: s[&#39;d13C_VPDB&#39;] if &#39;d13C_VPDB&#39; in s else np.nan,
+                                &#39;d18O_VSMOW&#39;: ((1000 + s[&#39;d18O_VPDB&#39;]) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000) if &#39;d18O_VPDB&#39; in s else np.nan,
                                 f&#39;d{self._4x}&#39;: s[f&#39;d{self._4x}&#39;],
                                 f&#39;D{self._4x}raw&#39;: a * (s[f&#39;D{self._4x}&#39;] + errors[k]) + b * s[f&#39;d{self._4x}&#39;] + c,
                                 })
@@ -7888,7 +7903,7 @@ session independently, based only on anchors analyses.</p></div>
                                 for r in sdata :
                                         a, b, c, a2, b2, c2 = s[&#39;a&#39;], s[&#39;b&#39;], s[&#39;c&#39;], s[&#39;a2&#39;], s[&#39;b2&#39;], s[&#39;c2&#39;]
                                         r[f&#39;D{self._4x}&#39;] = (r[f&#39;D{self._4x}raw&#39;] - c - b * r[f&#39;d{self._4x}&#39;] - c2 * r[&#39;t&#39;] - b2 * r[&#39;t&#39;] * r[f&#39;d{self._4x}&#39;]) / (a + a2 * r[&#39;t&#39;])
-                                        r[f&#39;wD{self._4x}&#39;] /= (a + a2 * r[&#39;t&#39;])
+                                        r[f&#39;wD{self._4x}&#39;] = r[f&#39;wD{self._4x}raw&#39;] / (a + a2 * r[&#39;t&#39;])
 
                                 s[&#39;CM&#39;] = np.zeros((6,6))
                                 i = 0
