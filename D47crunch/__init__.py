@@ -2131,138 +2131,13 @@ class D4xdata(list):
 			filename = f'D{self._4x}_residuals.pdf'
 		ppl.savefig(f'{dir}/{filename}')
 		ppl.close(fig)
+				
 
-	def simulate(self,
-		samples = None,
-		a = 1.,
-		b = 0.,
-		c = -0.9,
-		rD4x = 0.015,
-		seed = 0,
-		):
+	def simulate(self, *args, **kwargs):
 		'''
-		Populate `D4xdata` instance with simulated analyses from a single session.
-		
-		__Parameters__
-
-		+ `samples`: a list of entries; each entry is a dictionary with the following fields:
-		    * `Sample`: the name of the sample
-		    * either `d47`/`d48` (the δ<sub>4x</sub> value of this sample), or `d13C_VPDB` and `d18O_VPDB` (its δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub> values)
-		    * `D47`/`D48`: the absolute Δ<sub>4x</sub> value of this sample
-		    * `N`: how many analyses of this sample should be generated
-		+ `a`: scrambling factor)
-		+ `b`: compositional nonlinearity
-		+ `c`: working gas offset
-		+ `rD47`/`rD48`: Δ<sub>4x</sub> repeatability
-		+ `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
-		
-		Beware that δ<sub>4x</sub> values computed from `d13C_VPDB` and `d18O_VPDB` are calculated assuming
-		a working gas with δ<sup>13</sup>C<sub>VPDB</sub>&nbsp;=&nbsp;0 and δ<sup>18</sup>O<sub>VSMOW</sub>&nbsp;=&nbsp;0.
-		In the unusual case where simulating a different working gas composition is necessary, `d47`/`d48` must be specified explicitly.
-		
-		Samples already defined in `D4xdata.Nominal_d13C_VPDB`, `D4xdata.Nominal_d18O_VPDB`, and `D4xdata.Nominal_D4x`
-		do not require explicit `d47`/`d48`, `D47`/`D48`, `d13C_VPDB` nor `d18O_VPDB` (the nominal values will be used by default).
-		
-		Here is an example of using this method to simulate a given combination of anchors and unknowns:
-
-		````py
-		import D47crunch
-		D = D47crunch.D47data()
-		D.simulate([
-		    dict(Sample = 'ETH-1', N = 6),
-		    dict(Sample = 'ETH-2', N = 6),
-		    dict(Sample = 'ETH-3', N = 12),
-		    dict(Sample = 'FOO', d13C_VPDB = -5., d18O_VPDB = -10., D47 = 0.3, N = 4),
-		    ], rD47 = 0.010)
-		D.standardize()
-		D.plot_sessions()
-		D.verbose = True
-		D.table_of_samples()
-		````
-		
-		This should output something like:
-		
-		````
-		[table_of_samples] 
-		––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-		Sample   N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
-		––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-		ETH-1    6        nan         nan  0.2052                    0.0076          
-		ETH-2    6        nan         nan  0.2085                    0.0089          
-		ETH-3   12        nan         nan  0.6132                    0.0118          
-		FOO      4        nan         nan  0.3031  0.0057  ± 0.0118  0.0104     0.572
-		––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-		````
+		Legacy function with warning message pointing to `virtual_data()`
 		'''
-		from numpy import random as nprandom
-		if seed:
-			rng = nprandom.default_rng(seed)
-		else:
-			rng = nprandom.default_rng()
-		
-		if samples is None:
-			samples = [
-				dict(Sample = s, N = 4)
-				for s in self.Nominal_D4x
-				if s in self.Nominal_d13C_VPDB
-				and s in self.Nominal_d18O_VPDB
-				]
-			samples += [{
-				'Sample': 'FOO',
-				f'd{self._4x}': 0.,
-				f'D{self._4x}': 0.5 if self._4x == '47' else 0.2,
-				'N': 4,
-				}]
-
-		N = sum([s['N'] for s in samples])
-		errors = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
-		errors *= rD4x / stdev(errors) # scale errors to rD47
-		
-		k = 0
-		for s in samples:
-		
-			if f'D{self._4x}' not in s:
-				if s['Sample'] not in self.Nominal_D4x:
-					raise KeyError(f"Sample {s['Sample']} is missing a D{self._4x} value and it is not defined in Nominal_D{self._4x}")
-				else:
-					s[f'D{self._4x}'] = self.Nominal_D4x[s['Sample']]					
-
-			if f'd{self._4x}' not in s:
-
-				if 'd13C_VPDB' not in s:
-					if s['Sample'] not in self.Nominal_d13C_VPDB:
-						raise KeyError(f"Sample {s['Sample']} is missing d{self._4x} and d13C_VPDB values, and it is not defined in Nominal_d13C_VPDB.")
-					else:
-						s['d13C_VPDB'] = self.Nominal_d13C_VPDB[s['Sample']]
-
-				if 'd18O_VPDB' not in s:
-					if s['Sample'] not in self.Nominal_d18O_VPDB:
-						raise KeyError(f"Sample {s['Sample']} is missing d{self._4x} and d18O_VPDB values, and it is not defined in Nominal_d18O_VPDB.")
-					else:
-						s['d18O_VPDB'] = self.Nominal_d18O_VPDB[s['Sample']]
-
-				i = 2 if self._4x == '47' else 3
-				R4xwg = self.compute_isobar_ratios(self.R13_VPDB, self.R18_VPDB * self.ALPHA_18O_ACID_REACTION)[i]
-				R4xs = self.compute_isobar_ratios(
-					self.R13_VPDB * (1 + s['d13C_VPDB']/1000),
-					self.R18_VPDB * (1 + s['d18O_VPDB']/1000) * self.ALPHA_18O_ACID_REACTION,
-					)[i]*(1+s[f'D{self._4x}']/1000)
-				s[f'd{self._4x}'] = (R4xs/R4xwg-1)*1000
-					
-			while s['N']:
-				self.append({
-					'Sample': s['Sample'],
-					'd13Cwg_VPDB': 0.,
-					'd18Owg_VSMOW': (self.R18_VSMOW * self.ALPHA_18O_ACID_REACTION - 1) * 1000,
-					'd13C_VPDB': s['d13C_VPDB'] if 'd13C_VPDB' in s else np.nan,
-					'd18O_VSMOW': ((1000 + s['d18O_VPDB']) * self.R18_VPDB * self.ALPHA_18O_ACID_REACTION / self.R18_VSMOW - 1000) if 'd18O_VPDB' in s else np.nan,
-					f'd{self._4x}': s[f'd{self._4x}'],
-					f'D{self._4x}raw': a * (s[f'D{self._4x}'] + errors[k]) + b * s[f'd{self._4x}'] + c,
-					})
-				s['N'] -= 1
-				k += 1
-
-		self.refresh()
+		raise DeprecationWarning('D4xdata.simulate is deprecated and has been replaced by virtual_data()')
 
 	def plot_distribution_of_analyses(self, dir = 'output', filename = None, vs_time = False, output = None):
 		'''
@@ -2349,7 +2224,7 @@ class D47data(D4xdata):
 		} # I-CDES (Bernasconi et al., 2021)
 	'''
 	Nominal Δ<sub>47</sub> values assigned to the Δ<sub>47</sub> anchor samples, used by
-	`D47data.standardize_D47()` to normalize unknown samples to an absolute Δ<sub>47</sub>
+	`D47data.standardize()` to normalize unknown samples to an absolute Δ<sub>47</sub>
 	reference frame.
 
 	By default equal to (after [Bernasconi et al. (2021)]):
@@ -2441,7 +2316,7 @@ class D48data(D4xdata):
 		} # (Fiebig et al., 2019, 2021)
 	'''
 	Nominal Δ<sub>48</sub> values assigned to the Δ<sub>48</sub> anchor samples, used by
-	`D47data.standardize_D48()` to normalize unknown samples to an absolute Δ<sub>48</sub>
+	`D48data.standardize()` to normalize unknown samples to an absolute Δ<sub>48</sub>
 	reference frame.
 
 	By default equal to (after [Fiebig et al. (2019)], Fiebig et al. (in press)):
@@ -2478,3 +2353,349 @@ class SessionPlot():
 	def __init__(self):
 		pass
 
+def simulate_single_analysis(
+	sample = 'MYSAMPLE',
+	d13Cwg_VPDB = -4., d18Owg_VSMOW = 26.,
+	d13C_VPDB = None, d18O_VPDB = None,
+	D47 = None, D48 = None, D49 = 0., D17O = 0.,
+	Nominal_D47 = D47data().Nominal_D47,
+	Nominal_D48 = D48data().Nominal_D48,
+	Nominal_d13C_VPDB = D4xdata().Nominal_d13C_VPDB,
+	Nominal_d18O_VPDB = D4xdata().Nominal_d18O_VPDB,
+	ALPHA_18O_ACID_REACTION = D4xdata().ALPHA_18O_ACID_REACTION,
+	a47 = 1., b47 = 0., c47 = -0.9,
+	a48 = 1., b48 = 0., c48 = -0.45,
+	R13_VPDB = D4xdata().R13_VPDB,
+	R17_VSMOW = D4xdata().R17_VSMOW,
+	R18_VSMOW = D4xdata().R18_VSMOW,
+	lambda_17 = D4xdata().lambda_17,
+	R18_VPDB = D4xdata().R18_VPDB,
+	):
+	'''
+	Compute working-gas delta values for a single analysis, assuming a stochastic working
+	gas and a “perfect” measurement (i.e. raw Δ values are identical to absolute values).
+	
+	__Parameters__
+
+	+ `sample`: sample name
+	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
+		(respectively –4 and +26 ‰ by default)
+	+ `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample
+	+ `D47`, `D48`, `D49`, `D17O`: clumped-isotope and oxygen-17 anomalies
+		of the carbonate sample
+	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ<sub>47</sub> and
+		Δ<sub>48</sub> values if `D47` or `D48` are not specified
+	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ<sup>13</sup>C and
+		δ<sup>18</sup>O values if `d13C_VPDB` or `d18O_VPDB` are not specified
+	+ `ALPHA_18O_ACID_REACTION`: <sup>18</sup>O/<sup>16</sup>O acid fractionation factor
+	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `lambda_17`, `R18_VPDB`: oxygen-17
+		correction parameters (by default equal to the `D4xdata` default values)
+	
+	Returns a dictionary with fields
+	`['Sample', 'D17O', 'd13Cwg_VPDB', 'd18Owg_VSMOW', 'd45', 'd46', 'd47', 'd48', 'd49']`.
+	'''
+	
+	R17_VPDB = R17_VSMOW * (R18_VPDB / R18_VSMOW) ** lambda_17
+	
+	if d13C_VPDB is None:
+		if sample in Nominal_d13C_VPDB:
+			d13C_VPDB = Nominal_d13C_VPDB[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing d13C_VDP value, and it is not defined in Nominal_d13C_VDP.")
+
+	if d18O_VPDB is None:
+		if sample in Nominal_d18O_VPDB:
+			d18O_VPDB = Nominal_d18O_VPDB[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing d18O_VPDB value, and it is not defined in Nominal_d18O_VPDB.")
+
+	if D47 is None:
+		if sample in Nominal_D47:
+			D47 = Nominal_D47[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing D47 value, and it is not defined in Nominal_D47.")
+
+	if D48 is None:
+		if sample in Nominal_D48:
+			D48 = Nominal_D48[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing D48 value, and it is not defined in Nominal_D48.")
+
+	X = D4xdata()
+	X.R13_VPDB = R13_VPDB
+	X.R17_VSMOW = R17_VSMOW
+	X.R18_VSMOW = R18_VSMOW
+	X.lambda_17 = lambda_17
+	X.R18_VPDB = R18_VPDB
+	X.R17_VPDB = R17_VSMOW * (R18_VPDB / R18_VSMOW)**lambda_17
+
+	R45wg, R46wg, R47wg, R48wg, R49wg = X.compute_isobar_ratios(
+		R13 = R13_VPDB * (1 + d13Cwg_VPDB/1000),
+		R18 = R18_VSMOW * (1 + d18Owg_VSMOW/1000),
+		)
+	R45, R46, R47, R48, R49 = X.compute_isobar_ratios(
+		R13 = R13_VPDB * (1 + d13C_VPDB/1000),
+		R18 = R18_VPDB * (1 + d18O_VPDB/1000) * ALPHA_18O_ACID_REACTION,
+		D17O=D17O, D47=D47, D48=D48, D49=D49,
+		)
+	R45stoch, R46stoch, R47stoch, R48stoch, R49stoch = X.compute_isobar_ratios(
+		R13 = R13_VPDB * (1 + d13C_VPDB/1000),
+		R18 = R18_VPDB * (1 + d18O_VPDB/1000) * ALPHA_18O_ACID_REACTION,
+		D17O=D17O,
+		)
+	
+	d45 = 1000 * (R45/R45wg - 1)
+	d46 = 1000 * (R46/R46wg - 1)
+	d47 = 1000 * (R47/R47wg - 1)
+	d48 = 1000 * (R48/R48wg - 1)
+	d49 = 1000 * (R49/R49wg - 1)
+
+	for k in range(3): # dumb iteration to adjust for small changes in d47
+		R47raw = (1 + (a47 * D47 + b47 * d47 + c47)/1000) * R47stoch
+		R48raw = (1 + (a48 * D48 + b48 * d48 + c48)/1000) * R48stoch	
+		d47 = 1000 * (R47raw/R47wg - 1)
+		d48 = 1000 * (R48raw/R48wg - 1)
+
+	return dict(
+		Sample = sample,
+		D17O = D17O,
+		d13Cwg_VPDB = d13Cwg_VPDB,
+		d18Owg_VSMOW = d18Owg_VSMOW,
+		d45 = d45,
+		d46 = d46,
+		d47 = d47,
+		d48 = d48,
+		d49 = d49,
+		)
+
+
+def virtual_data(
+	samples = [],
+	a47 = 1., b47 = 0., c47 = -0.9,
+	a48 = 1., b48 = 0., c48 = -0.45,
+	rD47 = 0.015, rD48 = 0.045,
+	d13Cwg_VPDB = None, d18Owg_VSMOW = None,
+	session = None,
+	Nominal_D47 = None, Nominal_D48 = None,
+	Nominal_d13C_VPDB = None, Nominal_d18O_VPDB = None,
+	ALPHA_18O_ACID_REACTION = None,
+	R13_VPDB = None,
+	R17_VSMOW = None,
+	R18_VSMOW = None,
+	lambda_17 = None,
+	R18_VPDB = None,
+	seed = 0,
+	):
+	'''
+	Return list with simulated analyses from a single session.
+	
+	__Parameters__
+	
+	+ `samples`: a list of entries; each entry is a dictionary with the following fields:
+	    * `Sample`: the name of the sample
+	    * `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample
+	    * `D47`, `D48`, `D49`, `D17O` (all optional): clumped-isotope and oxygen-17 anomalies of the carbonate sample
+	    * `N`: how many analyses to generate for this sample
+	+ `a47`: scrambling factor for Δ<sub>47</sub>
+	+ `b47`: compositional nonlinearity for Δ<sub>47</sub>
+	+ `c47`: working gas offset for Δ<sub>47</sub>
+	+ `a48`: scrambling factor for Δ<sub>48</sub>
+	+ `b48`: compositional nonlinearity for Δ<sub>48</sub>
+	+ `c48`: working gas offset for Δ<sub>48</sub>
+	+ `rD47`: analytical repeatability of Δ<sub>47</sub>
+	+ `rD48`: analytical repeatability of Δ<sub>48</sub>
+	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
+		(by default equal to the `simulate_single_analysis` default values)
+	+ `session`: name of the session (no name by default)
+	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ<sub>47</sub> and Δ<sub>48</sub> values
+		if `D47` or `D48` are not specified (by default equal to the `simulate_single_analysis` defaults)
+	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ<sup>13</sup>C and
+		δ<sup>18</sup>O values if `d13C_VPDB` or `d18O_VPDB` are not specified 
+		(by default equal to the `simulate_single_analysis` defaults)
+	+ `ALPHA_18O_ACID_REACTION`: <sup>18</sup>O/<sup>16</sup>O acid fractionation factor
+		(by default equal to the `simulate_single_analysis` defaults)
+	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `lambda_17`, `R18_VPDB`: oxygen-17
+		correction parameters (by default equal to the `simulate_single_analysis` default)
+	+ `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
+	
+		
+	Here is an example of using this method to generate an arbitrary combination of
+	anchors and unknowns for a bunch of sessions:
+
+	````py
+	args = dict(
+		samples = [
+			dict(Sample = 'ETH-1', N = 4),
+			dict(Sample = 'ETH-2', N = 5),
+			dict(Sample = 'ETH-3', N = 6),
+			dict(
+				Sample = 'FOO',
+				N = 2,
+				d13C_VPDB = -5.,
+				d18O_VPDB = -10.,
+				D47 = 0.3,
+				D48 = 0.15
+				),
+			],
+		rD47 = 0.010,
+		rD48 = 0.030,
+		)
+	session1 = virtual_data(session = 'Session_01', **args, seed = 123)
+	session2 = virtual_data(session = 'Session_02', **args, seed = 1234)
+	session3 = virtual_data(session = 'Session_03', **args, seed = 12345)
+	session4 = virtual_data(session = 'Session_04', **args, seed = 123456)
+	D = D47data(session1 + session2 + session3 + session4)
+	D.crunch()
+	D.standardize()
+	D.table_of_sessions(verbose = True, save_to_file = False)
+	D.table_of_samples(verbose = True, save_to_file = False)
+	D.table_of_analyses(verbose = True, save_to_file = False)
+	````
+	
+	This should output something like:
+	
+	````
+	[table_of_sessions] 
+	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
+	Session     Na  Nu  d13Cwg_VPDB  d18Owg_VSMOW  r_d13C  r_d18O   r_D47         a ± SE    1e3 x b ± SE          c ± SE
+	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
+	Session_01  15   2       -4.000        26.000  0.0000  0.0000  0.0110  0.997 ± 0.017  -0.097 ± 0.244  -0.896 ± 0.006
+	Session_02  15   2       -4.000        26.000  0.0000  0.0000  0.0109  1.002 ± 0.017  -0.110 ± 0.244  -0.901 ± 0.006
+	Session_03  15   2       -4.000        26.000  0.0000  0.0000  0.0107  1.010 ± 0.017  -0.037 ± 0.244  -0.904 ± 0.006
+	Session_04  15   2       -4.000        26.000  0.0000  0.0000  0.0106  1.001 ± 0.017  -0.181 ± 0.244  -0.894 ± 0.006
+	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
+
+	[table_of_samples] 
+	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+	Sample   N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
+	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+	ETH-1   16       2.02       37.02  0.2052                    0.0079          
+	ETH-2   20     -10.17       19.88  0.2085                    0.0100          
+	ETH-3   24       1.71       37.45  0.6132                    0.0105          
+	FOO      8      -5.00       28.91  0.2989  0.0040  ± 0.0080  0.0101     0.638
+	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+
+	[table_of_analyses] 
+	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
+	UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46         d47         d48         d49   d13C_VPDB  d18O_VSMOW     D47raw     D48raw     D49raw       D47
+	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
+	1    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.122986   21.273526   27.780042    2.020000   37.024281  -0.706013  -0.328878  -0.000013  0.192554
+	2    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.130144   21.282615   27.780042    2.020000   37.024281  -0.698974  -0.319981  -0.000013  0.199615
+	3    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.149219   21.299572   27.780042    2.020000   37.024281  -0.680215  -0.303383  -0.000013  0.218429
+	4    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.136616   21.233128   27.780042    2.020000   37.024281  -0.692609  -0.368421  -0.000013  0.205998
+	5    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.697171  -12.203054  -18.023381  -10.170000   19.875825  -0.680771  -0.290128  -0.000002  0.215054
+	6    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701124  -12.184422  -18.023381  -10.170000   19.875825  -0.684772  -0.271272  -0.000002  0.211041
+	7    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.715105  -12.195251  -18.023381  -10.170000   19.875825  -0.698923  -0.282232  -0.000002  0.196848
+	8    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701529  -12.204963  -18.023381  -10.170000   19.875825  -0.685182  -0.292061  -0.000002  0.210630
+	9    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.711420  -12.228478  -18.023381  -10.170000   19.875825  -0.695193  -0.315859  -0.000002  0.200589
+	10   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.666719   22.296486   28.306614    1.710000   37.450394  -0.290459  -0.147284  -0.000014  0.609363
+	11   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.671553   22.291060   28.306614    1.710000   37.450394  -0.285706  -0.152592  -0.000014  0.614130
+	12   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.652854   22.273271   28.306614    1.710000   37.450394  -0.304093  -0.169990  -0.000014  0.595689
+	13   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.684168   22.263156   28.306614    1.710000   37.450394  -0.273302  -0.179883  -0.000014  0.626572
+	14   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.662702   22.253578   28.306614    1.710000   37.450394  -0.294409  -0.189251  -0.000014  0.605401
+	15   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.681957   22.230907   28.306614    1.710000   37.450394  -0.275476  -0.211424  -0.000014  0.624391
+	16   Session_01     FOO       -4.000        26.000  -0.840413   2.828738    1.312044    5.395798    4.665655   -5.000000   28.907344  -0.598436  -0.268176  -0.000006  0.298996
+	17   Session_01     FOO       -4.000        26.000  -0.840413   2.828738    1.328123    5.307086    4.665655   -5.000000   28.907344  -0.582387  -0.356389  -0.000006  0.315092
+	18   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.122201   21.340606   27.780042    2.020000   37.024281  -0.706785  -0.263217  -0.000013  0.195135
+	19   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.134868   21.305714   27.780042    2.020000   37.024281  -0.694328  -0.297370  -0.000013  0.207564
+	20   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.140008   21.261931   27.780042    2.020000   37.024281  -0.689273  -0.340227  -0.000013  0.212607
+	21   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.135540   21.298472   27.780042    2.020000   37.024281  -0.693667  -0.304459  -0.000013  0.208224
+	22   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701213  -12.202602  -18.023381  -10.170000   19.875825  -0.684862  -0.289671  -0.000002  0.213842
+	23   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.685649  -12.190405  -18.023381  -10.170000   19.875825  -0.669108  -0.277327  -0.000002  0.229559
+	24   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.719003  -12.257955  -18.023381  -10.170000   19.875825  -0.702869  -0.345692  -0.000002  0.195876
+	25   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.700592  -12.204641  -18.023381  -10.170000   19.875825  -0.684233  -0.291735  -0.000002  0.214469
+	26   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.720426  -12.214561  -18.023381  -10.170000   19.875825  -0.704308  -0.301774  -0.000002  0.194439
+	27   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.673044   22.262090   28.306614    1.710000   37.450394  -0.284240  -0.180926  -0.000014  0.616730
+	28   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.666542   22.263401   28.306614    1.710000   37.450394  -0.290634  -0.179643  -0.000014  0.610350
+	29   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.680487   22.243486   28.306614    1.710000   37.450394  -0.276921  -0.199121  -0.000014  0.624031
+	30   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.663900   22.245175   28.306614    1.710000   37.450394  -0.293231  -0.197469  -0.000014  0.607759
+	31   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.674379   22.301309   28.306614    1.710000   37.450394  -0.282927  -0.142568  -0.000014  0.618039
+	32   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.660825   22.270466   28.306614    1.710000   37.450394  -0.296255  -0.172733  -0.000014  0.604742
+	33   Session_02     FOO       -4.000        26.000  -0.840413   2.828738    1.294076    5.349940    4.665655   -5.000000   28.907344  -0.616369  -0.313776  -0.000006  0.283707
+	34   Session_02     FOO       -4.000        26.000  -0.840413   2.828738    1.313775    5.292121    4.665655   -5.000000   28.907344  -0.596708  -0.371269  -0.000006  0.303323
+	35   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.121613   21.259909   27.780042    2.020000   37.024281  -0.707364  -0.342207  -0.000013  0.194934
+	36   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.145714   21.304889   27.780042    2.020000   37.024281  -0.683661  -0.298178  -0.000013  0.218401
+	37   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.126573   21.325093   27.780042    2.020000   37.024281  -0.702485  -0.278401  -0.000013  0.199764
+	38   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.132057   21.323211   27.780042    2.020000   37.024281  -0.697092  -0.280244  -0.000013  0.205104
+	39   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.708448  -12.232023  -18.023381  -10.170000   19.875825  -0.692185  -0.319447  -0.000002  0.208915
+	40   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.714417  -12.202504  -18.023381  -10.170000   19.875825  -0.698226  -0.289572  -0.000002  0.202934
+	41   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.720039  -12.264469  -18.023381  -10.170000   19.875825  -0.703917  -0.352285  -0.000002  0.197300
+	42   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701953  -12.228550  -18.023381  -10.170000   19.875825  -0.685611  -0.315932  -0.000002  0.215423
+	43   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.704535  -12.213634  -18.023381  -10.170000   19.875825  -0.688224  -0.300836  -0.000002  0.212837
+	44   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.652920   22.230043   28.306614    1.710000   37.450394  -0.304028  -0.212269  -0.000014  0.594265
+	45   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.691485   22.261017   28.306614    1.710000   37.450394  -0.266106  -0.181975  -0.000014  0.631810
+	46   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.679119   22.305357   28.306614    1.710000   37.450394  -0.278266  -0.138609  -0.000014  0.619771
+	47   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.663623   22.327286   28.306614    1.710000   37.450394  -0.293503  -0.117161  -0.000014  0.604685
+	48   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.678524   22.282103   28.306614    1.710000   37.450394  -0.278851  -0.161352  -0.000014  0.619192
+	49   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.666246   22.283361   28.306614    1.710000   37.450394  -0.290925  -0.160121  -0.000014  0.607238
+	50   Session_03     FOO       -4.000        26.000  -0.840413   2.828738    1.309929    5.340249    4.665655   -5.000000   28.907344  -0.600546  -0.323413  -0.000006  0.300148
+	51   Session_03     FOO       -4.000        26.000  -0.840413   2.828738    1.317548    5.334102    4.665655   -5.000000   28.907344  -0.592942  -0.329524  -0.000006  0.307676
+	52   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.136865   21.300298   27.780042    2.020000   37.024281  -0.692364  -0.302672  -0.000013  0.204033
+	53   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.133538   21.291260   27.780042    2.020000   37.024281  -0.695637  -0.311519  -0.000013  0.200762
+	54   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.139991   21.319865   27.780042    2.020000   37.024281  -0.689290  -0.283519  -0.000013  0.207107
+	55   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.145748   21.330075   27.780042    2.020000   37.024281  -0.683629  -0.273524  -0.000013  0.212766
+	56   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.702989  -12.202762  -18.023381  -10.170000   19.875825  -0.686660  -0.289833  -0.000002  0.204507
+	57   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.692830  -12.240287  -18.023381  -10.170000   19.875825  -0.676377  -0.327811  -0.000002  0.214786
+	58   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.702899  -12.180291  -18.023381  -10.170000   19.875825  -0.686568  -0.267091  -0.000002  0.204598
+	59   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.709282  -12.282257  -18.023381  -10.170000   19.875825  -0.693029  -0.370287  -0.000002  0.198140
+	60   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.679330  -12.235994  -18.023381  -10.170000   19.875825  -0.662712  -0.323466  -0.000002  0.228446
+	61   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.695594   22.238663   28.306614    1.710000   37.450394  -0.262066  -0.203838  -0.000014  0.634200
+	62   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.663504   22.286354   28.306614    1.710000   37.450394  -0.293620  -0.157194  -0.000014  0.602656
+	63   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.666457   22.254290   28.306614    1.710000   37.450394  -0.290717  -0.188555  -0.000014  0.605558
+	64   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.666910   22.223232   28.306614    1.710000   37.450394  -0.290271  -0.218930  -0.000014  0.606004
+	65   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.679662   22.257256   28.306614    1.710000   37.450394  -0.277732  -0.185653  -0.000014  0.618539
+	66   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.676768   22.267680   28.306614    1.710000   37.450394  -0.280578  -0.175459  -0.000014  0.615693
+	67   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.307663    5.317330    4.665655   -5.000000   28.907344  -0.602808  -0.346202  -0.000006  0.290853
+	68   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.308562    5.331400    4.665655   -5.000000   28.907344  -0.601911  -0.332212  -0.000006  0.291749
+	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
+	````
+	'''
+	
+	kwargs = locals().copy()
+
+	from numpy import random as nprandom
+	if seed:
+		rng = nprandom.default_rng(seed)
+	else:
+		rng = nprandom.default_rng()
+	
+	N = sum([s['N'] for s in samples])
+	errors47 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+	errors47 *= rD47 / stdev(errors47) # scale errors to rD47
+	errors48 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+	errors48 *= rD48 / stdev(errors48) # scale errors to rD48
+	
+	k = 0
+	out = []
+	for s in samples:
+		kw = {}
+		kw['sample'] = s['Sample']
+		kw = {
+			**kw,
+			**{var: kwargs[var]
+				for var in [
+					'd13Cwg_VPDB', 'd18Owg_VSMOW', 'ALPHA_18O_ACID_REACTION',
+					'Nominal_D47', 'Nominal_D48', 'Nominal_d13C_VPDB', 'Nominal_d18O_VPDB',
+					'R13_VPDB', 'R17_VSMOW', 'R18_VSMOW', 'lambda_17', 'R18_VPDB',
+					'a47', 'b47', 'c47', 'a48', 'b48', 'c48',
+					]
+				if kwargs[var] is not None},
+			**{var: s[var]
+				for var in ['d13C_VPDB', 'd18O_VPDB', 'D47', 'D48', 'D49', 'D17O']
+				if var in s},
+			}
+
+		print(kw)
+
+		sN = s['N']
+		while sN:
+			out.append(simulate_single_analysis(**kw))
+			out[-1]['d47'] += errors47[k] * a47
+			out[-1]['d48'] += errors48[k] * a48
+			sN -= 1
+			k += 1
+
+		if session is not None:
+			for r in out:
+				r['Session'] = session
+	return out
