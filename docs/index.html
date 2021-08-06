@@ -246,382 +246,45 @@ foo.table_of_samples(verbose = True, save_to_file = False)
 bar.table_of_samples(verbose = True, save_to_file = False)
 </code></pre>
 <h3 id="22-simulate-a-virtual-data-set-to-play-with">2.2 Simulate a virtual data set to play with</h3>
+<p>It is sometimes convenient to quickly build a virtual data set of analyses, for instance to assess the final analytical precision achievable for a given combination of anchor and unknown analyses (see also Fig. 6 in
+<a href="https://dx.doi.org/10.1029/2020GC009592">Daëron, 2021</a>).</p>
+<p>This can be achieved with <code><a title="D47crunch.virtual_data" href="#D47crunch.virtual_data">virtual_data()</a></code>. The example below creates a dataset with four sessions, each of which comprises four analyses of anchor ETH-1, five of ETH-2, six of ETH-3, and two analyses of an unknown sample named <code>FOO</code> with an arbitrarily defined isotopic composition. Analytical repeatabilities for Δ<sub>47</sub> and Δ<sub>48</sub> are also specified arbitrarily. See the <code><a title="D47crunch.virtual_data" href="#D47crunch.virtual_data">virtual_data()</a></code> documentation for additional configuration parameters.</p>
+<pre><code class="language-py">from D47crunch import *
+
+args = dict(
+    samples = [
+        dict(Sample = 'ETH-1', N = 4),
+        dict(Sample = 'ETH-2', N = 5),
+        dict(Sample = 'ETH-3', N = 6),
+        dict(
+            Sample = 'FOO',
+            N = 2,
+            d13C_VPDB = -5.,
+            d18O_VPDB = -10.,
+            D47 = 0.3,
+            D48 = 0.15
+            ),
+        ],
+    rD47 = 0.010,
+    rD48 = 0.030,
+    )
+
+session1 = virtual_data(session = 'Session_01', **args)
+session2 = virtual_data(session = 'Session_02', **args)
+session3 = virtual_data(session = 'Session_03', **args)
+session4 = virtual_data(session = 'Session_04', **args)
+
+D = D47data(session1 + session2 + session3 + session4)
+
+D.crunch()
+D.standardize()
+
+D.table_of_sessions(verbose = True, save_to_file = False)
+D.table_of_samples(verbose = True, save_to_file = False)
+D.table_of_analyses(verbose = True, save_to_file = False)
+</code></pre>
 <h3 id="23-process-paired-47-and-48-values">2.3 Process paired Δ<sub>47</sub> and Δ<sub>48</sub> values</h3>
 <h2 id="3-discussions">3. Discussions</h2>
-<!--
-## Usage
-### 1. Create <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object
-Start by creating a <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object which will store and process your data.
-<pre><code class="language-python">import D47crunch 
-foo = D47crunch.D47data(verbose = True)
-</code></pre>
-The <code>verbose</code> keyword specifies whether to print out extra information when calling <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> methods.
-This property may be arbitrarily changed using the <code>verbose</code> attribute of the resulting object:
-<pre><code class="language-python">foo.verbose = False
-</code></pre>
-Even before importing any analyses, our <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object has properties which may be inspected and/or edited:
-#### 1.1 Nominal δ<sup>13</sup>C<sub>VPDB</sub>, δ<sup>18</sup>O<sub>VPDB</sub>, and Δ<sub>47</sub> values of carbonate standards
-<code>foo.Nominal\_d13C\_VPDB</code> and <code>foo.Nominal\_d18O\_VPDB</code> are dictionaries storing the δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub> values of carbonate standards. You may freely edit these values and/or which standards to consider:
-<pre><code class="language-python">print(foo.Nominal_d13C_VPDB)
-# output: {'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71}
-
-print(foo.Nominal_d18O_VPDB)
-# {'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78}
-
-foo.Nominal_d13C_VPDB['ETH-4'] = -10.20
-foo.Nominal_d18O_VPDB['ETH-4'] = -18.81
-
-print(foo.Nominal_d13C_VPDB)
-# output: {'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71, 'ETH-4': -10.2}
-
-print(foo.Nominal_d18O_VPDB)
-# {'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78, 'ETH-4': -18.81}
-</code></pre>
-<code>foo.Nominal\_D47</code> is another dictionary, storing the absolute Δ<sub>47</sub> values of the standards used to anchor your measurements to an absolute Δ<sub>47</sub> reference frame.
-As above, you may feely edit these values:
-<pre><code class="language-python">print(foo.Nominal_D47)
-# output: {'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691}
-
-foo.Nominal_D47['ETH-4'] = 0.507
-
-print(foo.Nominal_D47)
-# output: {'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691, 'ETH-4': 0.507}
-</code></pre>
-#### 1.2 Oxygen-17 correction parameters
-The oxygen-17 correction parameters used by <code><a title="D47crunch.D47data.crunch" href="#D47crunch.D4xdata.crunch">D4xdata.crunch()</a></code> (see below) are specified by <code>foo.R13\_VPDB</code>, <code>foo.R17\_VSMOW</code>, <code>foo.R18\_VSMOW</code> and <code>foo.lambda\_17</code>. Default values correspond to the IUPAC values as recommended by [Daëron et al. (2016)] and
-[Schauer et al. (2016)].
-[Daëron et al. (2016)]: <https://dx.doi.org/10.1016/j.chemgeo.2016.08.014>
-[Schauer et al. (2016)]: <https://dx.doi.org/10.1002/rcm.7743>
-<pre><code class="language-python">print(foo.R13_VPDB)  # -&gt; 0.01118    (Chang &amp; Li, 1990)
-print(foo.R17_VSMOW) # -&gt; 0.00038475 (Assonov &amp; Brenninkmeijer, 2003, rescaled to R13_VPDB)
-print(foo.R18_VSMOW) # -&gt; 0.0020052  (Baertschi, 1976)
-print(foo.lambda_17) # -&gt; 0.528      (Barkan &amp; Luz, 2005)
-</code></pre>
-As above, the values for these parameters may be arbitrarily redefined:
-<pre><code class="language-python"># to change the lambda value to 0.5164, leaving the other parameters unchanged:
-foo.lambda_17 = 0.5164
-</code></pre>
-#### 1.3 Default method for carbon-13 and oxygen-18 standardization
-By default, bulk isotopic compositions are standardized using a “two-point” affine transformation (correcting for small offsets and stretching effects) based on the carbonate standards defined in <code>foo.Nominal\_d13C\_VPDB</code> and <code>foo.Nominal\_d18O\_VPDB</code> (see above).
-Optionally, you may opt instead for a “single-point” standardization approach not correcting for strecthing effects, for instance if the cabonate standards in <code>foo.Nominal\_d13C\_VPDB</code> and <code>foo.Nominal\_d18O\_VPDB</code> cover only a small fraction of the full isotopic range of your measurements.
-Finally, you may also opt to perform no _a posteriori_ standardization of bulk isotopic compositions, which implies that the quality of your final δ<sup>13</sup>C and δ<sup>18</sup>O values will depend strongly on the accuracy of your working gas composition and the linearity of your instrument.
-Switching betwwen these three options can be achieved by setting <code>foo.d13C\_STANDARDIZATION\_METHOD</code> and <code>foo.d18O\_STANDARDIZATION\_METHOD</code> to `'2pt'`, `'1pt'`, and `'none'`, respectively. Note that you may later override this default behavior on a per-session basis.
-#### 1.4 Oxygen-18 acid fractionation factor
-<code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> processing methods always return δ<sup>18</sup>O values of CO<sub>2</sub> analytes relative to VSMOW rather than carbonate δ<sup>18</sup>O<sub>VPDB</sub> values (which depend on sample mineralogies and acid reaction temperature). However, when using single-point or two-point δ<sup>18</sup>O standardization or when computing the bulk isotope composition of working gases based on carbonate standards (using <code><a title="D47crunch.D47data.wg" href="#D47crunch.D4xdata.wg">D4xdata.wg()</a></code>), it is necessary to specify the oxygen-18 fractionation factor associated with the phosphoric acid reaction, by setting the value of <code>foo.ALPHA\_18O\_ACID\_REACTION</code>.
-### 2. Import data
-It's time to add some analyses to out <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object.
-Start with some raw data stored as CSV in a file named <code>rawdata.csv</code> (spaces after commas are optional). Each line corresponds to a single analysis.
-The only required fields are a sample identifier (<code>Sample</code>), and the working-gas delta values <code>d45</code>, <code>d46</code>, <code>d47</code>. If no session information is provided, all analyses will be treated as belonging to a single analytical session. Alternatively, to group analyses into sessions, provide session identifiers in a <code>Session</code> field. If not specified by the user, a unique identifier (<code>UID</code>) will be assigned automatically to each analysis. Independently known oxygen-17 anomalies may be provided as <code>D17O</code> (in ‰ relative to VSMOW, with λ equal to <code><a title="D47crunch.D47data.lambda_17" href="#D47crunch.D4xdata.lambda_17">D47data.lambda\_17</a></code>), and are assumed to be zero otherwise. Working-gas deltas <code>d48</code> and <code>d49</code> may also be provided, and are otherwise treated as <code>nan</code>.
-Example <code>rawdata.csv</code> file:
-<pre><code class="language-csv">UID,  Session,  Sample,       d45,      d46,       d47,       d48,      d49
-A01, Session1,   ETH-1,   5.79502, 11.62767,  16.89351,  24.56708,  0.79486
-A02, Session1, IAEA-C1,   6.21907, 11.49107,  17.27749,  24.58270,  1.56318
-A03, Session1,   ETH-2,  -6.05868, -4.81718, -11.63506, -10.32578,  0.61352
-A04, Session1, IAEA-C2,  -3.86184,  4.94184,   0.60612,  10.52732,  0.57118
-A05, Session1,   ETH-3,   5.54365, 12.05228,  17.40555,  25.96919,  0.74608
-A06, Session1,   ETH-2,  -6.06706, -4.87710, -11.69927, -10.64421,  1.61234
-A07, Session1,   ETH-1,   5.78821, 11.55910,  16.80191,  24.56423,  1.47963
-A08, Session1, IAEA-C2,  -3.87692,  4.86889,   0.52185,  10.40390,  1.07032
-A09, Session1,   ETH-3,   5.53984, 12.01344,  17.36863,  25.77145,  0.53264
-A10, Session1, IAEA-C1,   6.21905, 11.44785,  17.23428,  24.30975,  1.05702
-A11, Session2,   ETH-1,   5.79958, 11.63130,  16.91766,  25.12232,  1.25904
-A12, Session2, IAEA-C1,   6.22514, 11.51264,  17.33588,  24.92770,  2.54331
-A13, Session2,   ETH-2,  -6.03042, -4.74644, -11.52551, -10.55907,  0.04024
-A14, Session2, IAEA-C2,  -3.83702,  4.99278,   0.67529,  10.73885,  0.70929
-A15, Session2,   ETH-3,   5.53700, 12.04892,  17.42023,  26.21793,  2.16400
-A16, Session2,   ETH-2,  -6.06820, -4.84004, -11.68630, -10.72563,  0.04653
-A17, Session2,   ETH-1,   5.78263, 11.57182,  16.83519,  25.09964,  1.26283
-A18, Session2, IAEA-C2,  -3.85355,  4.91943,   0.58463,  10.56221,  0.71245
-A19, Session2,   ETH-3,   5.52227, 12.01174,  17.36841,  26.19829,  1.03740
-A20, Session2, IAEA-C1,   6.21937, 11.44701,  17.26426,  24.84678,  0.76866
-</code></pre>
-Reading data from <code>rawdata.csv</code> can be done with <code>foo.read()</code>:
-<pre><code class="language-python">foo.read('rawdata.csv')
-
-print('foo contains:')
-print(f'{len(foo)} analyses')
-print(f'{len({r[&quot;Sample&quot;] for r in foo})} samples')
-print(f'{len({r[&quot;Session&quot;] for r in foo})} sessions')
-
-# output:
-# foo contains:
-# 20 analyses
-# 5 samples
-# 2 sessions
-</code></pre>
-At this stage, <code>foo</code> behaves like a <code>list</code> object. Yoy may slice it in the usual way (`foo[:10]` returns a list of the first 10 analyses) and use built-in methods in the expected way (e.g., <code>len(foo)</code> is equal to 20).
-We can inspect the first record now stored in <code>foo</code>, corresponding to a single analysis:
-<pre><code class="language-python">r = foo[0]
-for k in r:
-    print(f'r[&quot;{k}&quot;] = {repr(r[k])}')
-
-# output:
-# r[&quot;UID&quot;] = 'A01'
-# r[&quot;Session&quot;] = 'Session1'
-# r[&quot;Sample&quot;] = 'ETH-1'
-# r[&quot;d45&quot;] = 5.79502
-# r[&quot;d46&quot;] = 11.62767
-# r[&quot;d47&quot;] = 16.89351
-# r[&quot;d48&quot;] = 24.56708
-# r[&quot;d49&quot;] = 0.79486
-</code></pre>
-#### 2.1 Sessions
-After importing records from <code>rawdata.csv</code>, our <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a></code> object now has a new dictionary attribute, <code>foo.sessions</code>:
-<pre><code class="language-python">for session in foo.sessions:
-    print(f&quot;{session:&gt;28}:&quot;)
-    for k in foo.sessions[session]:
-        if k == 'data':
-            print(f&quot;{k:&gt;28}: [...] (too large to print)&quot;)
-        else:
-            print(f&quot;{k:&gt;28}: {foo.sessions[session][k]}&quot;)
-    print()
-# output:
-#                     Session1:
-#                         data: [...] (too large to print)
-#             scrambling_drift: False
-#                  slope_drift: False
-#                     wg_drift: False
-#  d13C_standardization_method: 2pt
-#  d18O_standardization_method: 2pt
-# 
-#                     Session2:
-#                         data: [...] (too large to print)
-#             scrambling_drift: False
-#                  slope_drift: False
-#                     wg_drift: False
-#  d13C_standardization_method: 2pt
-#  d18O_standardization_method: 2pt
-</code></pre>
-Each session in <code>foo.sessions</code> has the following attributes at this stage:
-+ <code>data</code>: list of all the analyses in this session
-+ <code>scrambling\_drift</code>, <code>slope\_drift</code>, <code>wg\_drift</code>: whether parameters <code>a</code>, <code>b</code>,<code>c</code> of the Δ<sub>47</sub> standardization model are allowed to drift (change linearly with with time).
-+ <code>d13C\_standardization\_method</code>, <code>d18O\_standardization\_method</code>: which method to use for this session.
-You may arbitrarily edit the values of <code>d13C\_standardization\_method</code>, <code>d18O\_standardization\_method</code> for any session, which will affect the results of <code>foo.crunch()</code>.
-Similarly, you may arbitrarily edit the values of <code>scrambling\_drift</code>, <code>slope\_drift</code>, <code>wg\_drift</code> for any session, which will affect the results of <code>foo.standardize()</code>.
-#### 2.2 Samples, anchors and unknowns
-### 3. Working gas composition
-There are two ways to define the isotpic composition of the working gas.
-#### 3.1 Option 1: explicit definition
-Directly writing to fields <code>d13Cwg\_VPDB</code> and <code>d18Owg\_VSMOW</code>:
-<pre><code class="language-python">for r in foo:
-    if r['Session'] == 'Session1':
-        r['d13Cwg_VPDB'] = -3.75
-        r['d18Owg_VSMOW'] = 25.14
-    elif r['Session'] == 'Session2':
-        r['d13Cwg_VPDB'] = -3.74
-        r['d18Owg_VSMOW'] = 25.17
-</code></pre>
-#### 3.2 Option 2: based on the known composition of a sample:
-<pre><code class="language-python"># The 2 code lines below are the default settings. It is thus not
-# necessary to include them unless you wish to use different values.
-
-foo.SAMPLE_CONSTRAINING_WG_COMPOSITION = ('ETH-3', 1.71, -1.78)
-foo.ALPHA_18O_ACID_REACTION = 1.00813 # (Kim et al., 2007), calcite at 90 °C
-
-# Compute the WG composition for each session:
-foo.wg()
-
-</code></pre>
-### 4. Crunch the data
-Now compute δ<sup>13</sup>C, δ<sup>18</sup>Ο, and raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values. Note that δ<sup>18</sup>Ο is the CO<sub>2</sub> composition. The user is responsible for any acid fractionation correction.
-<pre><code class="language-python">foo.crunch()
-
-r = foo[0]
-for k in r:
-    print(f'r[&quot;{k}&quot;] = {r[k]}')
-
-# output:
-# r[&quot;UID&quot;] = A01
-# r[&quot;Session&quot;] = Session1
-# r[&quot;Sample&quot;] = ETH-1
-# r[&quot;d45&quot;] = 5.79502
-# r[&quot;d46&quot;] = 11.62767
-# r[&quot;d47&quot;] = 16.89351
-# r[&quot;d48&quot;] = 24.56708
-# r[&quot;d49&quot;] = 0.79486
-# r[&quot;d13Cwg_VPDB&quot;] = -3.7555729459832765
-# r[&quot;d18Owg_VSMOW&quot;] = 25.1145492463934
-# r[&quot;D17O&quot;] = 0.0
-# r[&quot;d13C_VPDB&quot;] = 1.9948594073404546
-# r[&quot;d18O_VSMOW&quot;] = 37.03357105550355
-# r[&quot;D47raw&quot;] = -0.5746856128030498
-# r[&quot;D48raw&quot;] = 1.1496833191546596
-# r[&quot;D49raw&quot;] = -27.690248970251407
-</code></pre>
-### 6. Standardization
-#### 6.1 Default approach (<span style="text-transform:lowercase"><code>pooled</code></span>)
-The default standardization approach computes the best-fit standardization parameters (a,b,c) for each session, along with the best-fit Δ<sub>47</sub> values of unknown samples, using a pooled regression model taking into account the relative mapping of all samples (anchors and unknowns) in (δ<sub>47</sub>, Δ<sub>47</sub>) space.
-<pre><code class="language-python">foo.standardize()
-foo.table_of_sessions(verbose = True, save_to_file = False)
-foo.table_of_samples(verbose = True, save_to_file = False)
-
-</code></pre>
-The following text is output:
-<pre><code class="language-csv">[table_of_sessions]
-–––––––––––––––––––––––––––––––  –––––––––––
-N samples (anchors + unknowns)     5 (3 + 2)
-N analyses (anchors + unknowns)  20 (12 + 8)
-Repeatability of δ13C_VPDB          13.8 ppm
-Repeatability of δ18O_VSMOW         41.9 ppm
-Repeatability of Δ47 (anchors)      13.1 ppm
-Repeatability of Δ47 (unknowns)      3.4 ppm
-Repeatability of Δ47 (all)           9.6 ppm
-Model degrees of freedom                  12
-Student's 95% t-factor                  2.18
-Standardization method                pooled
-–––––––––––––––––––––––––––––––  –––––––––––
-
-[table_of_sessions]
-––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  –––––––––––––  ––––––––––––––
-Session   Na  Nu  d13Cwg_VPDB  d18Owg_VSMOW  r_d13C  r_d18O   r_D47         a ± SE   1e3 x b ± SE          c ± SE
-––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  –––––––––––––  ––––––––––––––
-Session1   6   4       -3.756        25.115  0.0035  0.0415  0.0066  0.838 ± 0.016  3.340 ± 0.247  -0.859 ± 0.007
-Session2   6   4       -3.743        25.118  0.0174  0.0490  0.0119  0.815 ± 0.015  4.601 ± 0.246  -0.847 ± 0.007
-––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  –––––––––––––  ––––––––––––––
-
-
-[table_of_samples] 
-–––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-Sample   N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
-–––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-ETH-1    4       2.00       37.00  0.2580                    0.0096          
-ETH-2    4     -10.03       20.18  0.2560                    0.0154          
-ETH-3    4       1.71       37.45  0.6910                    0.0039          
-IAEA-C1  4       2.46       36.88  0.3624  0.0061  ± 0.0133  0.0031     0.901
-IAEA-C2  4      -8.04       30.19  0.7246  0.0082  ± 0.0178  0.0037     0.825
-–––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-</code></pre>
-#### 6.2 <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a>.sessions</code>
-Under the hood, the normalization step does many things. It stores session information in <code>foo.sessions</code>:
-<pre><code class="language-python">print([k for k in foo.sessions])
-# output: ['Session1', 'Session2']
-
-for k in foo.sessions['Session1']:
-    if k == 'data':
-        print(f&quot;{k:&gt;16}: [...] (too large to print)&quot;)
-    else:
-        print(f&quot;{k:&gt;16}: {foo.sessions['Session1'][k]}&quot;)
-# output:
-#            data: [...] (too large to print)
-# scrambling_drift: False
-#      slope_drift: False
-#         wg_drift: False
-#      d13Cwg_VPDB: -3.7555729339153743
-#     d18Owg_VSMOW: 25.11497520475171
-#               Na: 6
-#               Nu: 4
-#      r_d13C_VPDB: 0.0035270930676685897
-#     r_d18O_VSMOW: 0.04146501520018946
-#            r_D47: 0.006638319178058144
-#               Np: 3
-#                a: 0.8381700110925523
-#             SE_a: 0.015603757788793743
-#                b: 0.003340175397346955
-#             SE_b: 0.0002474062198065805
-#                c: -0.8586981978192628
-#             SE_c: 0.006737855663518676
-#               a2: 0.0
-#            SE_a2: 0.0
-#               b2: 0.0
-#            SE_b2: 0.0
-#               c2: 0.0
-#            SE_c2: 0.0
-#               CM: [...] (6x6 numpy.Array())
-</code></pre>
-each element of <code>foo.sessions</code> has the following attributes:
-+ <code>data</code>: list of all the analyses in this session
-+ <code>scrambling\_drift</code>, <code>slope\_drift</code>, <code>wg\_drift</code>: whether parameters <code>a</code>, <code>b</code>,<code>c</code> are allowed to drift (change linearly with with time)
-+ <code>d13Cwg\_VPDB</code>, <code>d18Owg\_VSMOW</code>: working gas composition
-+ <code>Na</code>: number of anchor analyses in this session
-+ <code>Nu</code>: number of unknown analyses in this session
-+ <code>r\_d13C\_VPDB</code>, <code>r\_d18O\_VSMOW</code>, <code>r\_D47</code>: repeatabilities for <code>d13C\_VPDB</code>, <code>d18O\_VSMOW</code>, <code>D47</code> in this session
-+ <code>a</code>,<code>SE\_a</code>: best-fit value and model SE of scrambling factor
-+ <code>b</code>,<code>SE\_b</code>: best-fit value and model SE of compositional slope
-+ <code>c</code>,<code>SE\_c</code>: best-fit value and model SE of working gas offset
-+ <code>a2</code>,<code>b2</code>,<code>c2</code>: drift rates (per unit of <code>TimeTag</code>) of <code>a</code>,<code>b</code>, <code>c</code>. If <code>TimeTag</code> is one of the fields in the raw data, this will be used, otherwise <code>TimeTag</code> starts at 0 for each session and increases by 1 for each analysis, in the listed order (thus beware of datasets ordered by sample name).
-+ <code>CM</code>: the covariance matrix of (<code>a</code>, <code>b</code>, <code>c</code>, <code>a2</code>, <code>b2</code>, <code>c2</code>).
-#### 6.3 <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a>.samples</code>, <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a>.anchors</code>, and <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a>.unknowns</code>
-Additional information about the samples is stored in <code>foo.samples</code> (the same information can also be accessed via <code>foo.anchors</code> and <code>foo.unknowns</code>):
-<pre><code class="language-python">print([k for k in foo.samples])
-# output:
-# ['ETH-1', 'ETH-2', 'ETH-3', 'IAEA-C1', 'IAEA-C2']
-
-for k in foo.samples['IAEA-C1']:
-    if k == 'data':
-        print(f&quot;{k:&gt;12}: [...] (too large to print)&quot;)
-    else:
-        print(f&quot;{k:&gt;12}: {foo.samples['IAEA-C1'][k]}&quot;)
-# output:
-#         data: [...] (too large to print)
-#            N: 4
-#       SD_D47: 0.0031207941052170305
-#    d13C_VPDB: 2.460639104889639
-#   d18O_VSMOW: 36.87725533010137
-#     p_Levene: 0.901152441112675
-#          D47: 0.3624187694150056
-#       SE_D47: 0.00610711296513016
-</code></pre>
-Each element of <code>foo.samples</code> has the following attributes:
-+ <code>N</code>: total number of analyses in the whole data set
-+ <code>SD\_D47</code>: the sample SD of Δ<sub>47</sub> for this sample
-+ <code>d13C\_VPDB</code>, <code>d18O\_VSMOW</code>: average δ<sup>13</sup>C, δ<sup>18</sup>Ο values for the analyte CO<sub>2</sub>.
-+ <code>D47</code>, <code>SE\_D47</code>: best-fit value and model SE for the Δ<sub>47</sub> of this sample
-+ <code>p\_Levene</code>: p-value for a [Levene test] of whether the observed Δ<sub>47</sub> variance for this sample is significantly larger than that for ETH-3 (to change the reference sample to compare with, e.g. to ETH-1: `foo.LEVENE_REF_SAMPLE = 'ETH-1'` before calling <code>foo.normalize()</code>).
-[Levene test]: <https://en.wikipedia.org/wiki/Levene%27s_test>
-#### 6.4 <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a>.()repeatability</code>
-The overall analytical repeatabilities are now saved to <code>foo.repeatability</code>:
-<pre><code class="language-python">for k in foo.repeatability:
-    print(f&quot;{k:&gt;12}: {foo.repeatability[k]}&quot;)
-
-# output:
-#  r_d13C_VPDB: 0.013821704833171146
-# r_d18O_VSMOW: 0.04191487414887982
-#       r_D47a: 0.010690471302409636
-#       r_D47u: 0.0034370447628642863
-#        r_D47: 0.008561367687546161
-</code></pre>
-+ <code>r\_d13C\_VPDB</code>: Analytical repeatability of δ<sup>13</sup>C for all samples
-+ <code>r\_d18O\_VSMOW</code>: Analytical repeatability of δ<sup>18</sup>O for all samples (CO<sub>2</sub> values)
-+ <code>r\_D47a</code>: Analytical repeatability of Δ<sub>47</sub> for anchor samples only
-+ <code>r\_D47u</code>: Analytical repeatability of Δ<sub>47</sub> for unknown samples only
-+ <code>r\_D47</code>: Analytical repeatability of Δ<sub>47</sub> for all samples.
-#### 6.5 <code><a title="D47crunch.D47data" href="#D47crunch.D47data">D47data</a>.()result</code>
-By default <code>foo.normalize()</code> uses the [`lmfit.Minimizer.leastsq()`](https://lmfit.github.io/lmfit-py/fitting.html#lmfit.minimizer.Minimizer) method, which returns an instance of [`lmfit.MinimizerResult`](https://lmfit.github.io/lmfit-py/fitting.html#lmfit.minimizer.MinimizerResult). This <code>MinimizerResult</code>instance is stored in <code>foo.result</code>. A detailed report may be printed using <code>foo.report()</code>
-<pre><code class="language-python">print(type(foo.normalization))
-# output:
-# &lt;class 'lmfit.minimizer.MinimizerResult'&gt;
-</code></pre>
-#### 6.6 Combining information from carbonate anchors and equilibrated gases
-The <code>constraints</code> argument to <code><a title="D47crunch.D47data.standardize" href="#D47crunch.D4xdata.standardize">D4xdata.standardize()</a></code> in the pooled regression approach may be used to specify arbitrary constraints between regression model parameters. For instance, if a data set comprises two carbonate standards (`ETH-1` and `ETH-2`) and two gas standards (`HG-1000C` and `EG-25C`), it is possible to specify the Δ<sub>47</sub> difference between `HG-1000C` and `EG-25C` explicitly, essentially constraining the scrambling factor <code>a</code> based on the gas standards while constraining the other parameters based on `ETH-1` and `ETH-2`:
-<pre><code class="language-python">from D47crunch import D47data, fCO2eqD47_Wang
-
-rawdata = D47data()
-rawdata.read('foo.csv') # foo.csv not provided in this example
-rawdata.wg()
-rawdata.crunch()
-constr = {'D47_EG_25C': f'D47_HG_1000C + {fCO2eqD47_Wang(25)-fCO2eqD47_Wang(1000)}')
-rawdata.standardize(constraints = constr)
-rawdata.table_of_samples()
-
-# outputs something like:
-# 
-# [table_of_samples] 
-# ––––––––  –––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-# Sample      N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
-# ––––––––  –––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-# ETH-1     205       2.03       37.03  0.2052                    0.0089          
-# ETH-2     213     -10.17       19.88  0.2085                    0.0078          
-# EG-25C    138     -18.43       40.35  0.9195  0.0000  ± 0.0000  0.0095     1.000
-# HG-1000C  180      -7.95       26.50  0.0242  0.0007  ± 0.0014  0.0085     0.367
-# ––––––––  –––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-</code></pre>
-Note that in the example abobe, because `HG-1000C` was constrained as a function of `EG-25C`, the SE in its Δ<sub>47</sub> value is not reported. For now, it must instead be computed based on that of `EG-25C` (in this simple case, the two standard errors are identical).
-#### 6.7 Legacy standardization approach (<span style="text-transform:lowercase"><code>indep\_sessions</code></span>)
-Following a more traditional approach, `foo.standardize(method = 'indep_sessions')` computes the best-fit standardization parameters (a,b,c) for each session using independent regression models (one per session) only taking into account the anchor samples (samples defined in <code>foo.Nominal\_D47</code>), then computes the Δ<sub>47</sub> value for each analysis and
-the weighted average Δ<sub>47</sub> value for each unknown sample.
-### 7. Viewing and saving the results
-> under construction
--->
 <details class="source">
 <summary>
 <span>Expand source code</span>
