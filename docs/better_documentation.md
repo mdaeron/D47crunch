@@ -99,7 +99,27 @@ A08  mySession  MYSAMPLE-2       -3.807        24.921  -3.876920   4.868890    0
 
 ## How-to
 
-### Use a different set of anchors and/or different anchor nominal values
+### Use a different set of anchors, change anchor nominal values, and/or change <sup>17</sup>O correction parameters
+
+Nominal values for various carbonate standards are defined in four places:
+
+* `D4xdata.Nominal_d13C_VPDB`
+* `D4xdata.Nominal_d18O_VPDB`
+* `D47data.Nominal_D47`
+* `D48data.Nominal_D48`
+
+<sup>17</sup>O correction parameters are defined by:
+
+* `D4xdata.R13_VPDB`
+* `D4xdata.R18_VSMOW`
+* `D4xdata.R18_VPDB`
+* `D4xdata.lambda_17`
+* `D4xdata.R17_VSMOW`
+* `D4xdata.R17_VPDB`
+
+### Simulate a virtual data set to play with
+
+### Process paired Δ<sub>47</sub> and Δ<sub>48</sub> values
 
 ## Discussions
 
