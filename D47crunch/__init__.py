@@ -7,9 +7,14 @@ from low-level data out of a dual-inlet mass spectrometer to final, “absolute�
 Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates
 ([Daëron, 2021]).
 
-[Daëron, 2021]: https://doi.org/10.1029/2020GC009592
+The **tutorial** section takes you through a series of simple steps to import/process data and print out the results.
+The **how-to** section provides instructions applicable to various specific tasks.
 
-.. include:: ../docs/documentation.md
+.. include:: ../docs/tutorial.md
+.. include:: ../docs/howto.md
+.. include:: ../docs/discussion.md
+
+[Daëron, 2021]: https://doi.org/10.1029/2020GC009592
 '''
 
 __author__    = 'Mathieu Daëron'
@@ -417,7 +422,7 @@ class D4xdata(list):
 		+ `session`: define session name for analyses without a `Session` key
 		+ `verbose`: if `True`, print out detailed logs when calling `D4xdata` methods.
 
-		Returns a `D47data` object derived from `list`.
+		Returns a `D4xdata` object derived from `list`.
 		'''
 		self._4x = mass
 		self.verbose = verbose
@@ -1934,7 +1939,7 @@ class D4xdata(list):
 		if y_label is None:
 			y_label = f'Δ$_{{{self._4x}}}$ (‰)'
 
-		out = SessionPlot()
+		out = _SessionPlot()
 		anchors = [a for a in self.anchors if [r for r in self.sessions[session]['data'] if r['Sample'] == a]]
 		unknowns = [u for u in self.unknowns if [r for r in self.sessions[session]['data'] if r['Sample'] == u]]
 		
@@ -2228,7 +2233,7 @@ class D47data(D4xdata):
 	reference frame.
 
 	By default equal to (after [Bernasconi et al. (2021)]):
-	````py
+	```py
 	{
 		'ETH-1'   : 0.2052,
 		'ETH-2'   : 0.2085,
@@ -2238,7 +2243,7 @@ class D47data(D4xdata):
 		'IAEA-C2' : 0.6409,
 		'MERCK'   : 0.5135,
 	}
-	````
+	```
 
 	[Bernasconi et al. (2021)]: https://doi.org/10.1029/2020GC009588
 	'''
@@ -2256,6 +2261,9 @@ class D47data(D4xdata):
 
 
 	def __init__(self, l = [], **kwargs):
+		'''
+		__Parameters:__ same as `D4xdata.__init__()`
+		'''
 		D4xdata.__init__(self, l = l, mass = '47', **kwargs)
 
 
@@ -2320,7 +2328,7 @@ class D48data(D4xdata):
 	reference frame.
 
 	By default equal to (after [Fiebig et al. (2019)], Fiebig et al. (in press)):
-	````py
+	```py
 	{
 		'ETH-1' :  0.138,
 		'ETH-2' :  0.138,
@@ -2328,7 +2336,7 @@ class D48data(D4xdata):
 		'ETH-4' :  0.223,
 		'GU-1'  : -0.419,
 	}
-	````
+	```
 
 	[Fiebig et al. (2019)]: https://doi.org/10.1016/j.chemgeo.2019.05.019
 	'''
@@ -2346,10 +2354,16 @@ class D48data(D4xdata):
 
 
 	def __init__(self, l = [], **kwargs):
+		'''
+		__Parameters:__ same as `D4xdata.__init__()`
+		'''
 		D4xdata.__init__(self, l = l, mass = '48', **kwargs)
 
 
-class SessionPlot():
+class _SessionPlot():
+	'''
+	Simple placeholder class
+	'''
 	def __init__(self):
 		pass
 
@@ -2522,7 +2536,7 @@ def virtual_data(
 	Here is an example of using this method to generate an arbitrary combination of
 	anchors and unknowns for a bunch of sessions:
 
-	````py
+	```py
 	args = dict(
 		samples = [
 			dict(Sample = 'ETH-1', N = 4),
@@ -2550,11 +2564,11 @@ def virtual_data(
 	D.table_of_sessions(verbose = True, save_to_file = False)
 	D.table_of_samples(verbose = True, save_to_file = False)
 	D.table_of_analyses(verbose = True, save_to_file = False)
-	````
+	```
 	
 	This should output something like:
 	
-	````
+	```
 	[table_of_sessions] 
 	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
 	Session     Na  Nu  d13Cwg_VPDB  d18Owg_VSMOW  r_d13C  r_d18O   r_D47         a ± SE    1e3 x b ± SE          c ± SE
@@ -2648,7 +2662,7 @@ def virtual_data(
 	67   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.307663    5.317330    4.665655   -5.000000   28.907344  -0.602808  -0.346202  -0.000006  0.290853
 	68   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.308562    5.331400    4.665655   -5.000000   28.907344  -0.601911  -0.332212  -0.000006  0.291749
 	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
-	````
+	```
 	'''
 	
 	kwargs = locals().copy()
@@ -2699,3 +2713,4 @@ def virtual_data(
 			for r in out:
 				r['Session'] = session
 	return out
+
