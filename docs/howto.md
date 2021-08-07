@@ -14,7 +14,7 @@ Nominal values for various carbonate standards are defined in four places:
 * `D4xdata.R13_VPDB`
 * `D4xdata.R18_VSMOW`
 * `D4xdata.R18_VPDB`
-* `D4xdata.lambda_17`
+* `D4xdata.LAMBDA_17`
 * `D4xdata.R17_VSMOW`
 * `D4xdata.R17_VPDB`
 
@@ -29,7 +29,7 @@ from D47crunch import D4xdata, D47data
 D4xdata.R17_VSMOW = 0.00037 # new value
 
 # redefine R17_VPDB for consistency:
-D4xdata.R17_VPDB = D4xdata.R17_VSMOW * (D4xdata.R18_VPDB/D4xdata.R18_VSMOW) ** D4xdata.lambda_17
+D4xdata.R17_VPDB = D4xdata.R17_VSMOW * (D4xdata.R18_VPDB/D4xdata.R18_VSMOW) ** D4xdata.LAMBDA_17
 
 # edit Nominal_D47 to only include ETH-1/2/3:
 D47data.Nominal_D4x = {
@@ -64,7 +64,7 @@ mydata = D47data()
 mydata.R17_VSMOW = 0.00037 # new value
 
 # redefine R17_VPDB for consistency:
-mydata.R17_VPDB = mydata.R17_VSMOW * (mydata.R18_VPDB/mydata.R18_VSMOW) ** mydata.lambda_17
+mydata.R17_VPDB = mydata.R17_VSMOW * (mydata.R18_VPDB/mydata.R18_VSMOW) ** mydata.LAMBDA_17
 
 # edit Nominal_D47 to only include ETH-1/2/3:
 mydata.Nominal_D47 = {
@@ -93,9 +93,9 @@ foo = D47data()
 bar = D47data()
 
 # modify foo in various ways:
-foo.lambda_17 = 0.52
+foo.LAMBDA_17 = 0.52
 foo.R17_VSMOW = 0.00037 # new value
-foo.R17_VPDB = foo.R17_VSMOW * (foo.R18_VPDB/foo.R18_VSMOW) ** foo.lambda_17
+foo.R17_VPDB = foo.R17_VSMOW * (foo.R18_VPDB/foo.R18_VSMOW) ** foo.LAMBDA_17
 foo.Nominal_D47 = {
 	'ETH-1': foo.Nominal_D47['ETH-1'],
 	'ETH-2': foo.Nominal_D47['ETH-1'],

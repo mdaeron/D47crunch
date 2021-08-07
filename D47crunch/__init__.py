@@ -5,23 +5,21 @@ Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotop
 Process and standardize carbonate and/or CO<sub>2</sub> clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
 Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates
-([Daëron, 2021]).
+([Daëron, 2021](https://doi.org/10.1029/2020GC009592)).
 
 The **tutorial** section takes you through a series of simple steps to import/process data and print out the results.
 The **how-to** section provides instructions applicable to various specific tasks.
 
 .. include:: ../docs/tutorial.md
 .. include:: ../docs/howto.md
-.. include:: ../docs/discussion.md
-
-[Daëron, 2021]: https://doi.org/10.1029/2020GC009592
 '''
 
+__docformat__ = "restructuredtext"
 __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2021 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2021-07-26'
+__date__      = '2021-08-07'
 __version__   = '2.0.0-beta'
 
 import os
@@ -63,9 +61,8 @@ _fCO2eqD47_Petersen = interp1d(Petersen_etal_CO2eqD47[:,0], Petersen_etal_CO2eqD
 def fCO2eqD47_Petersen(T):
 	'''
 	CO<sub>2</sub> equilibrium Δ<sub>47</sub> value as a function of T (in degrees C)
-	according to [Petersen et al. (2019)].
+	according to [Petersen et al. (2019)](https://doi.org/10.1029/2018GC008127).
 
-	[Petersen et al. (2019)]: https://doi.org/10.1029/2018GC008127
 	'''
 	return float(_fCO2eqD47_Petersen(T))
 
@@ -75,10 +72,8 @@ _fCO2eqD47_Wang = interp1d(Wang_etal_CO2eqD47[:,0] - 0.15, Wang_etal_CO2eqD47[:,
 def fCO2eqD47_Wang(T):
 	'''
 	CO<sub>2</sub> equilibrium Δ<sub>47</sub> value as a function of `T` (in degrees C)
-	according to [Wang et al. (2004)] (supplementary data of [Dennis et al., 2011]).
-
-	[Wang et al. (2004)]: https://doi.org/10.1016/j.gca.2004.05.039
-	[Dennis et al., 2011]: https://doi.org/10.1016/j.gca.2011.09.025
+	according to [Wang et al. (2004)](https://doi.org/10.1016/j.gca.2004.05.039)
+	(supplementary data of [Dennis et al., 2011](https://doi.org/10.1016/j.gca.2011.09.025)).
 	'''
 	return float(_fCO2eqD47_Wang(T))
 
@@ -87,7 +82,7 @@ def correlated_sum(X, C, w = None):
 	'''
 	Compute covariance-aware linear combinations
 
-	__Parameters__
+	**Parameters**
 	
 	+ `X`: list or 1-D array of values to sum
 	+ `C`: covariance matrix for the elements of `X`
@@ -106,13 +101,13 @@ def make_csv(x, hsep = ',', vsep = '\n'):
 	'''
 	Formats a list of lists of strings as a CSV
 
-	__Parameters__
+	**Parameters**
 
 	+ `x`: the list of lists of strings to format
 	+ `hsep`: the field separator (`,` by default)
 	+ `vsep`: the line-ending convention to use (`\\n` by default)
 
-	__Example__
+	**Example**
 
 	```py
 	print(make_csv([['a', 'b', 'c'], ['d', 'e', 'f']]))
@@ -154,7 +149,7 @@ def pretty_table(x, header = 1, hsep = '  ', vsep = '–', align = '<'):
 	'''
 	Reads a list of lists of strings and outputs an ascii table
 
-	__Parameters__
+	**Parameters**
 
 	+ `x`: a list of lists of strings
 	+ `header`: the number of lines to treat as header lines
@@ -162,11 +157,14 @@ def pretty_table(x, header = 1, hsep = '  ', vsep = '–', align = '<'):
 	+ `vsep`: the character to use as vertical separator
 	+ `align`: string of left (`<`) or right (`>`) alignment characters.
 
-	__Example__
+	**Example**
 
+	```py
+	x = [['A', 'B', 'C'], ['1', '1.9999', 'foo'], ['10', 'x', 'bar']]
+	print(pretty_table(x))
 	```
-	>>> x = [['A', 'B', 'C'], ['1', '1.9999', 'foo'], ['10', 'x', 'bar']]
-	>>> print(pretty_table(x))
+	yields:	
+	```
 	--  ------  ---
 	A        B    C
 	--  ------  ---
@@ -196,23 +194,16 @@ def transpose_table(x):
 	'''
 	Transpose a list if lists
 
-	__Parameters__
+	**Parameters**
 
 	+ `x`: a list of lists
 
-	__Example__
+	**Example**
 
-	```python
+	```py
 	x = [[1, 2], [3, 4]]
-	print(transpose_table(x))
+	print(transpose_table(x)) # yields: [[1, 3], [2, 4]]
 	```
-
-	outputs:
-
-	```python
-	[[1, 3], [2, 4]]
-	```
-
 	'''
 	return [[e for e in c] for c in zip(*x)]
 
@@ -224,22 +215,19 @@ def w_avg(X, sX) :
 	Returns the value and SE of the weighted average of the elements of `X`,
 	with relative weights equal to their inverse variances (`1/sX**2`).
 
-	__Parameters__
+	**Parameters**
 
 	+ `X`: array-like of elements to average
 	+ `sX`: array-like of the corresponding SE values
 
-	__Tip__
+	**Tip**
 
 	If `X` and `sX` are initially arranged as a list of `(x, sx)` doublets,
 	they may be rearranged using `zip()`:
 
 	```python
-	foo = [(0, 0.1), (1, 0.05), (2, 0.05)]
-	print(w_avg(*zip(*foo)))
-
-	# output:
-	# (1.3333333333333333, 0.03333333333333334)
+	foo = [(0, 1), (1, 0.5), (2, 0.5)]
+	print(w_avg(*zip(*foo))) # yields: (1.3333333333333333, 0.3333333333333333)
 	```
 	'''
 	X = [ x for x in X ]
@@ -258,7 +246,7 @@ def read_csv(filename, sep = ''):
 	In the csv string, spaces before and after field separators (`','` by default)
 	are optional.
 
-	__Parameters__
+	**Parameters**
 
 	+ `filename`: the csv file to read
 	+ `sep`: csv separator delimiting the fields. By default, use `,`, `;`, or `\t`,
@@ -273,6 +261,590 @@ def read_csv(filename, sep = ''):
 	return [{k: smart_type(v) for k,v in zip(txt[0], l) if v} for l in txt[1:]]
 
 
+def simulate_single_analysis(
+	sample = 'MYSAMPLE',
+	d13Cwg_VPDB = -4., d18Owg_VSMOW = 26.,
+	d13C_VPDB = None, d18O_VPDB = None,
+	D47 = None, D48 = None, D49 = 0., D17O = 0.,
+	a47 = 1., b47 = 0., c47 = -0.9,
+	a48 = 1., b48 = 0., c48 = -0.45,
+	Nominal_D47 = None,
+	Nominal_D48 = None,
+	Nominal_d13C_VPDB = None,
+	Nominal_d18O_VPDB = None,
+	ALPHA_18O_ACID_REACTION = None,
+	R13_VPDB = None,
+	R17_VSMOW = None,
+	R18_VSMOW = None,
+	LAMBDA_17 = None,
+	R18_VPDB = None,
+	):
+	'''
+	Compute working-gas delta values for a single analysis, assuming a stochastic working
+	gas and a “perfect” measurement (i.e. raw Δ values are identical to absolute values).
+	
+	**Parameters**
+
+	+ `sample`: sample name
+	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
+		(respectively –4 and +26 ‰ by default)
+	+ `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample
+	+ `D47`, `D48`, `D49`, `D17O`: clumped-isotope and oxygen-17 anomalies
+		of the carbonate sample
+	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ<sub>47</sub> and
+		Δ<sub>48</sub> values if `D47` or `D48` are not specified
+	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ<sup>13</sup>C and
+		δ<sup>18</sup>O values if `d13C_VPDB` or `d18O_VPDB` are not specified
+	+ `ALPHA_18O_ACID_REACTION`: <sup>18</sup>O/<sup>16</sup>O acid fractionation factor
+	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `LAMBDA_17`, `R18_VPDB`: oxygen-17
+		correction parameters (by default equal to the `D4xdata` default values)
+	
+	Returns a dictionary with fields
+	`['Sample', 'D17O', 'd13Cwg_VPDB', 'd18Owg_VSMOW', 'd45', 'd46', 'd47', 'd48', 'd49']`.
+	'''
+
+	if Nominal_d13C_VPDB is None:
+		Nominal_d13C_VPDB = D4xdata().Nominal_d13C_VPDB
+
+	if Nominal_d18O_VPDB is None:
+		Nominal_d18O_VPDB = D4xdata().Nominal_d18O_VPDB
+
+	if ALPHA_18O_ACID_REACTION is None:
+		ALPHA_18O_ACID_REACTION = D4xdata().ALPHA_18O_ACID_REACTION
+
+	if R13_VPDB is None:
+		R13_VPDB = D4xdata().R13_VPDB
+
+	if R17_VSMOW is None:
+		R17_VSMOW = D4xdata().R17_VSMOW
+
+	if R18_VSMOW is None:
+		R18_VSMOW = D4xdata().R18_VSMOW
+
+	if LAMBDA_17 is None:
+		LAMBDA_17 = D4xdata().LAMBDA_17
+
+	if R18_VPDB is None:
+		R18_VPDB = D4xdata().R18_VPDB
+	
+	R17_VPDB = R17_VSMOW * (R18_VPDB / R18_VSMOW) ** LAMBDA_17
+	
+	if Nominal_D47 is None:
+		Nominal_D47 = D47data().Nominal_D47
+
+	if Nominal_D48 is None:
+		Nominal_D48 = D48data().Nominal_D48
+	
+	if d13C_VPDB is None:
+		if sample in Nominal_d13C_VPDB:
+			d13C_VPDB = Nominal_d13C_VPDB[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing d13C_VDP value, and it is not defined in Nominal_d13C_VDP.")
+
+	if d18O_VPDB is None:
+		if sample in Nominal_d18O_VPDB:
+			d18O_VPDB = Nominal_d18O_VPDB[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing d18O_VPDB value, and it is not defined in Nominal_d18O_VPDB.")
+
+	if D47 is None:
+		if sample in Nominal_D47:
+			D47 = Nominal_D47[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing D47 value, and it is not defined in Nominal_D47.")
+
+	if D48 is None:
+		if sample in Nominal_D48:
+			D48 = Nominal_D48[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing D48 value, and it is not defined in Nominal_D48.")
+
+	X = D4xdata()
+	X.R13_VPDB = R13_VPDB
+	X.R17_VSMOW = R17_VSMOW
+	X.R18_VSMOW = R18_VSMOW
+	X.LAMBDA_17 = LAMBDA_17
+	X.R18_VPDB = R18_VPDB
+	X.R17_VPDB = R17_VSMOW * (R18_VPDB / R18_VSMOW)**LAMBDA_17
+
+	R45wg, R46wg, R47wg, R48wg, R49wg = X.compute_isobar_ratios(
+		R13 = R13_VPDB * (1 + d13Cwg_VPDB/1000),
+		R18 = R18_VSMOW * (1 + d18Owg_VSMOW/1000),
+		)
+	R45, R46, R47, R48, R49 = X.compute_isobar_ratios(
+		R13 = R13_VPDB * (1 + d13C_VPDB/1000),
+		R18 = R18_VPDB * (1 + d18O_VPDB/1000) * ALPHA_18O_ACID_REACTION,
+		D17O=D17O, D47=D47, D48=D48, D49=D49,
+		)
+	R45stoch, R46stoch, R47stoch, R48stoch, R49stoch = X.compute_isobar_ratios(
+		R13 = R13_VPDB * (1 + d13C_VPDB/1000),
+		R18 = R18_VPDB * (1 + d18O_VPDB/1000) * ALPHA_18O_ACID_REACTION,
+		D17O=D17O,
+		)
+	
+	d45 = 1000 * (R45/R45wg - 1)
+	d46 = 1000 * (R46/R46wg - 1)
+	d47 = 1000 * (R47/R47wg - 1)
+	d48 = 1000 * (R48/R48wg - 1)
+	d49 = 1000 * (R49/R49wg - 1)
+
+	for k in range(3): # dumb iteration to adjust for small changes in d47
+		R47raw = (1 + (a47 * D47 + b47 * d47 + c47)/1000) * R47stoch
+		R48raw = (1 + (a48 * D48 + b48 * d48 + c48)/1000) * R48stoch	
+		d47 = 1000 * (R47raw/R47wg - 1)
+		d48 = 1000 * (R48raw/R48wg - 1)
+
+	return dict(
+		Sample = sample,
+		D17O = D17O,
+		d13Cwg_VPDB = d13Cwg_VPDB,
+		d18Owg_VSMOW = d18Owg_VSMOW,
+		d45 = d45,
+		d46 = d46,
+		d47 = d47,
+		d48 = d48,
+		d49 = d49,
+		)
+
+
+def virtual_data(
+	samples = [],
+	a47 = 1., b47 = 0., c47 = -0.9,
+	a48 = 1., b48 = 0., c48 = -0.45,
+	rD47 = 0.015, rD48 = 0.045,
+	d13Cwg_VPDB = None, d18Owg_VSMOW = None,
+	session = None,
+	Nominal_D47 = None, Nominal_D48 = None,
+	Nominal_d13C_VPDB = None, Nominal_d18O_VPDB = None,
+	ALPHA_18O_ACID_REACTION = None,
+	R13_VPDB = None,
+	R17_VSMOW = None,
+	R18_VSMOW = None,
+	LAMBDA_17 = None,
+	R18_VPDB = None,
+	seed = 0,
+	):
+	'''
+	Return list with simulated analyses from a single session.
+	
+	**Parameters**
+	
+	+ `samples`: a list of entries; each entry is a dictionary with the following fields:
+	    * `Sample`: the name of the sample
+	    * `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample
+	    * `D47`, `D48`, `D49`, `D17O` (all optional): clumped-isotope and oxygen-17 anomalies of the carbonate sample
+	    * `N`: how many analyses to generate for this sample
+	+ `a47`: scrambling factor for Δ<sub>47</sub>
+	+ `b47`: compositional nonlinearity for Δ<sub>47</sub>
+	+ `c47`: working gas offset for Δ<sub>47</sub>
+	+ `a48`: scrambling factor for Δ<sub>48</sub>
+	+ `b48`: compositional nonlinearity for Δ<sub>48</sub>
+	+ `c48`: working gas offset for Δ<sub>48</sub>
+	+ `rD47`: analytical repeatability of Δ<sub>47</sub>
+	+ `rD48`: analytical repeatability of Δ<sub>48</sub>
+	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
+		(by default equal to the `simulate_single_analysis` default values)
+	+ `session`: name of the session (no name by default)
+	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ<sub>47</sub> and Δ<sub>48</sub> values
+		if `D47` or `D48` are not specified (by default equal to the `simulate_single_analysis` defaults)
+	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ<sup>13</sup>C and
+		δ<sup>18</sup>O values if `d13C_VPDB` or `d18O_VPDB` are not specified 
+		(by default equal to the `simulate_single_analysis` defaults)
+	+ `ALPHA_18O_ACID_REACTION`: <sup>18</sup>O/<sup>16</sup>O acid fractionation factor
+		(by default equal to the `simulate_single_analysis` defaults)
+	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `LAMBDA_17`, `R18_VPDB`: oxygen-17
+		correction parameters (by default equal to the `simulate_single_analysis` default)
+	+ `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
+	
+		
+	Here is an example of using this method to generate an arbitrary combination of
+	anchors and unknowns for a bunch of sessions:
+
+	```py
+	args = dict(
+		samples = [
+			dict(Sample = 'ETH-1', N = 4),
+			dict(Sample = 'ETH-2', N = 5),
+			dict(Sample = 'ETH-3', N = 6),
+			dict(Sample = 'FOO', N = 2,
+				d13C_VPDB = -5., d18O_VPDB = -10.,
+				D47 = 0.3, D48 = 0.15),
+			], rD47 = 0.010, rD48 = 0.030)
+
+	session1 = virtual_data(session = 'Session_01', **args, seed = 123)
+	session2 = virtual_data(session = 'Session_02', **args, seed = 1234)
+	session3 = virtual_data(session = 'Session_03', **args, seed = 12345)
+	session4 = virtual_data(session = 'Session_04', **args, seed = 123456)
+
+	D = D47data(session1 + session2 + session3 + session4)
+
+	D.crunch()
+	D.standardize()
+
+	D.table_of_sessions(verbose = True, save_to_file = False)
+	D.table_of_samples(verbose = True, save_to_file = False)
+	D.table_of_analyses(verbose = True, save_to_file = False)
+	```
+	
+	This should output something like:
+	
+	```
+	[table_of_sessions] 
+	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
+	Session     Na  Nu  d13Cwg_VPDB  d18Owg_VSMOW  r_d13C  r_d18O   r_D47         a ± SE    1e3 x b ± SE          c ± SE
+	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
+	Session_01  15   2       -4.000        26.000  0.0000  0.0000  0.0110  0.997 ± 0.017  -0.097 ± 0.244  -0.896 ± 0.006
+	Session_02  15   2       -4.000        26.000  0.0000  0.0000  0.0109  1.002 ± 0.017  -0.110 ± 0.244  -0.901 ± 0.006
+	Session_03  15   2       -4.000        26.000  0.0000  0.0000  0.0107  1.010 ± 0.017  -0.037 ± 0.244  -0.904 ± 0.006
+	Session_04  15   2       -4.000        26.000  0.0000  0.0000  0.0106  1.001 ± 0.017  -0.181 ± 0.244  -0.894 ± 0.006
+	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
+
+	[table_of_samples] 
+	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+	Sample   N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
+	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+	ETH-1   16       2.02       37.02  0.2052                    0.0079          
+	ETH-2   20     -10.17       19.88  0.2085                    0.0100          
+	ETH-3   24       1.71       37.45  0.6132                    0.0105          
+	FOO      8      -5.00       28.91  0.2989  0.0040  ± 0.0080  0.0101     0.638
+	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+
+	[table_of_analyses] 
+	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
+	UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46         d47         d48         d49   d13C_VPDB  d18O_VSMOW     D47raw     D48raw     D49raw       D47
+	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
+	1    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.122986   21.273526   27.780042    2.020000   37.024281  -0.706013  -0.328878  -0.000013  0.192554
+	2    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.130144   21.282615   27.780042    2.020000   37.024281  -0.698974  -0.319981  -0.000013  0.199615
+	3    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.149219   21.299572   27.780042    2.020000   37.024281  -0.680215  -0.303383  -0.000013  0.218429
+	4    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.136616   21.233128   27.780042    2.020000   37.024281  -0.692609  -0.368421  -0.000013  0.205998
+	5    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.697171  -12.203054  -18.023381  -10.170000   19.875825  -0.680771  -0.290128  -0.000002  0.215054
+	6    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701124  -12.184422  -18.023381  -10.170000   19.875825  -0.684772  -0.271272  -0.000002  0.211041
+	7    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.715105  -12.195251  -18.023381  -10.170000   19.875825  -0.698923  -0.282232  -0.000002  0.196848
+	8    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701529  -12.204963  -18.023381  -10.170000   19.875825  -0.685182  -0.292061  -0.000002  0.210630
+	9    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.711420  -12.228478  -18.023381  -10.170000   19.875825  -0.695193  -0.315859  -0.000002  0.200589
+	10   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.666719   22.296486   28.306614    1.710000   37.450394  -0.290459  -0.147284  -0.000014  0.609363
+	11   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.671553   22.291060   28.306614    1.710000   37.450394  -0.285706  -0.152592  -0.000014  0.614130
+	12   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.652854   22.273271   28.306614    1.710000   37.450394  -0.304093  -0.169990  -0.000014  0.595689
+	13   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.684168   22.263156   28.306614    1.710000   37.450394  -0.273302  -0.179883  -0.000014  0.626572
+	14   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.662702   22.253578   28.306614    1.710000   37.450394  -0.294409  -0.189251  -0.000014  0.605401
+	15   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.681957   22.230907   28.306614    1.710000   37.450394  -0.275476  -0.211424  -0.000014  0.624391
+	16   Session_01     FOO       -4.000        26.000  -0.840413   2.828738    1.312044    5.395798    4.665655   -5.000000   28.907344  -0.598436  -0.268176  -0.000006  0.298996
+	17   Session_01     FOO       -4.000        26.000  -0.840413   2.828738    1.328123    5.307086    4.665655   -5.000000   28.907344  -0.582387  -0.356389  -0.000006  0.315092
+	18   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.122201   21.340606   27.780042    2.020000   37.024281  -0.706785  -0.263217  -0.000013  0.195135
+	19   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.134868   21.305714   27.780042    2.020000   37.024281  -0.694328  -0.297370  -0.000013  0.207564
+	20   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.140008   21.261931   27.780042    2.020000   37.024281  -0.689273  -0.340227  -0.000013  0.212607
+	21   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.135540   21.298472   27.780042    2.020000   37.024281  -0.693667  -0.304459  -0.000013  0.208224
+	22   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701213  -12.202602  -18.023381  -10.170000   19.875825  -0.684862  -0.289671  -0.000002  0.213842
+	23   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.685649  -12.190405  -18.023381  -10.170000   19.875825  -0.669108  -0.277327  -0.000002  0.229559
+	24   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.719003  -12.257955  -18.023381  -10.170000   19.875825  -0.702869  -0.345692  -0.000002  0.195876
+	25   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.700592  -12.204641  -18.023381  -10.170000   19.875825  -0.684233  -0.291735  -0.000002  0.214469
+	26   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.720426  -12.214561  -18.023381  -10.170000   19.875825  -0.704308  -0.301774  -0.000002  0.194439
+	27   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.673044   22.262090   28.306614    1.710000   37.450394  -0.284240  -0.180926  -0.000014  0.616730
+	28   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.666542   22.263401   28.306614    1.710000   37.450394  -0.290634  -0.179643  -0.000014  0.610350
+	29   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.680487   22.243486   28.306614    1.710000   37.450394  -0.276921  -0.199121  -0.000014  0.624031
+	30   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.663900   22.245175   28.306614    1.710000   37.450394  -0.293231  -0.197469  -0.000014  0.607759
+	31   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.674379   22.301309   28.306614    1.710000   37.450394  -0.282927  -0.142568  -0.000014  0.618039
+	32   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.660825   22.270466   28.306614    1.710000   37.450394  -0.296255  -0.172733  -0.000014  0.604742
+	33   Session_02     FOO       -4.000        26.000  -0.840413   2.828738    1.294076    5.349940    4.665655   -5.000000   28.907344  -0.616369  -0.313776  -0.000006  0.283707
+	34   Session_02     FOO       -4.000        26.000  -0.840413   2.828738    1.313775    5.292121    4.665655   -5.000000   28.907344  -0.596708  -0.371269  -0.000006  0.303323
+	35   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.121613   21.259909   27.780042    2.020000   37.024281  -0.707364  -0.342207  -0.000013  0.194934
+	36   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.145714   21.304889   27.780042    2.020000   37.024281  -0.683661  -0.298178  -0.000013  0.218401
+	37   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.126573   21.325093   27.780042    2.020000   37.024281  -0.702485  -0.278401  -0.000013  0.199764
+	38   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.132057   21.323211   27.780042    2.020000   37.024281  -0.697092  -0.280244  -0.000013  0.205104
+	39   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.708448  -12.232023  -18.023381  -10.170000   19.875825  -0.692185  -0.319447  -0.000002  0.208915
+	40   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.714417  -12.202504  -18.023381  -10.170000   19.875825  -0.698226  -0.289572  -0.000002  0.202934
+	41   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.720039  -12.264469  -18.023381  -10.170000   19.875825  -0.703917  -0.352285  -0.000002  0.197300
+	42   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701953  -12.228550  -18.023381  -10.170000   19.875825  -0.685611  -0.315932  -0.000002  0.215423
+	43   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.704535  -12.213634  -18.023381  -10.170000   19.875825  -0.688224  -0.300836  -0.000002  0.212837
+	44   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.652920   22.230043   28.306614    1.710000   37.450394  -0.304028  -0.212269  -0.000014  0.594265
+	45   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.691485   22.261017   28.306614    1.710000   37.450394  -0.266106  -0.181975  -0.000014  0.631810
+	46   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.679119   22.305357   28.306614    1.710000   37.450394  -0.278266  -0.138609  -0.000014  0.619771
+	47   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.663623   22.327286   28.306614    1.710000   37.450394  -0.293503  -0.117161  -0.000014  0.604685
+	48   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.678524   22.282103   28.306614    1.710000   37.450394  -0.278851  -0.161352  -0.000014  0.619192
+	49   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.666246   22.283361   28.306614    1.710000   37.450394  -0.290925  -0.160121  -0.000014  0.607238
+	50   Session_03     FOO       -4.000        26.000  -0.840413   2.828738    1.309929    5.340249    4.665655   -5.000000   28.907344  -0.600546  -0.323413  -0.000006  0.300148
+	51   Session_03     FOO       -4.000        26.000  -0.840413   2.828738    1.317548    5.334102    4.665655   -5.000000   28.907344  -0.592942  -0.329524  -0.000006  0.307676
+	52   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.136865   21.300298   27.780042    2.020000   37.024281  -0.692364  -0.302672  -0.000013  0.204033
+	53   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.133538   21.291260   27.780042    2.020000   37.024281  -0.695637  -0.311519  -0.000013  0.200762
+	54   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.139991   21.319865   27.780042    2.020000   37.024281  -0.689290  -0.283519  -0.000013  0.207107
+	55   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.145748   21.330075   27.780042    2.020000   37.024281  -0.683629  -0.273524  -0.000013  0.212766
+	56   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.702989  -12.202762  -18.023381  -10.170000   19.875825  -0.686660  -0.289833  -0.000002  0.204507
+	57   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.692830  -12.240287  -18.023381  -10.170000   19.875825  -0.676377  -0.327811  -0.000002  0.214786
+	58   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.702899  -12.180291  -18.023381  -10.170000   19.875825  -0.686568  -0.267091  -0.000002  0.204598
+	59   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.709282  -12.282257  -18.023381  -10.170000   19.875825  -0.693029  -0.370287  -0.000002  0.198140
+	60   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.679330  -12.235994  -18.023381  -10.170000   19.875825  -0.662712  -0.323466  -0.000002  0.228446
+	61   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.695594   22.238663   28.306614    1.710000   37.450394  -0.262066  -0.203838  -0.000014  0.634200
+	62   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.663504   22.286354   28.306614    1.710000   37.450394  -0.293620  -0.157194  -0.000014  0.602656
+	63   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.666457   22.254290   28.306614    1.710000   37.450394  -0.290717  -0.188555  -0.000014  0.605558
+	64   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.666910   22.223232   28.306614    1.710000   37.450394  -0.290271  -0.218930  -0.000014  0.606004
+	65   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.679662   22.257256   28.306614    1.710000   37.450394  -0.277732  -0.185653  -0.000014  0.618539
+	66   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.676768   22.267680   28.306614    1.710000   37.450394  -0.280578  -0.175459  -0.000014  0.615693
+	67   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.307663    5.317330    4.665655   -5.000000   28.907344  -0.602808  -0.346202  -0.000006  0.290853
+	68   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.308562    5.331400    4.665655   -5.000000   28.907344  -0.601911  -0.332212  -0.000006  0.291749
+	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
+	```
+	'''
+	
+	kwargs = locals().copy()
+
+	from numpy import random as nprandom
+	if seed:
+		rng = nprandom.default_rng(seed)
+	else:
+		rng = nprandom.default_rng()
+	
+	N = sum([s['N'] for s in samples])
+	errors47 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+	errors47 *= rD47 / stdev(errors47) # scale errors to rD47
+	errors48 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+	errors48 *= rD48 / stdev(errors48) # scale errors to rD48
+	
+	k = 0
+	out = []
+	for s in samples:
+		kw = {}
+		kw['sample'] = s['Sample']
+		kw = {
+			**kw,
+			**{var: kwargs[var]
+				for var in [
+					'd13Cwg_VPDB', 'd18Owg_VSMOW', 'ALPHA_18O_ACID_REACTION',
+					'Nominal_D47', 'Nominal_D48', 'Nominal_d13C_VPDB', 'Nominal_d18O_VPDB',
+					'R13_VPDB', 'R17_VSMOW', 'R18_VSMOW', 'LAMBDA_17', 'R18_VPDB',
+					'a47', 'b47', 'c47', 'a48', 'b48', 'c48',
+					]
+				if kwargs[var] is not None},
+			**{var: s[var]
+				for var in ['d13C_VPDB', 'd18O_VPDB', 'D47', 'D48', 'D49', 'D17O']
+				if var in s},
+			}
+
+		sN = s['N']
+		while sN:
+			out.append(simulate_single_analysis(**kw))
+			out[-1]['d47'] += errors47[k] * a47
+			out[-1]['d48'] += errors48[k] * a48
+			sN -= 1
+			k += 1
+
+		if session is not None:
+			for r in out:
+				r['Session'] = session
+	return out
+
+def table_of_samples(
+	data47 = None,
+	data48 = None,
+	dir = 'output',
+	filename = None,
+	save_to_file = True,
+	print_out = True,
+	output = None,
+	):
+	'''
+	Print out, save to disk and/or return a combined table of samples
+	for a pair of `D47data` and `D48data` objects.
+
+	**Parameters**
+
+	+ `data47`: `D47data` instance
+	+ `data48`: `D48data` instance
+	+ `dir`: the directory in which to save the table
+	+ `filename`: the name to the csv file to write to
+	+ `save_to_file`: whether to save the table to disk
+	+ `print_out`: whether to print out the table
+	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		if set to `'raw'`: return a list of list of strings
+		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
+	'''
+	if data47 is None:
+		if data48 is None:
+			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
+		else:
+			return data48.table_of_samples(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+	else:
+		if data48 is None:
+			return data47.table_of_samples(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+		else:
+			out47 = data47.table_of_samples(save_to_file = False, print_out = False, output = 'raw')
+			out48 = data48.table_of_samples(save_to_file = False, print_out = False, output = 'raw')
+			out = transpose_table(transpose_table(out47) + transpose_table(out48)[4:])
+
+			if save_to_file:
+				if not os.path.exists(dir):
+					os.makedirs(dir)
+				if filename is None:
+					filename = f'D47D48_samples.csv'
+				with open(f'{dir}/{filename}', 'w') as fid:
+					fid.write(make_csv(out))
+			if print_out:
+				print('\n'+pretty_table(out))
+			if output == 'raw':
+				return out
+			elif output == 'pretty':
+				return pretty_table(out)
+
+
+def table_of_sessions(
+	data47 = None,
+	data48 = None,
+	dir = 'output',
+	filename = None,
+	save_to_file = True,
+	print_out = True,
+	output = None,
+	):
+	'''
+	Print out, save to disk and/or return a combined table of sessions
+	for a pair of `D47data` and `D48data` objects.
+	***Only applicable if the sessions in `data47` and those in `data48`
+	consist of the exact same sets of analyses.***
+
+	**Parameters**
+
+	+ `data47`: `D47data` instance
+	+ `data48`: `D48data` instance
+	+ `dir`: the directory in which to save the table
+	+ `filename`: the name to the csv file to write to
+	+ `save_to_file`: whether to save the table to disk
+	+ `print_out`: whether to print out the table
+	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		if set to `'raw'`: return a list of list of strings
+		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
+	'''
+	if data47 is None:
+		if data48 is None:
+			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
+		else:
+			return data48.table_of_sessions(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+	else:
+		if data48 is None:
+			return data47.table_of_sessions(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+		else:
+			out47 = data47.table_of_sessions(save_to_file = False, print_out = False, output = 'raw')
+			out48 = data48.table_of_sessions(save_to_file = False, print_out = False, output = 'raw')
+			for k,x in enumerate(out47[0]):
+				if k>7:
+					out47[0][k] = out47[0][k].replace('a', 'a_47').replace('b', 'b_47').replace('c', 'c_47')
+					out48[0][k] = out48[0][k].replace('a', 'a_48').replace('b', 'b_48').replace('c', 'c_48')
+			out = transpose_table(transpose_table(out47) + transpose_table(out48)[7:])
+
+			if save_to_file:
+				if not os.path.exists(dir):
+					os.makedirs(dir)
+				if filename is None:
+					filename = f'D47D48_sessions.csv'
+				with open(f'{dir}/{filename}', 'w') as fid:
+					fid.write(make_csv(out))
+			if print_out:
+				print('\n'+pretty_table(out))
+			if output == 'raw':
+				return out
+			elif output == 'pretty':
+				return pretty_table(out)
+
+
+def table_of_analyses(
+	data47 = None,
+	data48 = None,
+	dir = 'output',
+	filename = None,
+	save_to_file = True,
+	print_out = True,
+	output = None,
+	):
+	'''
+	Print out, save to disk and/or return a combined table of analyses
+	for a pair of `D47data` and `D48data` objects.
+
+	If the sessions in `data47` and those in `data48` do not consist of
+	the exact same sets of analyses, the table will have two columns
+	`Session_47` and `Session_48` instead of a single `Session` column.
+
+	**Parameters**
+
+	+ `data47`: `D47data` instance
+	+ `data48`: `D48data` instance
+	+ `dir`: the directory in which to save the table
+	+ `filename`: the name to the csv file to write to
+	+ `save_to_file`: whether to save the table to disk
+	+ `print_out`: whether to print out the table
+	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		if set to `'raw'`: return a list of list of strings
+		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
+	'''
+	if data47 is None:
+		if data48 is None:
+			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
+		else:
+			return data48.table_of_analyses(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+	else:
+		if data48 is None:
+			return data47.table_of_analyses(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+		else:
+			out47 = data47.table_of_analyses(save_to_file = False, print_out = False, output = 'raw')
+			out48 = data48.table_of_analyses(save_to_file = False, print_out = False, output = 'raw')
+			
+			if [l[1] for l in out47[1:]] == [l[1] for l in out48[1:]]: # if sessions are identical
+				out = transpose_table(transpose_table(out47) + transpose_table(out48)[-1:])
+			else:
+				out47[0][1] = 'Session_47'
+				out48[0][1] = 'Session_48'
+				out47 = transpose_table(out47)
+				out48 = transpose_table(out48)
+				out = transpose_table(out47[:2] + out48[1:2] + out47[2:] + out48[-1:])
+
+			if save_to_file:
+				if not os.path.exists(dir):
+					os.makedirs(dir)
+				if filename is None:
+					filename = f'D47D48_sessions.csv'
+				with open(f'{dir}/{filename}', 'w') as fid:
+					fid.write(make_csv(out))
+			if print_out:
+				print('\n'+pretty_table(out))
+			if output == 'raw':
+				return out
+			elif output == 'pretty':
+				return pretty_table(out)
+
+
 class D4xdata(list):
 	'''
 	Store and process data for a large set of Δ<sub>47</sub> and/or Δ<sub>48</sub>
@@ -283,34 +855,27 @@ class D4xdata(list):
 	R13_VPDB = 0.01118  # (Chang & Li, 1990)
 	'''
 	Absolute (<sup>13</sup>C/<sup>12</sup>C) ratio of VPDB.
-	By default equal to 0.01118 ([Chang & Li, 1990])
-
-	[Chang & Li, 1990]: http://www.cnki.com.cn/Article/CJFDTotal-JXTW199004006.htm
+	By default equal to 0.01118 ([Chang & Li, 1990](http://www.cnki.com.cn/Article/CJFDTotal-JXTW199004006.htm))
 	'''
 
 	R18_VSMOW = 0.0020052  # (Baertschi, 1976)
 	'''
 	Absolute (<sup>18</sup>O/<sup>16</sup>C) ratio of VSMOW.
-	By default equal to 0.0020052 ([Baertschi, 1976])
-
-	[Baertschi, 1976]: https://doi.org/10.1016/0012-821X(76)90115-1
+	By default equal to 0.0020052 ([Baertschi, 1976](https://doi.org/10.1016/0012-821X(76)90115-1))
 	'''
 
-	lambda_17 = 0.528  # (Barkan & Luz, 2005)
+	LAMBDA_17 = 0.528  # (Barkan & Luz, 2005)
 	'''
 	Mass-dependent exponent for triple oxygen isotopes.
-	By default equal to 0.528 ([Barkan & Luz, 2005])
-
-	[Barkan & Luz, 2005]: https://doi.org/10.1002/rcm.2250
+	By default equal to 0.528 ([Barkan & Luz, 2005](https://doi.org/10.1002/rcm.2250))
 	'''
 
 	R17_VSMOW = 0.00038475  # (Assonov & Brenninkmeijer, 2003, rescaled to R13_VPDB)
 	'''
 	Absolute (<sup>17</sup>O/<sup>16</sup>C) ratio of VSMOW.
 	By default equal to 0.00038475
-	([Assonov & Brenninkmeijer, 2003], rescaled to `R13_VPDB`)
-
-	[Assonov & Brenninkmeijer, 2003]: https://dx.doi.org/10.1002/rcm.1011
+	([Assonov & Brenninkmeijer, 2003](https://dx.doi.org/10.1002/rcm.1011),
+	rescaled to `R13_VPDB`)
 	'''
 
 	R18_VPDB = R18_VSMOW * 1.03092
@@ -319,10 +884,10 @@ class D4xdata(list):
 	By definition equal to `R18_VSMOW * 1.03092`.
 	'''
 
-	R17_VPDB = R17_VSMOW * 1.03092 ** lambda_17
+	R17_VPDB = R17_VSMOW * 1.03092 ** LAMBDA_17
 	'''
 	Absolute (<sup>17</sup>O/<sup>16</sup>C) ratio of VPDB.
-	By definition equal to `R17_VSMOW * 1.03092 ** lambda_17`.
+	By definition equal to `R17_VSMOW * 1.03092 ** LAMBDA_17`.
 	'''
 
 	LEVENE_REF_SAMPLE = 'ETH-3'
@@ -330,13 +895,12 @@ class D4xdata(list):
 	After the Δ<sub>4x</sub> standardization step, each sample is tested to
 	assess whether the Δ<sub>4x</sub> variance within all analyses for that
 	sample differs significantly from that observed for a given reference
-	sample (using [Levene's test], which yields a p-value corresponding to
-	the null hypothesis that the underlying variances are equal).
+	sample (using [Levene's test](https://en.wikipedia.org/wiki/Levene%27s_test),
+	which yields a p-value corresponding to the null hypothesis that the
+	underlying variances are equal).
 
 	`LEVENE_REF_SAMPLE` (by default equal to `'ETH-3'`) specifies which
 	sample should be used as a reference for this test.
-
-	[Levene's test]: https://en.wikipedia.org/wiki/Levene%27s_test
 	'''
 
 	ALPHA_18O_ACID_REACTION = round(np.exp(3.59 / (90 + 273.15) - 1.79e-3), 6)  # (Kim et al., 2007, calcite)
@@ -345,9 +909,8 @@ class D4xdata(list):
 	to acid reactions in the dataset. Currently used by `D4xdata.wg()`,
 	`D4xdata.standardize_d13C`, and `D4xdata.standardize_d18O`.
 
-	By default equal to 1.008129 (calcite reacted at 90 °C, [Kim et al., 2007]).
-
-	[Kim et al., 2007]: https://dx.doi.org/10.1016/j.chemgeo.2007.08.005
+	By default equal to 1.008129 (calcite reacted at 90 °C,
+	[Kim et al., 2007](https://dx.doi.org/10.1016/j.chemgeo.2007.08.005)).
 	'''
 
 	Nominal_d13C_VPDB = {
@@ -360,9 +923,7 @@ class D4xdata(list):
 	`D4xdata.standardize_d13C()`.
 
 	By default equal to `{'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71}` after
-	[Bernasconi et al. (2018)].
-
-	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+	[Bernasconi et al. (2018)](https://doi.org/10.1029/2017GC007385).
 	'''
 
 	Nominal_d18O_VPDB = {
@@ -375,9 +936,7 @@ class D4xdata(list):
 	`D4xdata.standardize_d18O()`.
 
 	By default equal to `{'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78}` after
-	[Bernasconi et al. (2018)].
-
-	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+	[Bernasconi et al. (2018)](https://doi.org/10.1029/2017GC007385).
 	'''
 
 	d13C_STANDARDIZATION_METHOD = '2pt'
@@ -410,7 +969,7 @@ class D4xdata(list):
 
 	def __init__(self, l = [], mass = '47', logfile = '', session = 'mySession', verbose = False):
 		'''
-		__Parameters__
+		**Parameters**
 
 		+ `l`: a list of dictionaries, with each dictionary including at least the keys
 		`Sample`, `d45`, `d46`, and `d47` or `d48`.
@@ -530,10 +1089,10 @@ class D4xdata(list):
 		+ `d45`, `d46`, and at least one of `d47` or `d48`: the working-gas delta values
 
 		Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
-		VSMOW, λ = `self.lambda_17`), and are otherwise assumed to be zero. Working-gas deltas `d47`, `d48`
+		VSMOW, λ = `self.LAMBDA_17`), and are otherwise assumed to be zero. Working-gas deltas `d47`, `d48`
 		and `d49` are optional, and set to NaN by default.
 
-		__Parameters__
+		**Parameters**
 
 		+ `fileneme`: the path of the file to read
 		+ `sep`: csv separator delimiting the fields
@@ -558,10 +1117,10 @@ class D4xdata(list):
 		+ `d45`, `d46`, and at least one of `d47` or `d48`: the working-gas delta values
 
 		Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
-		VSMOW, λ = `self.lambda_17`), and are otherwise assumed to be zero. Working-gas deltas `d47`, `d48`
+		VSMOW, λ = `self.LAMBDA_17`), and are otherwise assumed to be zero. Working-gas deltas `d47`, `d48`
 		and `d49` are optional, and set to NaN by default.
 
-		__Parameters__
+		**Parameters**
 
 		+ `txt`: the csv string to read
 		+ `sep`: csv separator delimiting the fields. By default, use `,`, `;`, or `\t`,
@@ -604,7 +1163,7 @@ class D4xdata(list):
 			d13C_vpdb = self.Nominal_d13C_VPDB[sample]
 			d18O_vpdb = self.Nominal_d18O_VPDB[sample]
 			R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
-			R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
+			R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.LAMBDA_17
 			R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
 
 			C12_s = 1 / (1 + R13_s)
@@ -675,30 +1234,28 @@ class D4xdata(list):
 	def compute_bulk_delta(self, R45, R46, D17O = 0):
 		'''
 		Compute δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VSMOW</sub>,
-		by solving the generalized form of equation (17) from [Brand et al. (2010)],
+		by solving the generalized form of equation (17) from
+		[Brand et al. (2010)](https://doi.org/10.1351/PAC-REP-09-01-05),
 		assuming that δ<sup>18</sup>O<sub>VSMOW</sub> is not too big (0 ± 50 ‰) and
 		solving the corresponding second-order Taylor polynomial.
-		(Appendix A of [Daëron et al., 2016])
-
-		[Brand et al. (2010)]: https://doi.org/10.1351/PAC-REP-09-01-05
-		[Daëron et al., 2016]: https://doi.org/10.1016/j.chemgeo.2016.08.014
+		(Appendix A of [Daëron et al., 2016](https://doi.org/10.1016/j.chemgeo.2016.08.014))
 		'''
 
-		K = np.exp(D17O / 1000) * self.R17_VSMOW * self.R18_VSMOW ** -self.lambda_17
+		K = np.exp(D17O / 1000) * self.R17_VSMOW * self.R18_VSMOW ** -self.LAMBDA_17
 
-		A = -3 * K ** 2 * self.R18_VSMOW ** (2 * self.lambda_17)
-		B = 2 * K * R45 * self.R18_VSMOW ** self.lambda_17
+		A = -3 * K ** 2 * self.R18_VSMOW ** (2 * self.LAMBDA_17)
+		B = 2 * K * R45 * self.R18_VSMOW ** self.LAMBDA_17
 		C = 2 * self.R18_VSMOW
 		D = -R46
 
-		aa = A * self.lambda_17 * (2 * self.lambda_17 - 1) + B * self.lambda_17 * (self.lambda_17 - 1) / 2
-		bb = 2 * A * self.lambda_17 + B * self.lambda_17 + C
+		aa = A * self.LAMBDA_17 * (2 * self.LAMBDA_17 - 1) + B * self.LAMBDA_17 * (self.LAMBDA_17 - 1) / 2
+		bb = 2 * A * self.LAMBDA_17 + B * self.LAMBDA_17 + C
 		cc = A + B + C + D
 
 		d18O_VSMOW = 1000 * (-bb + (bb ** 2 - 4 * aa * cc) ** .5) / (2 * aa)
 
 		R18 = (1 + d18O_VSMOW / 1000) * self.R18_VSMOW
-		R17 = K * R18 ** self.lambda_17
+		R17 = K * R18 ** self.LAMBDA_17
 		R13 = R45 - 2 * R17
 
 		d13C_VPDB = 1000 * (R13 / self.R13_VPDB - 1)
@@ -824,7 +1381,7 @@ class D4xdata(list):
 		'''
 
 		# Compute R17
-		R17 = self.R17_VSMOW * np.exp(D17O / 1000) * (R18 / self.R18_VSMOW) ** self.lambda_17
+		R17 = self.R17_VSMOW * np.exp(D17O / 1000) * (R18 / self.R18_VSMOW) ** self.LAMBDA_17
 
 		# Compute isotope concentrations
 		C12 = (1 + R13) ** -1
@@ -869,7 +1426,7 @@ class D4xdata(list):
 		or by session (treat analyses of a given sample in different sessions as
 		different samples).
 
-		__Parameters__
+		**Parameters**
 
 		+ `samples_to_split`: a list of samples to split, e.g., `['IAEA-C1', 'IAEA-C2']`
 		+ `grouping`: `by_uid` | `by_session`
@@ -991,7 +1548,7 @@ class D4xdata(list):
 		+ an array of the corresponding Δ<sub>4x</sub> values
 		+ the corresponding (co)variance matrix
 		
-		__Parameters__
+		**Parameters**
 
 		+ `sample_groups`: a dictionary of the form:
 		```py
@@ -1026,13 +1583,11 @@ class D4xdata(list):
 		'''
 		Compute absolute Δ<sub>4x</sub> values for all replicate analyses and for sample averages.
 		If `method` argument is set to `'pooled'`, the standardization processes all sessions
-		in a single step, assuming that all samples (anchors and unknowns alike) are
-		homogeneous, i.e. that their true Δ<sub>4x</sub> value does not change between sessions,
-		([Daëron, 2021]).
-		If `method` argument is set to `'indep_sessions'`, the standardization processes each
-		session independently, based only on anchors analyses.
-		
-		[Daëron, 2021]: https://doi.org/10.1029/2020GC009592
+		in a single step, assuming that all samples (anchors and unknowns alike) are homogeneous,
+		i.e. that their true Δ<sub>4x</sub> value does not change between sessions,
+		([Daëron, 2021](https://doi.org/10.1029/2020GC009592)). If `method` argument is set to
+		`'indep_sessions'`, the standardization processes each session independently, based only
+		on anchors analyses.
 		'''
 
 		self.standardization_method = method
@@ -1272,7 +1827,7 @@ class D4xdata(list):
 		'''
 		Print out an/or save to disk a summary of the standardization results.
 
-		__Parameters__
+		**Parameters**
 
 		+ `dir`: the directory in which to save the table
 		+ `filename`: the name to the csv file to write to
@@ -1314,7 +1869,7 @@ class D4xdata(list):
 		'''
 		Print out an/or save to disk a table of sessions.
 
-		__Parameters__
+		**Parameters**
 
 		+ `dir`: the directory in which to save the table
 		+ `filename`: the name to the csv file to write to
@@ -1392,7 +1947,7 @@ class D4xdata(list):
 		'''
 		Print out an/or save to disk a table of analyses.
 
-		__Parameters__
+		**Parameters**
 
 		+ `dir`: the directory in which to save the table
 		+ `filename`: the name to the csv file to write to
@@ -1451,7 +2006,7 @@ class D4xdata(list):
 		'''
 		Print out, save to disk and/or return a table of samples.
 
-		__Parameters__
+		**Parameters**
 
 		+ `dir`: the directory in which to save the table
 		+ `filename`: the name to the csv file to write to
@@ -1503,7 +2058,7 @@ class D4xdata(list):
 		'''
 		Generate session plots and save them to disk.
 
-		__Parameters__
+		**Parameters**
 
 		+ `dir`: the directory in which to save the plots
 		+ `figsize`: the width and height (in inches) of each plot
@@ -1538,11 +2093,9 @@ class D4xdata(list):
 		+ `SD_D47` or `SD_D48`: the “sample” (in the statistical sense) standard deviation for this sample
 		+ `d13C_VPDB`: the average δ<sup>13</sup>C<sub>VPDB</sub> value for this sample
 		+ `d18O_VSMOW`: the average δ<sup>18</sup>O<sub>VSMOW</sub> value for this sample (as CO<sub>2</sub>)
-		+ `p_Levene`: the p-value from a [Levene test] of equal variance, indicating whether
-		the Δ<sub>4x</sub> repeatability this sample differs significantly from that observed
-		for the reference sample specified by `self.LEVENE_REF_SAMPLE`.
-
-		[Levene test]: https://en.wikipedia.org/wiki/Levene%27s_test
+		+ `p_Levene`: the p-value from a [Levene test](https://en.wikipedia.org/wiki/Levene%27s_test) of equal
+		variance, indicating whether the Δ<sub>4x</sub> repeatability this sample differs significantly from
+		that observed for the reference sample specified by `self.LEVENE_REF_SAMPLE`.
 		'''
 		D4x_ref_pop = [r[f'D{self._4x}'] for r in self.samples[self.LEVENE_REF_SAMPLE]['data']]
 		for sample in self.samples:
@@ -1846,7 +2399,7 @@ class D4xdata(list):
 		of a group of samples. Weights are equal by default. If `normalize` is
 		true, `weights` will be rescaled so that their sum equals 1.
 
-		__Examples__
+		**Examples**
 
 		```python
 		self.sample_average(['X','Y'], [1, 2])
@@ -2035,11 +2588,11 @@ class D4xdata(list):
 	def plot_residuals(self, dir = 'output', filename = None, highlight = [], colors = None):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
-		the order of analyses in the D4xdata() object)
+		the order of analyses in the `D4xdata` object)
 
 		+ `dir`: the directory in which to save the plot
 		+ `highlight`: a list of samples to highlight
-		+ `colors`: a dict of {<sample>: <color>} for all samples
+		+ `colors`: a dict of `{<sample>: <color>}` for all samples
 		'''
 		fig = ppl.figure(figsize = (8,4))
 		ppl.subplots_adjust(.1,.05,.78,.8)
@@ -2163,7 +2716,7 @@ class D4xdata(list):
 		'''
 		Plot temporal distribution of all analyses in the data set.
 		
-		__Parameters__
+		**Parameters**
 
 		+ `vs_time`: if `True`, plot as a function of `TimeTag` rather than sequentially.
 		'''
@@ -2247,7 +2800,7 @@ class D47data(D4xdata):
 	`D47data.standardize()` to normalize unknown samples to an absolute Δ<sub>47</sub>
 	reference frame.
 
-	By default equal to (after [Bernasconi et al. (2021)]):
+	By default equal to (after [Bernasconi et al. (2021)](https://doi.org/10.1029/2020GC009588)):
 	```py
 	{
 		'ETH-1'   : 0.2052,
@@ -2259,8 +2812,6 @@ class D47data(D4xdata):
 		'MERCK'   : 0.5135,
 	}
 	```
-
-	[Bernasconi et al. (2021)]: https://doi.org/10.1029/2020GC009588
 	'''
 
 
@@ -2277,7 +2828,7 @@ class D47data(D4xdata):
 
 	def __init__(self, l = [], **kwargs):
 		'''
-		__Parameters:__ same as `D4xdata.__init__()`
+		**Parameters:** same as `D4xdata.__init__()`
 		'''
 		D4xdata.__init__(self, l = l, mass = '47', **kwargs)
 
@@ -2287,19 +2838,16 @@ class D47data(D4xdata):
 		Find all samples for which `Teq` is specified, compute equilibrium Δ<sub>47</sub>
 		value for that temperature, and add treat these samples as additional anchors.
 
-		__Parameters__
+		**Parameters**
 
 		+ `fCo2eqD47`: Which CO<sub>2</sub> equilibrium law to use
-		(`petersen`: [Petersen et al. (2019)];
-		`wang`: [Wang et al. (2019)]).
+		(`petersen`: [Petersen et al. (2019)](https://doi.org/10.1029/2018GC008127);
+		`wang`: [Wang et al. (2019)](https://doi.org/10.1016/j.gca.2004.05.039)).
 		+ `priority`: if `replace`: forget old anchors and only use the new ones;
 		if `new`: keep pre-existing anchors but update them in case of conflict
 		between old and new Δ<sub>47</sub> values;
 		if `old`: keep pre-existing anchors but preserve their original Δ<sub>47</sub>
 		values in case of conflict.
-
-		[Petersen et al. (2019)]: https://doi.org/10.1029/2018GC008127
-		[Wang et al. (2019)]: https://doi.org/10.1016/j.gca.2004.05.039
 		'''
 		f = {
 			'petersen': fCO2eqD47_Petersen,
@@ -2342,7 +2890,9 @@ class D48data(D4xdata):
 	`D48data.standardize()` to normalize unknown samples to an absolute Δ<sub>48</sub>
 	reference frame.
 
-	By default equal to (after [Fiebig et al. (2019)], Fiebig et al. (in press)):
+	By default equal to (after [Fiebig et al. (2019)](https://doi.org/10.1016/j.chemgeo.2019.05.019),
+	Fiebig et al. (in press)):
+
 	```py
 	{
 		'ETH-1' :  0.138,
@@ -2352,8 +2902,6 @@ class D48data(D4xdata):
 		'GU-1'  : -0.419,
 	}
 	```
-
-	[Fiebig et al. (2019)]: https://doi.org/10.1016/j.chemgeo.2019.05.019
 	'''
 
 
@@ -2370,7 +2918,7 @@ class D48data(D4xdata):
 
 	def __init__(self, l = [], **kwargs):
 		'''
-		__Parameters:__ same as `D4xdata.__init__()`
+		**Parameters:** same as `D4xdata.__init__()`
 		'''
 		D4xdata.__init__(self, l = l, mass = '48', **kwargs)
 
@@ -2381,556 +2929,3 @@ class _SessionPlot():
 	'''
 	def __init__(self):
 		pass
-
-def simulate_single_analysis(
-	sample = 'MYSAMPLE',
-	d13Cwg_VPDB = -4., d18Owg_VSMOW = 26.,
-	d13C_VPDB = None, d18O_VPDB = None,
-	D47 = None, D48 = None, D49 = 0., D17O = 0.,
-	Nominal_D47 = D47data().Nominal_D47,
-	Nominal_D48 = D48data().Nominal_D48,
-	Nominal_d13C_VPDB = D4xdata().Nominal_d13C_VPDB,
-	Nominal_d18O_VPDB = D4xdata().Nominal_d18O_VPDB,
-	ALPHA_18O_ACID_REACTION = D4xdata().ALPHA_18O_ACID_REACTION,
-	a47 = 1., b47 = 0., c47 = -0.9,
-	a48 = 1., b48 = 0., c48 = -0.45,
-	R13_VPDB = D4xdata().R13_VPDB,
-	R17_VSMOW = D4xdata().R17_VSMOW,
-	R18_VSMOW = D4xdata().R18_VSMOW,
-	lambda_17 = D4xdata().lambda_17,
-	R18_VPDB = D4xdata().R18_VPDB,
-	):
-	'''
-	Compute working-gas delta values for a single analysis, assuming a stochastic working
-	gas and a “perfect” measurement (i.e. raw Δ values are identical to absolute values).
-	
-	__Parameters__
-
-	+ `sample`: sample name
-	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
-		(respectively –4 and +26 ‰ by default)
-	+ `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample
-	+ `D47`, `D48`, `D49`, `D17O`: clumped-isotope and oxygen-17 anomalies
-		of the carbonate sample
-	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ<sub>47</sub> and
-		Δ<sub>48</sub> values if `D47` or `D48` are not specified
-	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ<sup>13</sup>C and
-		δ<sup>18</sup>O values if `d13C_VPDB` or `d18O_VPDB` are not specified
-	+ `ALPHA_18O_ACID_REACTION`: <sup>18</sup>O/<sup>16</sup>O acid fractionation factor
-	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `lambda_17`, `R18_VPDB`: oxygen-17
-		correction parameters (by default equal to the `D4xdata` default values)
-	
-	Returns a dictionary with fields
-	`['Sample', 'D17O', 'd13Cwg_VPDB', 'd18Owg_VSMOW', 'd45', 'd46', 'd47', 'd48', 'd49']`.
-	'''
-	
-	R17_VPDB = R17_VSMOW * (R18_VPDB / R18_VSMOW) ** lambda_17
-	
-	if d13C_VPDB is None:
-		if sample in Nominal_d13C_VPDB:
-			d13C_VPDB = Nominal_d13C_VPDB[sample]
-		else:
-			raise KeyError(f"Sample {sample} is missing d13C_VDP value, and it is not defined in Nominal_d13C_VDP.")
-
-	if d18O_VPDB is None:
-		if sample in Nominal_d18O_VPDB:
-			d18O_VPDB = Nominal_d18O_VPDB[sample]
-		else:
-			raise KeyError(f"Sample {sample} is missing d18O_VPDB value, and it is not defined in Nominal_d18O_VPDB.")
-
-	if D47 is None:
-		if sample in Nominal_D47:
-			D47 = Nominal_D47[sample]
-		else:
-			raise KeyError(f"Sample {sample} is missing D47 value, and it is not defined in Nominal_D47.")
-
-	if D48 is None:
-		if sample in Nominal_D48:
-			D48 = Nominal_D48[sample]
-		else:
-			raise KeyError(f"Sample {sample} is missing D48 value, and it is not defined in Nominal_D48.")
-
-	X = D4xdata()
-	X.R13_VPDB = R13_VPDB
-	X.R17_VSMOW = R17_VSMOW
-	X.R18_VSMOW = R18_VSMOW
-	X.lambda_17 = lambda_17
-	X.R18_VPDB = R18_VPDB
-	X.R17_VPDB = R17_VSMOW * (R18_VPDB / R18_VSMOW)**lambda_17
-
-	R45wg, R46wg, R47wg, R48wg, R49wg = X.compute_isobar_ratios(
-		R13 = R13_VPDB * (1 + d13Cwg_VPDB/1000),
-		R18 = R18_VSMOW * (1 + d18Owg_VSMOW/1000),
-		)
-	R45, R46, R47, R48, R49 = X.compute_isobar_ratios(
-		R13 = R13_VPDB * (1 + d13C_VPDB/1000),
-		R18 = R18_VPDB * (1 + d18O_VPDB/1000) * ALPHA_18O_ACID_REACTION,
-		D17O=D17O, D47=D47, D48=D48, D49=D49,
-		)
-	R45stoch, R46stoch, R47stoch, R48stoch, R49stoch = X.compute_isobar_ratios(
-		R13 = R13_VPDB * (1 + d13C_VPDB/1000),
-		R18 = R18_VPDB * (1 + d18O_VPDB/1000) * ALPHA_18O_ACID_REACTION,
-		D17O=D17O,
-		)
-	
-	d45 = 1000 * (R45/R45wg - 1)
-	d46 = 1000 * (R46/R46wg - 1)
-	d47 = 1000 * (R47/R47wg - 1)
-	d48 = 1000 * (R48/R48wg - 1)
-	d49 = 1000 * (R49/R49wg - 1)
-
-	for k in range(3): # dumb iteration to adjust for small changes in d47
-		R47raw = (1 + (a47 * D47 + b47 * d47 + c47)/1000) * R47stoch
-		R48raw = (1 + (a48 * D48 + b48 * d48 + c48)/1000) * R48stoch	
-		d47 = 1000 * (R47raw/R47wg - 1)
-		d48 = 1000 * (R48raw/R48wg - 1)
-
-	return dict(
-		Sample = sample,
-		D17O = D17O,
-		d13Cwg_VPDB = d13Cwg_VPDB,
-		d18Owg_VSMOW = d18Owg_VSMOW,
-		d45 = d45,
-		d46 = d46,
-		d47 = d47,
-		d48 = d48,
-		d49 = d49,
-		)
-
-
-def virtual_data(
-	samples = [],
-	a47 = 1., b47 = 0., c47 = -0.9,
-	a48 = 1., b48 = 0., c48 = -0.45,
-	rD47 = 0.015, rD48 = 0.045,
-	d13Cwg_VPDB = None, d18Owg_VSMOW = None,
-	session = None,
-	Nominal_D47 = None, Nominal_D48 = None,
-	Nominal_d13C_VPDB = None, Nominal_d18O_VPDB = None,
-	ALPHA_18O_ACID_REACTION = None,
-	R13_VPDB = None,
-	R17_VSMOW = None,
-	R18_VSMOW = None,
-	lambda_17 = None,
-	R18_VPDB = None,
-	seed = 0,
-	):
-	'''
-	Return list with simulated analyses from a single session.
-	
-	__Parameters__
-	
-	+ `samples`: a list of entries; each entry is a dictionary with the following fields:
-	    * `Sample`: the name of the sample
-	    * `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample
-	    * `D47`, `D48`, `D49`, `D17O` (all optional): clumped-isotope and oxygen-17 anomalies of the carbonate sample
-	    * `N`: how many analyses to generate for this sample
-	+ `a47`: scrambling factor for Δ<sub>47</sub>
-	+ `b47`: compositional nonlinearity for Δ<sub>47</sub>
-	+ `c47`: working gas offset for Δ<sub>47</sub>
-	+ `a48`: scrambling factor for Δ<sub>48</sub>
-	+ `b48`: compositional nonlinearity for Δ<sub>48</sub>
-	+ `c48`: working gas offset for Δ<sub>48</sub>
-	+ `rD47`: analytical repeatability of Δ<sub>47</sub>
-	+ `rD48`: analytical repeatability of Δ<sub>48</sub>
-	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
-		(by default equal to the `simulate_single_analysis` default values)
-	+ `session`: name of the session (no name by default)
-	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ<sub>47</sub> and Δ<sub>48</sub> values
-		if `D47` or `D48` are not specified (by default equal to the `simulate_single_analysis` defaults)
-	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ<sup>13</sup>C and
-		δ<sup>18</sup>O values if `d13C_VPDB` or `d18O_VPDB` are not specified 
-		(by default equal to the `simulate_single_analysis` defaults)
-	+ `ALPHA_18O_ACID_REACTION`: <sup>18</sup>O/<sup>16</sup>O acid fractionation factor
-		(by default equal to the `simulate_single_analysis` defaults)
-	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `lambda_17`, `R18_VPDB`: oxygen-17
-		correction parameters (by default equal to the `simulate_single_analysis` default)
-	+ `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
-	
-		
-	Here is an example of using this method to generate an arbitrary combination of
-	anchors and unknowns for a bunch of sessions:
-
-	```py
-	args = dict(
-		samples = [
-			dict(Sample = 'ETH-1', N = 4),
-			dict(Sample = 'ETH-2', N = 5),
-			dict(Sample = 'ETH-3', N = 6),
-			dict(Sample = 'FOO', N = 2,
-				d13C_VPDB = -5., d18O_VPDB = -10.,
-				D47 = 0.3, D48 = 0.15),
-			], rD47 = 0.010, rD48 = 0.030)
-
-	session1 = virtual_data(session = 'Session_01', **args, seed = 123)
-	session2 = virtual_data(session = 'Session_02', **args, seed = 1234)
-	session3 = virtual_data(session = 'Session_03', **args, seed = 12345)
-	session4 = virtual_data(session = 'Session_04', **args, seed = 123456)
-
-	D = D47data(session1 + session2 + session3 + session4)
-
-	D.crunch()
-	D.standardize()
-
-	D.table_of_sessions(verbose = True, save_to_file = False)
-	D.table_of_samples(verbose = True, save_to_file = False)
-	D.table_of_analyses(verbose = True, save_to_file = False)
-	```
-	
-	This should output something like:
-	
-	```
-	[table_of_sessions] 
-	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
-	Session     Na  Nu  d13Cwg_VPDB  d18Owg_VSMOW  r_d13C  r_d18O   r_D47         a ± SE    1e3 x b ± SE          c ± SE
-	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
-	Session_01  15   2       -4.000        26.000  0.0000  0.0000  0.0110  0.997 ± 0.017  -0.097 ± 0.244  -0.896 ± 0.006
-	Session_02  15   2       -4.000        26.000  0.0000  0.0000  0.0109  1.002 ± 0.017  -0.110 ± 0.244  -0.901 ± 0.006
-	Session_03  15   2       -4.000        26.000  0.0000  0.0000  0.0107  1.010 ± 0.017  -0.037 ± 0.244  -0.904 ± 0.006
-	Session_04  15   2       -4.000        26.000  0.0000  0.0000  0.0106  1.001 ± 0.017  -0.181 ± 0.244  -0.894 ± 0.006
-	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
-
-	[table_of_samples] 
-	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-	Sample   N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
-	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-	ETH-1   16       2.02       37.02  0.2052                    0.0079          
-	ETH-2   20     -10.17       19.88  0.2085                    0.0100          
-	ETH-3   24       1.71       37.45  0.6132                    0.0105          
-	FOO      8      -5.00       28.91  0.2989  0.0040  ± 0.0080  0.0101     0.638
-	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-
-	[table_of_analyses] 
-	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
-	UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46         d47         d48         d49   d13C_VPDB  d18O_VSMOW     D47raw     D48raw     D49raw       D47
-	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
-	1    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.122986   21.273526   27.780042    2.020000   37.024281  -0.706013  -0.328878  -0.000013  0.192554
-	2    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.130144   21.282615   27.780042    2.020000   37.024281  -0.698974  -0.319981  -0.000013  0.199615
-	3    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.149219   21.299572   27.780042    2.020000   37.024281  -0.680215  -0.303383  -0.000013  0.218429
-	4    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.136616   21.233128   27.780042    2.020000   37.024281  -0.692609  -0.368421  -0.000013  0.205998
-	5    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.697171  -12.203054  -18.023381  -10.170000   19.875825  -0.680771  -0.290128  -0.000002  0.215054
-	6    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701124  -12.184422  -18.023381  -10.170000   19.875825  -0.684772  -0.271272  -0.000002  0.211041
-	7    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.715105  -12.195251  -18.023381  -10.170000   19.875825  -0.698923  -0.282232  -0.000002  0.196848
-	8    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701529  -12.204963  -18.023381  -10.170000   19.875825  -0.685182  -0.292061  -0.000002  0.210630
-	9    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.711420  -12.228478  -18.023381  -10.170000   19.875825  -0.695193  -0.315859  -0.000002  0.200589
-	10   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.666719   22.296486   28.306614    1.710000   37.450394  -0.290459  -0.147284  -0.000014  0.609363
-	11   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.671553   22.291060   28.306614    1.710000   37.450394  -0.285706  -0.152592  -0.000014  0.614130
-	12   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.652854   22.273271   28.306614    1.710000   37.450394  -0.304093  -0.169990  -0.000014  0.595689
-	13   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.684168   22.263156   28.306614    1.710000   37.450394  -0.273302  -0.179883  -0.000014  0.626572
-	14   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.662702   22.253578   28.306614    1.710000   37.450394  -0.294409  -0.189251  -0.000014  0.605401
-	15   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.681957   22.230907   28.306614    1.710000   37.450394  -0.275476  -0.211424  -0.000014  0.624391
-	16   Session_01     FOO       -4.000        26.000  -0.840413   2.828738    1.312044    5.395798    4.665655   -5.000000   28.907344  -0.598436  -0.268176  -0.000006  0.298996
-	17   Session_01     FOO       -4.000        26.000  -0.840413   2.828738    1.328123    5.307086    4.665655   -5.000000   28.907344  -0.582387  -0.356389  -0.000006  0.315092
-	18   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.122201   21.340606   27.780042    2.020000   37.024281  -0.706785  -0.263217  -0.000013  0.195135
-	19   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.134868   21.305714   27.780042    2.020000   37.024281  -0.694328  -0.297370  -0.000013  0.207564
-	20   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.140008   21.261931   27.780042    2.020000   37.024281  -0.689273  -0.340227  -0.000013  0.212607
-	21   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.135540   21.298472   27.780042    2.020000   37.024281  -0.693667  -0.304459  -0.000013  0.208224
-	22   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701213  -12.202602  -18.023381  -10.170000   19.875825  -0.684862  -0.289671  -0.000002  0.213842
-	23   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.685649  -12.190405  -18.023381  -10.170000   19.875825  -0.669108  -0.277327  -0.000002  0.229559
-	24   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.719003  -12.257955  -18.023381  -10.170000   19.875825  -0.702869  -0.345692  -0.000002  0.195876
-	25   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.700592  -12.204641  -18.023381  -10.170000   19.875825  -0.684233  -0.291735  -0.000002  0.214469
-	26   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.720426  -12.214561  -18.023381  -10.170000   19.875825  -0.704308  -0.301774  -0.000002  0.194439
-	27   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.673044   22.262090   28.306614    1.710000   37.450394  -0.284240  -0.180926  -0.000014  0.616730
-	28   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.666542   22.263401   28.306614    1.710000   37.450394  -0.290634  -0.179643  -0.000014  0.610350
-	29   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.680487   22.243486   28.306614    1.710000   37.450394  -0.276921  -0.199121  -0.000014  0.624031
-	30   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.663900   22.245175   28.306614    1.710000   37.450394  -0.293231  -0.197469  -0.000014  0.607759
-	31   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.674379   22.301309   28.306614    1.710000   37.450394  -0.282927  -0.142568  -0.000014  0.618039
-	32   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.660825   22.270466   28.306614    1.710000   37.450394  -0.296255  -0.172733  -0.000014  0.604742
-	33   Session_02     FOO       -4.000        26.000  -0.840413   2.828738    1.294076    5.349940    4.665655   -5.000000   28.907344  -0.616369  -0.313776  -0.000006  0.283707
-	34   Session_02     FOO       -4.000        26.000  -0.840413   2.828738    1.313775    5.292121    4.665655   -5.000000   28.907344  -0.596708  -0.371269  -0.000006  0.303323
-	35   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.121613   21.259909   27.780042    2.020000   37.024281  -0.707364  -0.342207  -0.000013  0.194934
-	36   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.145714   21.304889   27.780042    2.020000   37.024281  -0.683661  -0.298178  -0.000013  0.218401
-	37   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.126573   21.325093   27.780042    2.020000   37.024281  -0.702485  -0.278401  -0.000013  0.199764
-	38   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.132057   21.323211   27.780042    2.020000   37.024281  -0.697092  -0.280244  -0.000013  0.205104
-	39   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.708448  -12.232023  -18.023381  -10.170000   19.875825  -0.692185  -0.319447  -0.000002  0.208915
-	40   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.714417  -12.202504  -18.023381  -10.170000   19.875825  -0.698226  -0.289572  -0.000002  0.202934
-	41   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.720039  -12.264469  -18.023381  -10.170000   19.875825  -0.703917  -0.352285  -0.000002  0.197300
-	42   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701953  -12.228550  -18.023381  -10.170000   19.875825  -0.685611  -0.315932  -0.000002  0.215423
-	43   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.704535  -12.213634  -18.023381  -10.170000   19.875825  -0.688224  -0.300836  -0.000002  0.212837
-	44   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.652920   22.230043   28.306614    1.710000   37.450394  -0.304028  -0.212269  -0.000014  0.594265
-	45   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.691485   22.261017   28.306614    1.710000   37.450394  -0.266106  -0.181975  -0.000014  0.631810
-	46   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.679119   22.305357   28.306614    1.710000   37.450394  -0.278266  -0.138609  -0.000014  0.619771
-	47   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.663623   22.327286   28.306614    1.710000   37.450394  -0.293503  -0.117161  -0.000014  0.604685
-	48   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.678524   22.282103   28.306614    1.710000   37.450394  -0.278851  -0.161352  -0.000014  0.619192
-	49   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.666246   22.283361   28.306614    1.710000   37.450394  -0.290925  -0.160121  -0.000014  0.607238
-	50   Session_03     FOO       -4.000        26.000  -0.840413   2.828738    1.309929    5.340249    4.665655   -5.000000   28.907344  -0.600546  -0.323413  -0.000006  0.300148
-	51   Session_03     FOO       -4.000        26.000  -0.840413   2.828738    1.317548    5.334102    4.665655   -5.000000   28.907344  -0.592942  -0.329524  -0.000006  0.307676
-	52   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.136865   21.300298   27.780042    2.020000   37.024281  -0.692364  -0.302672  -0.000013  0.204033
-	53   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.133538   21.291260   27.780042    2.020000   37.024281  -0.695637  -0.311519  -0.000013  0.200762
-	54   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.139991   21.319865   27.780042    2.020000   37.024281  -0.689290  -0.283519  -0.000013  0.207107
-	55   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.145748   21.330075   27.780042    2.020000   37.024281  -0.683629  -0.273524  -0.000013  0.212766
-	56   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.702989  -12.202762  -18.023381  -10.170000   19.875825  -0.686660  -0.289833  -0.000002  0.204507
-	57   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.692830  -12.240287  -18.023381  -10.170000   19.875825  -0.676377  -0.327811  -0.000002  0.214786
-	58   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.702899  -12.180291  -18.023381  -10.170000   19.875825  -0.686568  -0.267091  -0.000002  0.204598
-	59   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.709282  -12.282257  -18.023381  -10.170000   19.875825  -0.693029  -0.370287  -0.000002  0.198140
-	60   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.679330  -12.235994  -18.023381  -10.170000   19.875825  -0.662712  -0.323466  -0.000002  0.228446
-	61   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.695594   22.238663   28.306614    1.710000   37.450394  -0.262066  -0.203838  -0.000014  0.634200
-	62   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.663504   22.286354   28.306614    1.710000   37.450394  -0.293620  -0.157194  -0.000014  0.602656
-	63   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.666457   22.254290   28.306614    1.710000   37.450394  -0.290717  -0.188555  -0.000014  0.605558
-	64   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.666910   22.223232   28.306614    1.710000   37.450394  -0.290271  -0.218930  -0.000014  0.606004
-	65   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.679662   22.257256   28.306614    1.710000   37.450394  -0.277732  -0.185653  -0.000014  0.618539
-	66   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.676768   22.267680   28.306614    1.710000   37.450394  -0.280578  -0.175459  -0.000014  0.615693
-	67   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.307663    5.317330    4.665655   -5.000000   28.907344  -0.602808  -0.346202  -0.000006  0.290853
-	68   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.308562    5.331400    4.665655   -5.000000   28.907344  -0.601911  -0.332212  -0.000006  0.291749
-	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
-	```
-	'''
-	
-	kwargs = locals().copy()
-
-	from numpy import random as nprandom
-	if seed:
-		rng = nprandom.default_rng(seed)
-	else:
-		rng = nprandom.default_rng()
-	
-	N = sum([s['N'] for s in samples])
-	errors47 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
-	errors47 *= rD47 / stdev(errors47) # scale errors to rD47
-	errors48 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
-	errors48 *= rD48 / stdev(errors48) # scale errors to rD48
-	
-	k = 0
-	out = []
-	for s in samples:
-		kw = {}
-		kw['sample'] = s['Sample']
-		kw = {
-			**kw,
-			**{var: kwargs[var]
-				for var in [
-					'd13Cwg_VPDB', 'd18Owg_VSMOW', 'ALPHA_18O_ACID_REACTION',
-					'Nominal_D47', 'Nominal_D48', 'Nominal_d13C_VPDB', 'Nominal_d18O_VPDB',
-					'R13_VPDB', 'R17_VSMOW', 'R18_VSMOW', 'lambda_17', 'R18_VPDB',
-					'a47', 'b47', 'c47', 'a48', 'b48', 'c48',
-					]
-				if kwargs[var] is not None},
-			**{var: s[var]
-				for var in ['d13C_VPDB', 'd18O_VPDB', 'D47', 'D48', 'D49', 'D17O']
-				if var in s},
-			}
-
-		sN = s['N']
-		while sN:
-			out.append(simulate_single_analysis(**kw))
-			out[-1]['d47'] += errors47[k] * a47
-			out[-1]['d48'] += errors48[k] * a48
-			sN -= 1
-			k += 1
-
-		if session is not None:
-			for r in out:
-				r['Session'] = session
-	return out
-
-def table_of_samples(
-	data47 = None,
-	data48 = None,
-	dir = 'output',
-	filename = None,
-	save_to_file = True,
-	print_out = True,
-	output = None,
-	):
-	'''
-	Print out, save to disk and/or return a combined table of samples
-	for a pair of `D47data` and `D48data` objects.
-
-	__Parameters__
-
-	+ `data47`: `D47data` instance
-	+ `data48`: `D48data` instance
-	+ `dir`: the directory in which to save the table
-	+ `filename`: the name to the csv file to write to
-	+ `save_to_file`: whether to save the table to disk
-	+ `print_out`: whether to print out the table
-	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
-		if set to `'raw'`: return a list of list of strings
-		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
-	'''
-	if data47 is None:
-		if data48 is None:
-			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
-		else:
-			return data48.table_of_samples(
-				dir = dir,
-				filename = filename,
-				save_to_file = save_to_file,
-				print_out = print_out,
-				output = output
-				)
-	else:
-		if data48 is None:
-			return data47.table_of_samples(
-				dir = dir,
-				filename = filename,
-				save_to_file = save_to_file,
-				print_out = print_out,
-				output = output
-				)
-		else:
-			out47 = data47.table_of_samples(save_to_file = False, print_out = False, output = 'raw')
-			out48 = data48.table_of_samples(save_to_file = False, print_out = False, output = 'raw')
-			out = transpose_table(transpose_table(out47) + transpose_table(out48)[4:])
-
-			if save_to_file:
-				if not os.path.exists(dir):
-					os.makedirs(dir)
-				if filename is None:
-					filename = f'D47D48_samples.csv'
-				with open(f'{dir}/{filename}', 'w') as fid:
-					fid.write(make_csv(out))
-			if print_out:
-				print('\n'+pretty_table(out))
-			if output == 'raw':
-				return out
-			elif output == 'pretty':
-				return pretty_table(out)
-
-
-def table_of_sessions(
-	data47 = None,
-	data48 = None,
-	dir = 'output',
-	filename = None,
-	save_to_file = True,
-	print_out = True,
-	output = None,
-	):
-	'''
-	Print out, save to disk and/or return a combined table of sessions
-	for a pair of `D47data` and `D48data` objects.
-	__*Only applicable if the sessions in `data47` and those in `data48`
-	consist of the exact same sets of analyses.*__
-
-	__Parameters__
-
-	+ `data47`: `D47data` instance
-	+ `data48`: `D48data` instance
-	+ `dir`: the directory in which to save the table
-	+ `filename`: the name to the csv file to write to
-	+ `save_to_file`: whether to save the table to disk
-	+ `print_out`: whether to print out the table
-	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
-		if set to `'raw'`: return a list of list of strings
-		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
-	'''
-	if data47 is None:
-		if data48 is None:
-			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
-		else:
-			return data48.table_of_sessions(
-				dir = dir,
-				filename = filename,
-				save_to_file = save_to_file,
-				print_out = print_out,
-				output = output
-				)
-	else:
-		if data48 is None:
-			return data47.table_of_sessions(
-				dir = dir,
-				filename = filename,
-				save_to_file = save_to_file,
-				print_out = print_out,
-				output = output
-				)
-		else:
-			out47 = data47.table_of_sessions(save_to_file = False, print_out = False, output = 'raw')
-			out48 = data48.table_of_sessions(save_to_file = False, print_out = False, output = 'raw')
-			for k,x in enumerate(out47[0]):
-				if k>7:
-					out47[0][k] = out47[0][k].replace('a', 'a_47').replace('b', 'b_47').replace('c', 'c_47')
-					out48[0][k] = out48[0][k].replace('a', 'a_48').replace('b', 'b_48').replace('c', 'c_48')
-			out = transpose_table(transpose_table(out47) + transpose_table(out48)[7:])
-
-			if save_to_file:
-				if not os.path.exists(dir):
-					os.makedirs(dir)
-				if filename is None:
-					filename = f'D47D48_sessions.csv'
-				with open(f'{dir}/{filename}', 'w') as fid:
-					fid.write(make_csv(out))
-			if print_out:
-				print('\n'+pretty_table(out))
-			if output == 'raw':
-				return out
-			elif output == 'pretty':
-				return pretty_table(out)
-
-
-def table_of_analyses(
-	data47 = None,
-	data48 = None,
-	dir = 'output',
-	filename = None,
-	save_to_file = True,
-	print_out = True,
-	output = None,
-	):
-	'''
-	Print out, save to disk and/or return a combined table of analyses
-	for a pair of `D47data` and `D48data` objects.
-
-	If the sessions in `data47` and those in `data48` do not consist of
-	the exact same sets of analyses, the table will have two columns
-	`Session_47` and `Session_48` instead of a single `Session` column.
-
-	__Parameters__
-
-	+ `data47`: `D47data` instance
-	+ `data48`: `D48data` instance
-	+ `dir`: the directory in which to save the table
-	+ `filename`: the name to the csv file to write to
-	+ `save_to_file`: whether to save the table to disk
-	+ `print_out`: whether to print out the table
-	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
-		if set to `'raw'`: return a list of list of strings
-		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
-	'''
-	if data47 is None:
-		if data48 is None:
-			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
-		else:
-			return data48.table_of_analyses(
-				dir = dir,
-				filename = filename,
-				save_to_file = save_to_file,
-				print_out = print_out,
-				output = output
-				)
-	else:
-		if data48 is None:
-			return data47.table_of_analyses(
-				dir = dir,
-				filename = filename,
-				save_to_file = save_to_file,
-				print_out = print_out,
-				output = output
-				)
-		else:
-			out47 = data47.table_of_analyses(save_to_file = False, print_out = False, output = 'raw')
-			out48 = data48.table_of_analyses(save_to_file = False, print_out = False, output = 'raw')
-			
-			if [l[1] for l in out47[1:]] == [l[1] for l in out48[1:]]: # if sessions are identical
-				out = transpose_table(transpose_table(out47) + transpose_table(out48)[-1:])
-			else:
-				out47[0][1] = 'Session_47'
-				out48[0][1] = 'Session_48'
-				out47 = transpose_table(out47)
-				out48 = transpose_table(out48)
-				out = transpose_table(out47[:2] + out48[1:2] + out47[2:] + out48[-1:])
-
-			if save_to_file:
-				if not os.path.exists(dir):
-					os.makedirs(dir)
-				if filename is None:
-					filename = f'D47D48_sessions.csv'
-				with open(f'{dir}/{filename}', 'w') as fid:
-					fid.write(make_csv(out))
-			if print_out:
-				print('\n'+pretty_table(out))
-			if output == 'raw':
-				return out
-			elif output == 'pretty':
-				return pretty_table(out)
