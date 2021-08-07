@@ -164,14 +164,9 @@ def pretty_table(x, header = 1, hsep = '  ', vsep = '–', align = '<'):
 
 	__Example__
 
-	```python
-	x = [['A','B', 'C'], ['1', '1.9999', 'foo'], ['10', 'x', 'bar']]
-	print(pretty_table(x))
 	```
-
-	output:
-
-	```python
+	>>> x = [['A', 'B', 'C'], ['1', '1.9999', 'foo'], ['10', 'x', 'bar']]
+	>>> print(pretty_table(x))
 	--  ------  ---
 	A        B    C
 	--  ------  ---
@@ -179,6 +174,7 @@ def pretty_table(x, header = 1, hsep = '  ', vsep = '–', align = '<'):
 	10       x  bar
 	--  ------  ---
 	```
+	
 	'''
 	txt = []
 	widths = [np.max([len(e) for e in c]) for c in zip(*x)]
@@ -2561,25 +2557,21 @@ def virtual_data(
 			dict(Sample = 'ETH-1', N = 4),
 			dict(Sample = 'ETH-2', N = 5),
 			dict(Sample = 'ETH-3', N = 6),
-			dict(
-				Sample = 'FOO',
-				N = 2,
-				d13C_VPDB = -5.,
-				d18O_VPDB = -10.,
-				D47 = 0.3,
-				D48 = 0.15
-				),
-			],
-		rD47 = 0.010,
-		rD48 = 0.030,
-		)
+			dict(Sample = 'FOO', N = 2,
+				d13C_VPDB = -5., d18O_VPDB = -10.,
+				D47 = 0.3, D48 = 0.15),
+			], rD47 = 0.010, rD48 = 0.030)
+
 	session1 = virtual_data(session = 'Session_01', **args, seed = 123)
 	session2 = virtual_data(session = 'Session_02', **args, seed = 1234)
 	session3 = virtual_data(session = 'Session_03', **args, seed = 12345)
 	session4 = virtual_data(session = 'Session_04', **args, seed = 123456)
+
 	D = D47data(session1 + session2 + session3 + session4)
+
 	D.crunch()
 	D.standardize()
+
 	D.table_of_sessions(verbose = True, save_to_file = False)
 	D.table_of_samples(verbose = True, save_to_file = False)
 	D.table_of_analyses(verbose = True, save_to_file = False)

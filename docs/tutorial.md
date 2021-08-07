@@ -2,7 +2,7 @@
 
 Start by creating a file named `rawdata.csv` with the following contents:
 
-```csv
+```html
 UID,  Sample,           d45,       d46,        d47,        d48,       d49
 A01,  ETH-1,        5.79502,  11.62767,   16.89351,   24.56708,   0.79486
 A02,  MYSAMPLE-1,   6.21907,  11.49107,   17.27749,   24.58270,   1.56318
@@ -16,21 +16,21 @@ A08,  MYSAMPLE-2,  -3.87692,   4.86889,    0.52185,   10.40390,   1.07032
 
 Then instantiate a `D47data` object which will store and process this data:
 
-```python
+```py
 import D47crunch
 mydata = D47crunch.D47data()
 ```
 
 For now, this object is empty:
 
-```python
+```html
 >>> print(mydata)
 []
 ```
 
 To load the analyses saved in `rawdata.csv` into our `D47data` object and process the data:
 
-```python
+```py
 mydata.read('rawdata.csv')
 mydata.wg()          # compute δ13C, δ18O of working gas
 mydata.crunch()      # compute all δ13C, δ18O and raw Δ47 values
@@ -39,7 +39,7 @@ mydata.standardize() # compute absolute Δ47 values
 
 We can now print a summary of the data processing:
 
-```csv
+```html
 >>> mydata.summary(verbose = True, save_to_file = False)
 [summary]        
 –––––––––––––––––––––––––––––––  –––––––––
@@ -60,7 +60,7 @@ This tells us that our data set contains 5 different samples: 3 anchors (ETH-1, 
 
 To see the actual results:
 
-```csv
+```html
 >>> mydata.table_of_samples(verbose = True, save_to_file = False)
 [table_of_samples] 
 ––––––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
@@ -78,7 +78,7 @@ This table lists, for each sample, the number of analytical replicates, average 
 
 We can also generate a table of all analyses in the data set (again, note that `d18O_VSMOW` is the composition of the CO<sub>2</sub> analyte):
 
-```csv
+```html
 >>> mydata.table_of_analyses(verbose = True, save_to_file = False)
 [table_of_analyses] 
 –––  –––––––––  ––––––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––
