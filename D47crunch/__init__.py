@@ -1313,6 +1313,7 @@ class D4xdata(list):
 		filename = None,
 		save_to_file = True,
 		print_out = True,
+		output = None,
 		):
 		'''
 		Print out an/or save to disk a table of sessions.
@@ -1323,6 +1324,9 @@ class D4xdata(list):
 		+ `filename`: the name to the csv file to write to
 		+ `save_to_file`: whether to save the table to disk
 		+ `print_out`: whether to print out the table
+		+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		    if set to `'raw'`: return a list of list of strings
+		    (e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
 		'''
 		include_a2 = any([self.sessions[session]['scrambling_drift'] for session in self.sessions])
 		include_b2 = any([self.sessions[session]['slope_drift'] for session in self.sessions])
@@ -1374,7 +1378,10 @@ class D4xdata(list):
 				fid.write(make_csv(out))
 		if print_out:
 			self.msg('\n' + pretty_table(out))
-		return out
+		if output == 'raw':
+			return out
+		elif output == 'pretty':
+			return pretty_table(out)
 
 
 	@make_verbal
@@ -1384,6 +1391,7 @@ class D4xdata(list):
 		filename = None,
 		save_to_file = True,
 		print_out = True,
+		output = None,
 		):
 		'''
 		Print out an/or save to disk a table of analyses.
@@ -1394,6 +1402,9 @@ class D4xdata(list):
 		+ `filename`: the name to the csv file to write to
 		+ `save_to_file`: whether to save the table to disk
 		+ `print_out`: whether to print out the table
+		+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		    if set to `'raw'`: return a list of list of strings
+		    (e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
 		'''
 
 		out = [['UID','Session','Sample']]
@@ -1439,9 +1450,10 @@ class D4xdata(list):
 		filename = None,
 		save_to_file = True,
 		print_out = True,
+		output = None,
 		):
 		'''
-		Print out an/or save to disk a table of samples.
+		Print out, save to disk and/or return a table of samples.
 
 		__Parameters__
 
@@ -1449,6 +1461,9 @@ class D4xdata(list):
 		+ `filename`: the name to the csv file to write to
 		+ `save_to_file`: whether to save the table to disk
 		+ `print_out`: whether to print out the table
+		+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		    if set to `'raw'`: return a list of list of strings
+		    (e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
 		'''
 
 		out = [['Sample','N','d13C_VPDB','d18O_VSMOW',f'D{self._4x}','SE','95% CL','SD','p_Levene']]
@@ -1482,6 +1497,10 @@ class D4xdata(list):
 				fid.write(make_csv(out))
 		if print_out:
 			self.msg('\n'+pretty_table(out))
+		if output == 'raw':
+			return out
+		elif output == 'pretty':
+			return pretty_table(out)
 
 
 	def plot_sessions(self, dir = 'output', figsize = (8,8)):
@@ -2699,8 +2718,6 @@ def virtual_data(
 				if var in s},
 			}
 
-		print(kw)
-
 		sN = s['N']
 		while sN:
 			out.append(simulate_single_analysis(**kw))
@@ -2714,3 +2731,214 @@ def virtual_data(
 				r['Session'] = session
 	return out
 
+def table_of_samples(
+	data47 = None,
+	data48 = None,
+	dir = 'output',
+	filename = None,
+	save_to_file = True,
+	print_out = True,
+	output = None,
+	):
+	'''
+	Print out, save to disk and/or return a combined table of samples
+	for a pair of `D47data` and `D48data` objects.
+
+	__Parameters__
+
+	+ `data47`: `D47data` instance
+	+ `data48`: `D48data` instance
+	+ `dir`: the directory in which to save the table
+	+ `filename`: the name to the csv file to write to
+	+ `save_to_file`: whether to save the table to disk
+	+ `print_out`: whether to print out the table
+	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		if set to `'raw'`: return a list of list of strings
+		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
+	'''
+	if data47 is None:
+		if data48 is None:
+			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
+		else:
+			return data48.table_of_samples(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+	else:
+		if data48 is None:
+			return data47.table_of_samples(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+		else:
+			out47 = data47.table_of_samples(save_to_file = False, print_out = False, output = 'raw')
+			out48 = data48.table_of_samples(save_to_file = False, print_out = False, output = 'raw')
+			out = transpose_table(transpose_table(out47) + transpose_table(out48)[4:])
+
+			if save_to_file:
+				if not os.path.exists(dir):
+					os.makedirs(dir)
+				if filename is None:
+					filename = f'D47D48_samples.csv'
+				with open(f'{dir}/{filename}', 'w') as fid:
+					fid.write(make_csv(out))
+			if print_out:
+				print('\n'+pretty_table(out))
+			if output == 'raw':
+				return out
+			elif output == 'pretty':
+				return pretty_table(out)
+
+
+def table_of_sessions(
+	data47 = None,
+	data48 = None,
+	dir = 'output',
+	filename = None,
+	save_to_file = True,
+	print_out = True,
+	output = None,
+	):
+	'''
+	Print out, save to disk and/or return a combined table of sessions
+	for a pair of `D47data` and `D48data` objects.
+	__*Only applicable if the sessions in `data47` and those in `data48`
+	consist of the exact same sets of analyses.*__
+
+	__Parameters__
+
+	+ `data47`: `D47data` instance
+	+ `data48`: `D48data` instance
+	+ `dir`: the directory in which to save the table
+	+ `filename`: the name to the csv file to write to
+	+ `save_to_file`: whether to save the table to disk
+	+ `print_out`: whether to print out the table
+	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		if set to `'raw'`: return a list of list of strings
+		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
+	'''
+	if data47 is None:
+		if data48 is None:
+			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
+		else:
+			return data48.table_of_sessions(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+	else:
+		if data48 is None:
+			return data47.table_of_sessions(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+		else:
+			out47 = data47.table_of_sessions(save_to_file = False, print_out = False, output = 'raw')
+			out48 = data48.table_of_sessions(save_to_file = False, print_out = False, output = 'raw')
+			for k,x in enumerate(out47[0]):
+				if k>7:
+					out47[0][k] = out47[0][k].replace('a', 'a_47').replace('b', 'b_47').replace('c', 'c_47')
+					out48[0][k] = out48[0][k].replace('a', 'a_48').replace('b', 'b_48').replace('c', 'c_48')
+			out = transpose_table(transpose_table(out47) + transpose_table(out48)[7:])
+
+			if save_to_file:
+				if not os.path.exists(dir):
+					os.makedirs(dir)
+				if filename is None:
+					filename = f'D47D48_sessions.csv'
+				with open(f'{dir}/{filename}', 'w') as fid:
+					fid.write(make_csv(out))
+			if print_out:
+				print('\n'+pretty_table(out))
+			if output == 'raw':
+				return out
+			elif output == 'pretty':
+				return pretty_table(out)
+
+
+def table_of_analyses(
+	data47 = None,
+	data48 = None,
+	dir = 'output',
+	filename = None,
+	save_to_file = True,
+	print_out = True,
+	output = None,
+	):
+	'''
+	Print out, save to disk and/or return a combined table of analyses
+	for a pair of `D47data` and `D48data` objects.
+
+	If the sessions in `data47` and those in `data48` do not consist of
+	the exact same sets of analyses, the table will have two columns
+	`Session_47` and `Session_48` instead of a single `Session` column.
+
+	__Parameters__
+
+	+ `data47`: `D47data` instance
+	+ `data48`: `D48data` instance
+	+ `dir`: the directory in which to save the table
+	+ `filename`: the name to the csv file to write to
+	+ `save_to_file`: whether to save the table to disk
+	+ `print_out`: whether to print out the table
+	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		if set to `'raw'`: return a list of list of strings
+		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
+	'''
+	if data47 is None:
+		if data48 is None:
+			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
+		else:
+			return data48.table_of_analyses(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+	else:
+		if data48 is None:
+			return data47.table_of_analyses(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+		else:
+			out47 = data47.table_of_analyses(save_to_file = False, print_out = False, output = 'raw')
+			out48 = data48.table_of_analyses(save_to_file = False, print_out = False, output = 'raw')
+			
+			if [l[1] for l in out47[1:]] == [l[1] for l in out48[1:]]: # if sessions are identical
+				out = transpose_table(transpose_table(out47) + transpose_table(out48)[-1:])
+			else:
+				out47[0][1] = 'Session_47'
+				out48[0][1] = 'Session_48'
+				out47 = transpose_table(out47)
+				out48 = transpose_table(out48)
+				out = transpose_table(out47[:2] + out48[1:2] + out47[2:] + out48[-1:])
+
+			if save_to_file:
+				if not os.path.exists(dir):
+					os.makedirs(dir)
+				if filename is None:
+					filename = f'D47D48_sessions.csv'
+				with open(f'{dir}/{filename}', 'w') as fid:
+					fid.write(make_csv(out))
+			if print_out:
+				print('\n'+pretty_table(out))
+			if output == 'raw':
+				return out
+			elif output == 'pretty':
+				return pretty_table(out)
