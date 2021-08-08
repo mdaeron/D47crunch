@@ -1,7 +1,12 @@
 # Changelog
 
-## v2.0.0
+## v2.0.1
+*Released on 2021-08-08*
 
+### Bugfix
+* Fix silly mistake in readme.
+
+## v2.0.0
 *Released on 2021-08-08*
 
 ### New feature
