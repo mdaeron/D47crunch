@@ -1,20 +1,26 @@
 #! /usr/bin/env python3
 '''
-Standardization and analytical error propagation of Δ47 clumped-isotope measurements
+Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotope measurements
 
 Process and standardize carbonate and/or CO<sub>2</sub> clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
-Δ<sub>47</sub> values with fully propagated analytical error estimates.
+Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates
+([Daëron, 2021](https://doi.org/10.1029/2020GC009592)).
 
-.. include:: ../docs/documentation.md
+The **tutorial** section takes you through a series of simple steps to import/process data and print out the results.
+The **how-to** section provides instructions applicable to various specific tasks.
+
+.. include:: ../docs/tutorial.md
+.. include:: ../docs/howto.md
 '''
 
+__docformat__ = "restructuredtext"
 __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
-__copyright__ = 'Copyright (c) 2020 Mathieu Daëron'
+__copyright__ = 'Copyright (c) 2021 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2021-06-30'
-__version__   = '1.2.0'
+__date__      = '2021-08-08'
+__version__   = '2.0.0'
 
 import os
 import numpy as np
@@ -54,10 +60,9 @@ Petersen_etal_CO2eqD47 = np.array([[-12, 1.147113572], [-11, 1.139961218], [-10,
 _fCO2eqD47_Petersen = interp1d(Petersen_etal_CO2eqD47[:,0], Petersen_etal_CO2eqD47[:,1])
 def fCO2eqD47_Petersen(T):
 	'''
-	CO<sub>2</sub> equilibrium Δ<sub>47</sub> value as a function of `T` (in degrees C)
-	according to [Petersen et al. (2019)].
+	CO<sub>2</sub> equilibrium Δ<sub>47</sub> value as a function of T (in degrees C)
+	according to [Petersen et al. (2019)](https://doi.org/10.1029/2018GC008127).
 
-	[Petersen et al. (2019)]: https://doi.org/10.1029/2018GC008127
 	'''
 	return float(_fCO2eqD47_Petersen(T))
 
@@ -67,47 +72,50 @@ _fCO2eqD47_Wang = interp1d(Wang_etal_CO2eqD47[:,0] - 0.15, Wang_etal_CO2eqD47[:,
 def fCO2eqD47_Wang(T):
 	'''
 	CO<sub>2</sub> equilibrium Δ<sub>47</sub> value as a function of `T` (in degrees C)
-	according to [Wang et al. (2004)] (supplementary data of [Dennis et al., 2011]).
-
-	[Wang et al. (2004)]: https://doi.org/10.1016/j.gca.2004.05.039
-	[Dennis et al., 2011]: https://doi.org/10.1016/j.gca.2011.09.025
+	according to [Wang et al. (2004)](https://doi.org/10.1016/j.gca.2004.05.039)
+	(supplementary data of [Dennis et al., 2011](https://doi.org/10.1016/j.gca.2011.09.025)).
 	'''
 	return float(_fCO2eqD47_Wang(T))
 
 
-def correlated_sum(X,C,f = ''):
+def correlated_sum(X, C, w = None):
 	'''
 	Compute covariance-aware linear combinations
 
-	Return the mean and SE of the sum of the elements of `X`, with optional
-	weights corresponding to the elements of `f`, accounting for `C`,
-	the covariance matrix of `X`.
+	**Parameters**
+	
+	+ `X`: list or 1-D array of values to sum
+	+ `C`: covariance matrix for the elements of `X`
+	+ `w`: list or 1-D array of weights to apply to the elements of `X`
+	       (all equal to 1 by default)
+
+	Return the sum (and its SE) of the elements of `X`, with optional weights equal
+	to the elements of `w`, accounting for covariances between the elements of `X`.
 	'''
-	if f == '':
-		f = [1 for x in X]
-	return np.dot(f,X), (np.dot(f,np.dot(C,f)))**.5
+	if w is None:
+		w = [1 for x in X]
+	return np.dot(w,X), (np.dot(w,np.dot(C,w)))**.5
 
 
 def make_csv(x, hsep = ',', vsep = '\n'):
 	'''
 	Formats a list of lists of strings as a CSV
 
-	__Parameters__
+	**Parameters**
 
 	+ `x`: the list of lists of strings to format
-	+ `hsep`: the field separator (a comma, by default)
-	+ `vsep`: the line-ending convention to use (`'\\n'` by default)
+	+ `hsep`: the field separator (`,` by default)
+	+ `vsep`: the line-ending convention to use (`\\n` by default)
 
-	__Example__
+	**Example**
 
-	```python
-	x = [['a', 'b', 'c'], ['d', 'e', 'f']]
-	print(make_csv(x))
+	```py
+	print(make_csv([['a', 'b', 'c'], ['d', 'e', 'f']]))
 	```
 
-	output:
+	outputs:
 
-	```python
+	```py
 	a,b,c
 	d,e,f
 	```
@@ -141,7 +149,7 @@ def pretty_table(x, header = 1, hsep = '  ', vsep = '–', align = '<'):
 	'''
 	Reads a list of lists of strings and outputs an ascii table
 
-	__Parameters__
+	**Parameters**
 
 	+ `x`: a list of lists of strings
 	+ `header`: the number of lines to treat as header lines
@@ -149,16 +157,14 @@ def pretty_table(x, header = 1, hsep = '  ', vsep = '–', align = '<'):
 	+ `vsep`: the character to use as vertical separator
 	+ `align`: string of left (`<`) or right (`>`) alignment characters.
 
-	__Example__
+	**Example**
 
-	```python
-	x = [['A','B', 'C'], ['1', '1.9999', 'foo'], ['10', 'x', 'bar']]
+	```py
+	x = [['A', 'B', 'C'], ['1', '1.9999', 'foo'], ['10', 'x', 'bar']]
 	print(pretty_table(x))
 	```
-
-	output:
-
-	```python
+	yields:	
+	```
 	--  ------  ---
 	A        B    C
 	--  ------  ---
@@ -166,6 +172,7 @@ def pretty_table(x, header = 1, hsep = '  ', vsep = '–', align = '<'):
 	10       x  bar
 	--  ------  ---
 	```
+	
 	'''
 	txt = []
 	widths = [np.max([len(e) for e in c]) for c in zip(*x)]
@@ -187,23 +194,16 @@ def transpose_table(x):
 	'''
 	Transpose a list if lists
 
-	__Parameters__
+	**Parameters**
 
 	+ `x`: a list of lists
 
-	__Example__
+	**Example**
 
-	```python
+	```py
 	x = [[1, 2], [3, 4]]
-	print(transpose_table(x))
+	print(transpose_table(x)) # yields: [[1, 3], [2, 4]]
 	```
-
-	outputs:
-
-	```python
-	[[1, 3], [2, 4]]
-	```
-
 	'''
 	return [[e for e in c] for c in zip(*x)]
 
@@ -215,22 +215,19 @@ def w_avg(X, sX) :
 	Returns the value and SE of the weighted average of the elements of `X`,
 	with relative weights equal to their inverse variances (`1/sX**2`).
 
-	__Parameters__
+	**Parameters**
 
 	+ `X`: array-like of elements to average
 	+ `sX`: array-like of the corresponding SE values
 
-	__Tip__
+	**Tip**
 
 	If `X` and `sX` are initially arranged as a list of `(x, sx)` doublets,
 	they may be rearranged using `zip()`:
 
 	```python
-	foo = [(0, 0.1), (1, 0.05), (2, 0.05)]
-	print(w_avg(*zip(*foo)))
-
-	# output:
-	# (1.3333333333333333, 0.03333333333333334)
+	foo = [(0, 1), (1, 0.5), (2, 0.5)]
+	print(w_avg(*zip(*foo))) # yields: (1.3333333333333333, 0.3333333333333333)
 	```
 	'''
 	X = [ x for x in X ]
@@ -249,7 +246,7 @@ def read_csv(filename, sep = ''):
 	In the csv string, spaces before and after field separators (`','` by default)
 	are optional.
 
-	__Parameters__
+	**Parameters**
 
 	+ `filename`: the csv file to read
 	+ `sep`: csv separator delimiting the fields. By default, use `,`, `;`, or `\t`,
@@ -264,44 +261,621 @@ def read_csv(filename, sep = ''):
 	return [{k: smart_type(v) for k,v in zip(txt[0], l) if v} for l in txt[1:]]
 
 
-class D47data(list):
+def simulate_single_analysis(
+	sample = 'MYSAMPLE',
+	d13Cwg_VPDB = -4., d18Owg_VSMOW = 26.,
+	d13C_VPDB = None, d18O_VPDB = None,
+	D47 = None, D48 = None, D49 = 0., D17O = 0.,
+	a47 = 1., b47 = 0., c47 = -0.9,
+	a48 = 1., b48 = 0., c48 = -0.45,
+	Nominal_D47 = None,
+	Nominal_D48 = None,
+	Nominal_d13C_VPDB = None,
+	Nominal_d18O_VPDB = None,
+	ALPHA_18O_ACID_REACTION = None,
+	R13_VPDB = None,
+	R17_VSMOW = None,
+	R18_VSMOW = None,
+	LAMBDA_17 = None,
+	R18_VPDB = None,
+	):
 	'''
-	Store and process data for a large set of Δ<sub>47</sub> analyses,
-	usually comprising more than one analytical session.
+	Compute working-gas delta values for a single analysis, assuming a stochastic working
+	gas and a “perfect” measurement (i.e. raw Δ values are identical to absolute values).
+	
+	**Parameters**
+
+	+ `sample`: sample name
+	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
+		(respectively –4 and +26 ‰ by default)
+	+ `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample
+	+ `D47`, `D48`, `D49`, `D17O`: clumped-isotope and oxygen-17 anomalies
+		of the carbonate sample
+	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ<sub>47</sub> and
+		Δ<sub>48</sub> values if `D47` or `D48` are not specified
+	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ<sup>13</sup>C and
+		δ<sup>18</sup>O values if `d13C_VPDB` or `d18O_VPDB` are not specified
+	+ `ALPHA_18O_ACID_REACTION`: <sup>18</sup>O/<sup>16</sup>O acid fractionation factor
+	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `LAMBDA_17`, `R18_VPDB`: oxygen-17
+		correction parameters (by default equal to the `D4xdata` default values)
+	
+	Returns a dictionary with fields
+	`['Sample', 'D17O', 'd13Cwg_VPDB', 'd18Owg_VSMOW', 'd45', 'd46', 'd47', 'd48', 'd49']`.
+	'''
+
+	if Nominal_d13C_VPDB is None:
+		Nominal_d13C_VPDB = D4xdata().Nominal_d13C_VPDB
+
+	if Nominal_d18O_VPDB is None:
+		Nominal_d18O_VPDB = D4xdata().Nominal_d18O_VPDB
+
+	if ALPHA_18O_ACID_REACTION is None:
+		ALPHA_18O_ACID_REACTION = D4xdata().ALPHA_18O_ACID_REACTION
+
+	if R13_VPDB is None:
+		R13_VPDB = D4xdata().R13_VPDB
+
+	if R17_VSMOW is None:
+		R17_VSMOW = D4xdata().R17_VSMOW
+
+	if R18_VSMOW is None:
+		R18_VSMOW = D4xdata().R18_VSMOW
+
+	if LAMBDA_17 is None:
+		LAMBDA_17 = D4xdata().LAMBDA_17
+
+	if R18_VPDB is None:
+		R18_VPDB = D4xdata().R18_VPDB
+	
+	R17_VPDB = R17_VSMOW * (R18_VPDB / R18_VSMOW) ** LAMBDA_17
+	
+	if Nominal_D47 is None:
+		Nominal_D47 = D47data().Nominal_D47
+
+	if Nominal_D48 is None:
+		Nominal_D48 = D48data().Nominal_D48
+	
+	if d13C_VPDB is None:
+		if sample in Nominal_d13C_VPDB:
+			d13C_VPDB = Nominal_d13C_VPDB[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing d13C_VDP value, and it is not defined in Nominal_d13C_VDP.")
+
+	if d18O_VPDB is None:
+		if sample in Nominal_d18O_VPDB:
+			d18O_VPDB = Nominal_d18O_VPDB[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing d18O_VPDB value, and it is not defined in Nominal_d18O_VPDB.")
+
+	if D47 is None:
+		if sample in Nominal_D47:
+			D47 = Nominal_D47[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing D47 value, and it is not defined in Nominal_D47.")
+
+	if D48 is None:
+		if sample in Nominal_D48:
+			D48 = Nominal_D48[sample]
+		else:
+			raise KeyError(f"Sample {sample} is missing D48 value, and it is not defined in Nominal_D48.")
+
+	X = D4xdata()
+	X.R13_VPDB = R13_VPDB
+	X.R17_VSMOW = R17_VSMOW
+	X.R18_VSMOW = R18_VSMOW
+	X.LAMBDA_17 = LAMBDA_17
+	X.R18_VPDB = R18_VPDB
+	X.R17_VPDB = R17_VSMOW * (R18_VPDB / R18_VSMOW)**LAMBDA_17
+
+	R45wg, R46wg, R47wg, R48wg, R49wg = X.compute_isobar_ratios(
+		R13 = R13_VPDB * (1 + d13Cwg_VPDB/1000),
+		R18 = R18_VSMOW * (1 + d18Owg_VSMOW/1000),
+		)
+	R45, R46, R47, R48, R49 = X.compute_isobar_ratios(
+		R13 = R13_VPDB * (1 + d13C_VPDB/1000),
+		R18 = R18_VPDB * (1 + d18O_VPDB/1000) * ALPHA_18O_ACID_REACTION,
+		D17O=D17O, D47=D47, D48=D48, D49=D49,
+		)
+	R45stoch, R46stoch, R47stoch, R48stoch, R49stoch = X.compute_isobar_ratios(
+		R13 = R13_VPDB * (1 + d13C_VPDB/1000),
+		R18 = R18_VPDB * (1 + d18O_VPDB/1000) * ALPHA_18O_ACID_REACTION,
+		D17O=D17O,
+		)
+	
+	d45 = 1000 * (R45/R45wg - 1)
+	d46 = 1000 * (R46/R46wg - 1)
+	d47 = 1000 * (R47/R47wg - 1)
+	d48 = 1000 * (R48/R48wg - 1)
+	d49 = 1000 * (R49/R49wg - 1)
+
+	for k in range(3): # dumb iteration to adjust for small changes in d47
+		R47raw = (1 + (a47 * D47 + b47 * d47 + c47)/1000) * R47stoch
+		R48raw = (1 + (a48 * D48 + b48 * d48 + c48)/1000) * R48stoch	
+		d47 = 1000 * (R47raw/R47wg - 1)
+		d48 = 1000 * (R48raw/R48wg - 1)
+
+	return dict(
+		Sample = sample,
+		D17O = D17O,
+		d13Cwg_VPDB = d13Cwg_VPDB,
+		d18Owg_VSMOW = d18Owg_VSMOW,
+		d45 = d45,
+		d46 = d46,
+		d47 = d47,
+		d48 = d48,
+		d49 = d49,
+		)
+
+
+def virtual_data(
+	samples = [],
+	a47 = 1., b47 = 0., c47 = -0.9,
+	a48 = 1., b48 = 0., c48 = -0.45,
+	rD47 = 0.015, rD48 = 0.045,
+	d13Cwg_VPDB = None, d18Owg_VSMOW = None,
+	session = None,
+	Nominal_D47 = None, Nominal_D48 = None,
+	Nominal_d13C_VPDB = None, Nominal_d18O_VPDB = None,
+	ALPHA_18O_ACID_REACTION = None,
+	R13_VPDB = None,
+	R17_VSMOW = None,
+	R18_VSMOW = None,
+	LAMBDA_17 = None,
+	R18_VPDB = None,
+	seed = 0,
+	):
+	'''
+	Return list with simulated analyses from a single session.
+	
+	**Parameters**
+	
+	+ `samples`: a list of entries; each entry is a dictionary with the following fields:
+	    * `Sample`: the name of the sample
+	    * `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample
+	    * `D47`, `D48`, `D49`, `D17O` (all optional): clumped-isotope and oxygen-17 anomalies of the carbonate sample
+	    * `N`: how many analyses to generate for this sample
+	+ `a47`: scrambling factor for Δ<sub>47</sub>
+	+ `b47`: compositional nonlinearity for Δ<sub>47</sub>
+	+ `c47`: working gas offset for Δ<sub>47</sub>
+	+ `a48`: scrambling factor for Δ<sub>48</sub>
+	+ `b48`: compositional nonlinearity for Δ<sub>48</sub>
+	+ `c48`: working gas offset for Δ<sub>48</sub>
+	+ `rD47`: analytical repeatability of Δ<sub>47</sub>
+	+ `rD48`: analytical repeatability of Δ<sub>48</sub>
+	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
+		(by default equal to the `simulate_single_analysis` default values)
+	+ `session`: name of the session (no name by default)
+	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ<sub>47</sub> and Δ<sub>48</sub> values
+		if `D47` or `D48` are not specified (by default equal to the `simulate_single_analysis` defaults)
+	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ<sup>13</sup>C and
+		δ<sup>18</sup>O values if `d13C_VPDB` or `d18O_VPDB` are not specified 
+		(by default equal to the `simulate_single_analysis` defaults)
+	+ `ALPHA_18O_ACID_REACTION`: <sup>18</sup>O/<sup>16</sup>O acid fractionation factor
+		(by default equal to the `simulate_single_analysis` defaults)
+	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `LAMBDA_17`, `R18_VPDB`: oxygen-17
+		correction parameters (by default equal to the `simulate_single_analysis` default)
+	+ `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
+	
+		
+	Here is an example of using this method to generate an arbitrary combination of
+	anchors and unknowns for a bunch of sessions:
+
+	```py
+	args = dict(
+		samples = [
+			dict(Sample = 'ETH-1', N = 4),
+			dict(Sample = 'ETH-2', N = 5),
+			dict(Sample = 'ETH-3', N = 6),
+			dict(Sample = 'FOO', N = 2,
+				d13C_VPDB = -5., d18O_VPDB = -10.,
+				D47 = 0.3, D48 = 0.15),
+			], rD47 = 0.010, rD48 = 0.030)
+
+	session1 = virtual_data(session = 'Session_01', **args, seed = 123)
+	session2 = virtual_data(session = 'Session_02', **args, seed = 1234)
+	session3 = virtual_data(session = 'Session_03', **args, seed = 12345)
+	session4 = virtual_data(session = 'Session_04', **args, seed = 123456)
+
+	D = D47data(session1 + session2 + session3 + session4)
+
+	D.crunch()
+	D.standardize()
+
+	D.table_of_sessions(verbose = True, save_to_file = False)
+	D.table_of_samples(verbose = True, save_to_file = False)
+	D.table_of_analyses(verbose = True, save_to_file = False)
+	```
+	
+	This should output something like:
+	
+	```
+	[table_of_sessions] 
+	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
+	Session     Na  Nu  d13Cwg_VPDB  d18Owg_VSMOW  r_d13C  r_d18O   r_D47         a ± SE    1e3 x b ± SE          c ± SE
+	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
+	Session_01  15   2       -4.000        26.000  0.0000  0.0000  0.0110  0.997 ± 0.017  -0.097 ± 0.244  -0.896 ± 0.006
+	Session_02  15   2       -4.000        26.000  0.0000  0.0000  0.0109  1.002 ± 0.017  -0.110 ± 0.244  -0.901 ± 0.006
+	Session_03  15   2       -4.000        26.000  0.0000  0.0000  0.0107  1.010 ± 0.017  -0.037 ± 0.244  -0.904 ± 0.006
+	Session_04  15   2       -4.000        26.000  0.0000  0.0000  0.0106  1.001 ± 0.017  -0.181 ± 0.244  -0.894 ± 0.006
+	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
+
+	[table_of_samples] 
+	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+	Sample   N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
+	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+	ETH-1   16       2.02       37.02  0.2052                    0.0079          
+	ETH-2   20     -10.17       19.88  0.2085                    0.0100          
+	ETH-3   24       1.71       37.45  0.6132                    0.0105          
+	FOO      8      -5.00       28.91  0.2989  0.0040  ± 0.0080  0.0101     0.638
+	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
+
+	[table_of_analyses] 
+	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
+	UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46         d47         d48         d49   d13C_VPDB  d18O_VSMOW     D47raw     D48raw     D49raw       D47
+	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
+	1    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.122986   21.273526   27.780042    2.020000   37.024281  -0.706013  -0.328878  -0.000013  0.192554
+	2    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.130144   21.282615   27.780042    2.020000   37.024281  -0.698974  -0.319981  -0.000013  0.199615
+	3    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.149219   21.299572   27.780042    2.020000   37.024281  -0.680215  -0.303383  -0.000013  0.218429
+	4    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.136616   21.233128   27.780042    2.020000   37.024281  -0.692609  -0.368421  -0.000013  0.205998
+	5    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.697171  -12.203054  -18.023381  -10.170000   19.875825  -0.680771  -0.290128  -0.000002  0.215054
+	6    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701124  -12.184422  -18.023381  -10.170000   19.875825  -0.684772  -0.271272  -0.000002  0.211041
+	7    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.715105  -12.195251  -18.023381  -10.170000   19.875825  -0.698923  -0.282232  -0.000002  0.196848
+	8    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701529  -12.204963  -18.023381  -10.170000   19.875825  -0.685182  -0.292061  -0.000002  0.210630
+	9    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.711420  -12.228478  -18.023381  -10.170000   19.875825  -0.695193  -0.315859  -0.000002  0.200589
+	10   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.666719   22.296486   28.306614    1.710000   37.450394  -0.290459  -0.147284  -0.000014  0.609363
+	11   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.671553   22.291060   28.306614    1.710000   37.450394  -0.285706  -0.152592  -0.000014  0.614130
+	12   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.652854   22.273271   28.306614    1.710000   37.450394  -0.304093  -0.169990  -0.000014  0.595689
+	13   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.684168   22.263156   28.306614    1.710000   37.450394  -0.273302  -0.179883  -0.000014  0.626572
+	14   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.662702   22.253578   28.306614    1.710000   37.450394  -0.294409  -0.189251  -0.000014  0.605401
+	15   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.681957   22.230907   28.306614    1.710000   37.450394  -0.275476  -0.211424  -0.000014  0.624391
+	16   Session_01     FOO       -4.000        26.000  -0.840413   2.828738    1.312044    5.395798    4.665655   -5.000000   28.907344  -0.598436  -0.268176  -0.000006  0.298996
+	17   Session_01     FOO       -4.000        26.000  -0.840413   2.828738    1.328123    5.307086    4.665655   -5.000000   28.907344  -0.582387  -0.356389  -0.000006  0.315092
+	18   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.122201   21.340606   27.780042    2.020000   37.024281  -0.706785  -0.263217  -0.000013  0.195135
+	19   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.134868   21.305714   27.780042    2.020000   37.024281  -0.694328  -0.297370  -0.000013  0.207564
+	20   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.140008   21.261931   27.780042    2.020000   37.024281  -0.689273  -0.340227  -0.000013  0.212607
+	21   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.135540   21.298472   27.780042    2.020000   37.024281  -0.693667  -0.304459  -0.000013  0.208224
+	22   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701213  -12.202602  -18.023381  -10.170000   19.875825  -0.684862  -0.289671  -0.000002  0.213842
+	23   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.685649  -12.190405  -18.023381  -10.170000   19.875825  -0.669108  -0.277327  -0.000002  0.229559
+	24   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.719003  -12.257955  -18.023381  -10.170000   19.875825  -0.702869  -0.345692  -0.000002  0.195876
+	25   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.700592  -12.204641  -18.023381  -10.170000   19.875825  -0.684233  -0.291735  -0.000002  0.214469
+	26   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.720426  -12.214561  -18.023381  -10.170000   19.875825  -0.704308  -0.301774  -0.000002  0.194439
+	27   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.673044   22.262090   28.306614    1.710000   37.450394  -0.284240  -0.180926  -0.000014  0.616730
+	28   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.666542   22.263401   28.306614    1.710000   37.450394  -0.290634  -0.179643  -0.000014  0.610350
+	29   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.680487   22.243486   28.306614    1.710000   37.450394  -0.276921  -0.199121  -0.000014  0.624031
+	30   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.663900   22.245175   28.306614    1.710000   37.450394  -0.293231  -0.197469  -0.000014  0.607759
+	31   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.674379   22.301309   28.306614    1.710000   37.450394  -0.282927  -0.142568  -0.000014  0.618039
+	32   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.660825   22.270466   28.306614    1.710000   37.450394  -0.296255  -0.172733  -0.000014  0.604742
+	33   Session_02     FOO       -4.000        26.000  -0.840413   2.828738    1.294076    5.349940    4.665655   -5.000000   28.907344  -0.616369  -0.313776  -0.000006  0.283707
+	34   Session_02     FOO       -4.000        26.000  -0.840413   2.828738    1.313775    5.292121    4.665655   -5.000000   28.907344  -0.596708  -0.371269  -0.000006  0.303323
+	35   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.121613   21.259909   27.780042    2.020000   37.024281  -0.707364  -0.342207  -0.000013  0.194934
+	36   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.145714   21.304889   27.780042    2.020000   37.024281  -0.683661  -0.298178  -0.000013  0.218401
+	37   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.126573   21.325093   27.780042    2.020000   37.024281  -0.702485  -0.278401  -0.000013  0.199764
+	38   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.132057   21.323211   27.780042    2.020000   37.024281  -0.697092  -0.280244  -0.000013  0.205104
+	39   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.708448  -12.232023  -18.023381  -10.170000   19.875825  -0.692185  -0.319447  -0.000002  0.208915
+	40   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.714417  -12.202504  -18.023381  -10.170000   19.875825  -0.698226  -0.289572  -0.000002  0.202934
+	41   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.720039  -12.264469  -18.023381  -10.170000   19.875825  -0.703917  -0.352285  -0.000002  0.197300
+	42   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701953  -12.228550  -18.023381  -10.170000   19.875825  -0.685611  -0.315932  -0.000002  0.215423
+	43   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.704535  -12.213634  -18.023381  -10.170000   19.875825  -0.688224  -0.300836  -0.000002  0.212837
+	44   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.652920   22.230043   28.306614    1.710000   37.450394  -0.304028  -0.212269  -0.000014  0.594265
+	45   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.691485   22.261017   28.306614    1.710000   37.450394  -0.266106  -0.181975  -0.000014  0.631810
+	46   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.679119   22.305357   28.306614    1.710000   37.450394  -0.278266  -0.138609  -0.000014  0.619771
+	47   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.663623   22.327286   28.306614    1.710000   37.450394  -0.293503  -0.117161  -0.000014  0.604685
+	48   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.678524   22.282103   28.306614    1.710000   37.450394  -0.278851  -0.161352  -0.000014  0.619192
+	49   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.666246   22.283361   28.306614    1.710000   37.450394  -0.290925  -0.160121  -0.000014  0.607238
+	50   Session_03     FOO       -4.000        26.000  -0.840413   2.828738    1.309929    5.340249    4.665655   -5.000000   28.907344  -0.600546  -0.323413  -0.000006  0.300148
+	51   Session_03     FOO       -4.000        26.000  -0.840413   2.828738    1.317548    5.334102    4.665655   -5.000000   28.907344  -0.592942  -0.329524  -0.000006  0.307676
+	52   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.136865   21.300298   27.780042    2.020000   37.024281  -0.692364  -0.302672  -0.000013  0.204033
+	53   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.133538   21.291260   27.780042    2.020000   37.024281  -0.695637  -0.311519  -0.000013  0.200762
+	54   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.139991   21.319865   27.780042    2.020000   37.024281  -0.689290  -0.283519  -0.000013  0.207107
+	55   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.145748   21.330075   27.780042    2.020000   37.024281  -0.683629  -0.273524  -0.000013  0.212766
+	56   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.702989  -12.202762  -18.023381  -10.170000   19.875825  -0.686660  -0.289833  -0.000002  0.204507
+	57   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.692830  -12.240287  -18.023381  -10.170000   19.875825  -0.676377  -0.327811  -0.000002  0.214786
+	58   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.702899  -12.180291  -18.023381  -10.170000   19.875825  -0.686568  -0.267091  -0.000002  0.204598
+	59   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.709282  -12.282257  -18.023381  -10.170000   19.875825  -0.693029  -0.370287  -0.000002  0.198140
+	60   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.679330  -12.235994  -18.023381  -10.170000   19.875825  -0.662712  -0.323466  -0.000002  0.228446
+	61   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.695594   22.238663   28.306614    1.710000   37.450394  -0.262066  -0.203838  -0.000014  0.634200
+	62   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.663504   22.286354   28.306614    1.710000   37.450394  -0.293620  -0.157194  -0.000014  0.602656
+	63   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.666457   22.254290   28.306614    1.710000   37.450394  -0.290717  -0.188555  -0.000014  0.605558
+	64   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.666910   22.223232   28.306614    1.710000   37.450394  -0.290271  -0.218930  -0.000014  0.606004
+	65   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.679662   22.257256   28.306614    1.710000   37.450394  -0.277732  -0.185653  -0.000014  0.618539
+	66   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.676768   22.267680   28.306614    1.710000   37.450394  -0.280578  -0.175459  -0.000014  0.615693
+	67   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.307663    5.317330    4.665655   -5.000000   28.907344  -0.602808  -0.346202  -0.000006  0.290853
+	68   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.308562    5.331400    4.665655   -5.000000   28.907344  -0.601911  -0.332212  -0.000006  0.291749
+	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
+	```
+	'''
+	
+	kwargs = locals().copy()
+
+	from numpy import random as nprandom
+	if seed:
+		rng = nprandom.default_rng(seed)
+	else:
+		rng = nprandom.default_rng()
+	
+	N = sum([s['N'] for s in samples])
+	errors47 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+	errors47 *= rD47 / stdev(errors47) # scale errors to rD47
+	errors48 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+	errors48 *= rD48 / stdev(errors48) # scale errors to rD48
+	
+	k = 0
+	out = []
+	for s in samples:
+		kw = {}
+		kw['sample'] = s['Sample']
+		kw = {
+			**kw,
+			**{var: kwargs[var]
+				for var in [
+					'd13Cwg_VPDB', 'd18Owg_VSMOW', 'ALPHA_18O_ACID_REACTION',
+					'Nominal_D47', 'Nominal_D48', 'Nominal_d13C_VPDB', 'Nominal_d18O_VPDB',
+					'R13_VPDB', 'R17_VSMOW', 'R18_VSMOW', 'LAMBDA_17', 'R18_VPDB',
+					'a47', 'b47', 'c47', 'a48', 'b48', 'c48',
+					]
+				if kwargs[var] is not None},
+			**{var: s[var]
+				for var in ['d13C_VPDB', 'd18O_VPDB', 'D47', 'D48', 'D49', 'D17O']
+				if var in s},
+			}
+
+		sN = s['N']
+		while sN:
+			out.append(simulate_single_analysis(**kw))
+			out[-1]['d47'] += errors47[k] * a47
+			out[-1]['d48'] += errors48[k] * a48
+			sN -= 1
+			k += 1
+
+		if session is not None:
+			for r in out:
+				r['Session'] = session
+	return out
+
+def table_of_samples(
+	data47 = None,
+	data48 = None,
+	dir = 'output',
+	filename = None,
+	save_to_file = True,
+	print_out = True,
+	output = None,
+	):
+	'''
+	Print out, save to disk and/or return a combined table of samples
+	for a pair of `D47data` and `D48data` objects.
+
+	**Parameters**
+
+	+ `data47`: `D47data` instance
+	+ `data48`: `D48data` instance
+	+ `dir`: the directory in which to save the table
+	+ `filename`: the name to the csv file to write to
+	+ `save_to_file`: whether to save the table to disk
+	+ `print_out`: whether to print out the table
+	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		if set to `'raw'`: return a list of list of strings
+		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
+	'''
+	if data47 is None:
+		if data48 is None:
+			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
+		else:
+			return data48.table_of_samples(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+	else:
+		if data48 is None:
+			return data47.table_of_samples(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+		else:
+			out47 = data47.table_of_samples(save_to_file = False, print_out = False, output = 'raw')
+			out48 = data48.table_of_samples(save_to_file = False, print_out = False, output = 'raw')
+			out = transpose_table(transpose_table(out47) + transpose_table(out48)[4:])
+
+			if save_to_file:
+				if not os.path.exists(dir):
+					os.makedirs(dir)
+				if filename is None:
+					filename = f'D47D48_samples.csv'
+				with open(f'{dir}/{filename}', 'w') as fid:
+					fid.write(make_csv(out))
+			if print_out:
+				print('\n'+pretty_table(out))
+			if output == 'raw':
+				return out
+			elif output == 'pretty':
+				return pretty_table(out)
+
+
+def table_of_sessions(
+	data47 = None,
+	data48 = None,
+	dir = 'output',
+	filename = None,
+	save_to_file = True,
+	print_out = True,
+	output = None,
+	):
+	'''
+	Print out, save to disk and/or return a combined table of sessions
+	for a pair of `D47data` and `D48data` objects.
+	***Only applicable if the sessions in `data47` and those in `data48`
+	consist of the exact same sets of analyses.***
+
+	**Parameters**
+
+	+ `data47`: `D47data` instance
+	+ `data48`: `D48data` instance
+	+ `dir`: the directory in which to save the table
+	+ `filename`: the name to the csv file to write to
+	+ `save_to_file`: whether to save the table to disk
+	+ `print_out`: whether to print out the table
+	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		if set to `'raw'`: return a list of list of strings
+		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
+	'''
+	if data47 is None:
+		if data48 is None:
+			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
+		else:
+			return data48.table_of_sessions(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+	else:
+		if data48 is None:
+			return data47.table_of_sessions(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+		else:
+			out47 = data47.table_of_sessions(save_to_file = False, print_out = False, output = 'raw')
+			out48 = data48.table_of_sessions(save_to_file = False, print_out = False, output = 'raw')
+			for k,x in enumerate(out47[0]):
+				if k>7:
+					out47[0][k] = out47[0][k].replace('a', 'a_47').replace('b', 'b_47').replace('c', 'c_47')
+					out48[0][k] = out48[0][k].replace('a', 'a_48').replace('b', 'b_48').replace('c', 'c_48')
+			out = transpose_table(transpose_table(out47) + transpose_table(out48)[7:])
+
+			if save_to_file:
+				if not os.path.exists(dir):
+					os.makedirs(dir)
+				if filename is None:
+					filename = f'D47D48_sessions.csv'
+				with open(f'{dir}/{filename}', 'w') as fid:
+					fid.write(make_csv(out))
+			if print_out:
+				print('\n'+pretty_table(out))
+			if output == 'raw':
+				return out
+			elif output == 'pretty':
+				return pretty_table(out)
+
+
+def table_of_analyses(
+	data47 = None,
+	data48 = None,
+	dir = 'output',
+	filename = None,
+	save_to_file = True,
+	print_out = True,
+	output = None,
+	):
+	'''
+	Print out, save to disk and/or return a combined table of analyses
+	for a pair of `D47data` and `D48data` objects.
+
+	If the sessions in `data47` and those in `data48` do not consist of
+	the exact same sets of analyses, the table will have two columns
+	`Session_47` and `Session_48` instead of a single `Session` column.
+
+	**Parameters**
+
+	+ `data47`: `D47data` instance
+	+ `data48`: `D48data` instance
+	+ `dir`: the directory in which to save the table
+	+ `filename`: the name to the csv file to write to
+	+ `save_to_file`: whether to save the table to disk
+	+ `print_out`: whether to print out the table
+	+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		if set to `'raw'`: return a list of list of strings
+		(e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
+	'''
+	if data47 is None:
+		if data48 is None:
+			raise TypeError("Arguments must include at least one D47data() or D48data() instance.")
+		else:
+			return data48.table_of_analyses(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+	else:
+		if data48 is None:
+			return data47.table_of_analyses(
+				dir = dir,
+				filename = filename,
+				save_to_file = save_to_file,
+				print_out = print_out,
+				output = output
+				)
+		else:
+			out47 = data47.table_of_analyses(save_to_file = False, print_out = False, output = 'raw')
+			out48 = data48.table_of_analyses(save_to_file = False, print_out = False, output = 'raw')
+			
+			if [l[1] for l in out47[1:]] == [l[1] for l in out48[1:]]: # if sessions are identical
+				out = transpose_table(transpose_table(out47) + transpose_table(out48)[-1:])
+			else:
+				out47[0][1] = 'Session_47'
+				out48[0][1] = 'Session_48'
+				out47 = transpose_table(out47)
+				out48 = transpose_table(out48)
+				out = transpose_table(out47[:2] + out48[1:2] + out47[2:] + out48[-1:])
+
+			if save_to_file:
+				if not os.path.exists(dir):
+					os.makedirs(dir)
+				if filename is None:
+					filename = f'D47D48_sessions.csv'
+				with open(f'{dir}/{filename}', 'w') as fid:
+					fid.write(make_csv(out))
+			if print_out:
+				print('\n'+pretty_table(out))
+			if output == 'raw':
+				return out
+			elif output == 'pretty':
+				return pretty_table(out)
+
+
+class D4xdata(list):
+	'''
+	Store and process data for a large set of Δ<sub>47</sub> and/or Δ<sub>48</sub>
+	analyses, usually comprising more than one analytical session.
 	'''
 
 	### 17O CORRECTION PARAMETERS
 	R13_VPDB = 0.01118  # (Chang & Li, 1990)
 	'''
 	Absolute (<sup>13</sup>C/<sup>12</sup>C) ratio of VPDB.
-	By default equal to 0.01118 ([Chang & Li, 1990])
-
-	[Chang & Li, 1990]: http://www.cnki.com.cn/Article/CJFDTotal-JXTW199004006.htm
+	By default equal to 0.01118 ([Chang & Li, 1990](http://www.cnki.com.cn/Article/CJFDTotal-JXTW199004006.htm))
 	'''
 
 	R18_VSMOW = 0.0020052  # (Baertschi, 1976)
 	'''
 	Absolute (<sup>18</sup>O/<sup>16</sup>C) ratio of VSMOW.
-	By default equal to 0.0020052 ([Baertschi, 1976])
-
-	[Baertschi, 1976]: https://doi.org/10.1016/0012-821X(76)90115-1
+	By default equal to 0.0020052 ([Baertschi, 1976](https://doi.org/10.1016/0012-821X(76)90115-1))
 	'''
 
-	lambda_17 = 0.528  # (Barkan & Luz, 2005)
+	LAMBDA_17 = 0.528  # (Barkan & Luz, 2005)
 	'''
 	Mass-dependent exponent for triple oxygen isotopes.
-	By default equal to 0.528 ([Barkan & Luz, 2005])
-
-	[Barkan & Luz, 2005]: https://doi.org/10.1002/rcm.2250
+	By default equal to 0.528 ([Barkan & Luz, 2005](https://doi.org/10.1002/rcm.2250))
 	'''
 
 	R17_VSMOW = 0.00038475  # (Assonov & Brenninkmeijer, 2003, rescaled to R13_VPDB)
 	'''
 	Absolute (<sup>17</sup>O/<sup>16</sup>C) ratio of VSMOW.
 	By default equal to 0.00038475
-	([Assonov & Brenninkmeijer, 2003], rescaled to `R13_VPDB`)
-
-	[Assonov & Brenninkmeijer, 2003]: https://dx.doi.org/10.1002/rcm.1011
+	([Assonov & Brenninkmeijer, 2003](https://dx.doi.org/10.1002/rcm.1011),
+	rescaled to `R13_VPDB`)
 	'''
 
 	R18_VPDB = R18_VSMOW * 1.03092
@@ -310,67 +884,33 @@ class D47data(list):
 	By definition equal to `R18_VSMOW * 1.03092`.
 	'''
 
-	R17_VPDB = R17_VSMOW * 1.03092 ** lambda_17
+	R17_VPDB = R17_VSMOW * 1.03092 ** LAMBDA_17
 	'''
 	Absolute (<sup>17</sup>O/<sup>16</sup>C) ratio of VPDB.
-	By definition equal to `R17_VSMOW * 1.03092 ** lambda_17`.
+	By definition equal to `R17_VSMOW * 1.03092 ** LAMBDA_17`.
 	'''
 
 	LEVENE_REF_SAMPLE = 'ETH-3'
 	'''
-	After the Δ<sub>47</sub> standardization step, each sample is tested to
-	assess whether the Δ<sub>47</sub> variance within all analyses for that
+	After the Δ<sub>4x</sub> standardization step, each sample is tested to
+	assess whether the Δ<sub>4x</sub> variance within all analyses for that
 	sample differs significantly from that observed for a given reference
-	sample (using [Levene's test], which yields a p-value corresponding to
-	the null hypothesis that the underlying variances are equal).
+	sample (using [Levene's test](https://en.wikipedia.org/wiki/Levene%27s_test),
+	which yields a p-value corresponding to the null hypothesis that the
+	underlying variances are equal).
 
 	`LEVENE_REF_SAMPLE` (by default equal to `'ETH-3'`) specifies which
 	sample should be used as a reference for this test.
-
-	[Levene's test]: https://en.wikipedia.org/wiki/Levene%27s_test
 	'''
-
-# 	SAMPLE_CONSTRAINING_WG_COMPOSITION = ('ETH-3', 1.71, -1.78) # (Bernasconi et al., 2018)
-# 	'''
-# 	Specifies the name, δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub>
-# 	of the carbonate standard used by `D47data.wg()` to compute the isotopic composition
-# 	of the working gas in each session.
-# 
-# 	By default equal to `('ETH-3', 1.71, -1.78)` after [Bernasconi et al. (2018)].
-# 
-# 	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
-# 	'''
 
 	ALPHA_18O_ACID_REACTION = round(np.exp(3.59 / (90 + 273.15) - 1.79e-3), 6)  # (Kim et al., 2007, calcite)
 	'''
 	Specifies the <sup>18</sup>O/<sup>16</sup>O fractionation factor generally applicable
-	to acid reactions in the dataset. Currently used by `D47data.wg()`,
-	`D47data.standardize_d13C`, and `D47data.standardize_d18O`.
+	to acid reactions in the dataset. Currently used by `D4xdata.wg()`,
+	`D4xdata.standardize_d13C`, and `D4xdata.standardize_d18O`.
 
-	By default equal to 1.008129 (calcite reacted at 90 °C, [Kim et al., 2007]).
-
-	[Kim et al., 2007]: https://dx.doi.org/10.1016/j.chemgeo.2007.08.005
-	'''
-
-
-	Nominal_D47 = {
-		'ETH-1':   0.2052,
-		'ETH-2':   0.2085,
-		'ETH-3':   0.6132,
-		'ETH-4':   0.4511,
-		'IAEA-C1': 0.3018,
-		'IAEA-C2': 0.6409,
-		'MERCK':   0.5135,
-		} # I-CDES (Bernasconi et al., 2021)
-	'''
-	Nominal Δ<sub>47</sub> values assigned to the anchor samples, used by
-	`D47data.standardize()` to standardize unknown samples to an absolute Δ<sub>47</sub>
-	reference frame.
-
-	By default equal to `{'ETH-1': 0.258, 'ETH-2': 0.256, 'ETH-3': 0.691}` after
-	[Bernasconi et al. (2018)].
-
-	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+	By default equal to 1.008129 (calcite reacted at 90 °C,
+	[Kim et al., 2007](https://dx.doi.org/10.1016/j.chemgeo.2007.08.005)).
 	'''
 
 	Nominal_d13C_VPDB = {
@@ -380,12 +920,10 @@ class D47data(list):
 		}	# (Bernasconi et al., 2018)
 	'''
 	Nominal δ<sup>13</sup>C<sub>VPDB</sub> values assigned to carbonate standards, used by
-	`D47data.standardize_d13C()`.
+	`D4xdata.standardize_d13C()`.
 
 	By default equal to `{'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71}` after
-	[Bernasconi et al. (2018)].
-
-	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+	[Bernasconi et al. (2018)](https://doi.org/10.1029/2017GC007385).
 	'''
 
 	Nominal_d18O_VPDB = {
@@ -395,12 +933,10 @@ class D47data(list):
 		}	# (Bernasconi et al., 2018)
 	'''
 	Nominal δ<sup>18</sup>O<sub>VPDB</sub> values assigned to carbonate standards, used by
-	`D47data.standardize_d18O()`.
+	`D4xdata.standardize_d18O()`.
 
 	By default equal to `{'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78}` after
-	[Bernasconi et al. (2018)].
-
-	[Bernasconi et al. (2018)]: https://doi.org/10.1029/2017GC007385
+	[Bernasconi et al. (2018)](https://doi.org/10.1029/2017GC007385).
 	'''
 
 	d13C_STANDARDIZATION_METHOD = '2pt'
@@ -431,22 +967,21 @@ class D47data(list):
 	is defined).
 	'''
 
-	def __init__(self, l = [], logfile = '', session = 'mySession', verbose = False):
+	def __init__(self, l = [], mass = '47', logfile = '', session = 'mySession', verbose = False):
 		'''
-		__Parameters__
+		**Parameters**
 
 		+ `l`: a list of dictionaries, with each dictionary including at least the keys
-		`Sample`, `d45`, `d46`, and `d47`.
-		+ `logfile`: if specified, write detailed logs to this file path when calling `D47data`
-		methods.
+		`Sample`, `d45`, `d46`, and `d47` or `d48`.
+		+ `logfile`: if specified, write detailed logs to this file path when calling `D4xdata` methods.
 		+ `session`: define session name for analyses without a `Session` key
-		+ `verbose`: if `True`, print out detailed logs when calling `D47data`
-		methods.
+		+ `verbose`: if `True`, print out detailed logs when calling `D4xdata` methods.
 
-		Returns a `D47data` object derived from `list`.
+		Returns a `D4xdata` object derived from `list`.
 		'''
+		self._4x = mass
 		self.verbose = verbose
-		self.prefix = 'D47data'
+		self.prefix = 'D4xdata'
 		self.logfile = logfile
 		list.__init__(self, l)
 		self.Nf = None
@@ -456,8 +991,7 @@ class D47data(list):
 
 	def make_verbal(oldfun):
 		'''
-		Decorator to temporarily change `self.prefix`
-		and allow locally overriding `self.verbose`
+		Decorator: allow temporarily changing `self.prefix` and overriding `self.verbose`.
 		'''
 		@wraps(oldfun)
 		def newfun(*args, verbose = '', **kwargs):
@@ -536,8 +1070,8 @@ class D47data(list):
 			s: {'data': [r for r in self if r['Sample'] == s]}
 			for s in sorted({r['Sample'] for r in self})
 			}
-		self.anchors = {s: self.samples[s] for s in self.samples if s in self.Nominal_D47}
-		self.unknowns = {s: self.samples[s] for s in self.samples if s not in self.Nominal_D47}
+		self.anchors = {s: self.samples[s] for s in self.samples if s in self.Nominal_D4x}
+		self.unknowns = {s: self.samples[s] for s in self.samples if s not in self.Nominal_D4x}
 
 
 	def read(self, filename, sep = '', session = ''):
@@ -552,13 +1086,13 @@ class D47data(list):
 		+ `UID`: a unique identifier
 		+ `Session`: an identifier for the analytical session
 		+ `Sample`: a sample identifier
-		+ `d45`, `d46`, `d47`: the working-gas delta values
+		+ `d45`, `d46`, and at least one of `d47` or `d48`: the working-gas delta values
 
 		Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
-		VSMOW, λ = `self.lambda_17`), and are otherwise assumed to be zero. Working-gas deltas `d48`
-		and `d49` may also be provided, and are also set to 0 otherwise.
+		VSMOW, λ = `self.LAMBDA_17`), and are otherwise assumed to be zero. Working-gas deltas `d47`, `d48`
+		and `d49` are optional, and set to NaN by default.
 
-		__Parameters__
+		**Parameters**
 
 		+ `fileneme`: the path of the file to read
 		+ `sep`: csv separator delimiting the fields
@@ -580,13 +1114,13 @@ class D47data(list):
 		+ `UID`: a unique identifier
 		+ `Session`: an identifier for the analytical session
 		+ `Sample`: a sample identifier
-		+ `d45`, `d46`, `d47`: the working-gas delta values
+		+ `d45`, `d46`, and at least one of `d47` or `d48`: the working-gas delta values
 
 		Independently known oxygen-17 anomalies may be provided as `D17O` (in ‰ relative to
-		VSMOW, λ = `self.lambda_17`), and are otherwise assumed to be zero. Working-gas deltas `d48`
-		and `d49` may also be provided, and are also set to 0 otherwise.
+		VSMOW, λ = `self.LAMBDA_17`), and are otherwise assumed to be zero. Working-gas deltas `d47`, `d48`
+		and `d49` are optional, and set to NaN by default.
 
-		__Parameters__
+		**Parameters**
 
 		+ `txt`: the csv string to read
 		+ `sep`: csv separator delimiting the fields. By default, use `,`, `;`, or `\t`,
@@ -607,21 +1141,21 @@ class D47data(list):
 
 
 	@make_verbal
-	def wg(self, samples = '', a18_acid = ''):
+	def wg(self, samples = None, a18_acid = None):
 		'''
-		Compute bulk composition of the working gas for each session
-		based on the carbonate standards defined both in `self.Nominal_d13C_VPDB`
-		and in `self.Nominal_d18O_VPDB`.
+		Compute bulk composition of the working gas for each session based on
+		the carbonate standards defined in both `self.Nominal_d13C_VPDB` and
+		`self.Nominal_d18O_VPDB`.
 		'''
 
 		self.msg('Computing WG composition:')
 
-		if a18_acid == '':
+		if a18_acid is None:
 			a18_acid = self.ALPHA_18O_ACID_REACTION
-		if samples == '':
+		if samples is None:
 			samples = [s for s in self.Nominal_d13C_VPDB if s in self.Nominal_d18O_VPDB]
 
-		assert a18_acid, f'Acid fractionation value should differ from zero.'
+		assert a18_acid, f'Acid fractionation factor should not be zero.'
 
 		samples = [s for s in samples if s in self.Nominal_d13C_VPDB and s in self.Nominal_d18O_VPDB]
 		R45R46_standards = {}
@@ -629,7 +1163,7 @@ class D47data(list):
 			d13C_vpdb = self.Nominal_d13C_VPDB[sample]
 			d18O_vpdb = self.Nominal_d18O_VPDB[sample]
 			R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
-			R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
+			R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.LAMBDA_17
 			R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
 
 			C12_s = 1 / (1 + R13_s)
@@ -695,140 +1229,38 @@ class D47data(list):
 			for r in self.sessions[s]['data']:
 				r['d13Cwg_VPDB'] = d13Cwg_VPDB
 				r['d18Owg_VSMOW'] = d18Owg_VSMOW
-		
-
-# 	@make_verbal
-# 	def wg_old(self, sample = '', d13C_vpdb = '', d18O_vpdb = '', a18_acid = ''):
-# 		'''
-# 		Compute bulk composition of the working gas for each session
-# 		based on the average composition, within each session,
-# 		of a given sample.
-# 		'''
-# 
-# 		self.msg('Computing WG composition:')
-# 
-# 		if sample == '':
-# 			sample = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[0]
-# 		if d13C_vpdb == '':
-# 			d13C_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[1]
-# 		if d18O_vpdb == '':
-# 			d18O_vpdb = self.SAMPLE_CONSTRAINING_WG_COMPOSITION[2]
-# 		if a18_acid == '':
-# 			a18_acid = self.ALPHA_18O_ACID_REACTION
-# 
-# 		assert a18_acid, f'Acid fractionation value should differ from zero.'
-# 
-# 		R13_s = self.R13_VPDB * (1 + d13C_vpdb / 1000)
-# 		R17_s = self.R17_VPDB * ((1 + d18O_vpdb / 1000) * a18_acid) ** self.lambda_17
-# 		R18_s = self.R18_VPDB * (1 + d18O_vpdb / 1000) * a18_acid
-# 
-# 		C12_s = 1 / (1 + R13_s)
-# 		C13_s = R13_s / (1 + R13_s)
-# 		C16_s = 1 / (1 + R17_s + R18_s)
-# 		C17_s = R17_s / (1 + R17_s + R18_s)
-# 		C18_s = R18_s / (1 + R17_s + R18_s)
-# 
-# 		C626_s = C12_s * C16_s ** 2
-# 		C627_s = 2 * C12_s * C16_s * C17_s
-# 		C628_s = 2 * C12_s * C16_s * C18_s
-# 		C636_s = C13_s * C16_s ** 2
-# 		C637_s = 2 * C13_s * C16_s * C17_s
-# 		C727_s = C12_s * C17_s ** 2
-# 
-# 		R45_s = (C627_s + C636_s) / C626_s
-# 		R46_s = (C628_s + C637_s + C727_s) / C626_s
-# 
-# 		for s in self.sessions:
-# 			db = [r for r in self.sessions[s]['data'] if r['Sample'] == sample]
-# 			assert db, f'Sample "{sample}" not found in session "{s}".'
-# 			d45_s = np.mean([r['d45'] for r in db])
-# 			d46_s = np.mean([r['d46'] for r in db])
-# 			R45_wg = R45_s / (1 + d45_s / 1000)
-# 			R46_wg = R46_s / (1 + d46_s / 1000)
-# 
-# 			d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
-# 
-# 			self.msg(f'Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}')
-# 
-# 			self.sessions[s]['d13Cwg_VPDB'] = d13Cwg_VPDB
-# 			self.sessions[s]['d18Owg_VSMOW'] = d18Owg_VSMOW
-# 			for r in self.sessions[s]['data']:
-# 				r['d13Cwg_VPDB'] = d13Cwg_VPDB
-# 				r['d18Owg_VSMOW'] = d18Owg_VSMOW
 
 
 	def compute_bulk_delta(self, R45, R46, D17O = 0):
 		'''
 		Compute δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VSMOW</sub>,
-		by solving the generalized form of equation (17) from [Brand et al. (2010)],
+		by solving the generalized form of equation (17) from
+		[Brand et al. (2010)](https://doi.org/10.1351/PAC-REP-09-01-05),
 		assuming that δ<sup>18</sup>O<sub>VSMOW</sub> is not too big (0 ± 50 ‰) and
 		solving the corresponding second-order Taylor polynomial.
-		(Appendix A of [Daëron et al., 2016])
-
-		[Brand et al. (2010)]: https://doi.org/10.1351/PAC-REP-09-01-05
-		[Daëron et al., 2016]: https://doi.org/10.1016/j.chemgeo.2016.08.014
+		(Appendix A of [Daëron et al., 2016](https://doi.org/10.1016/j.chemgeo.2016.08.014))
 		'''
 
-		K = np.exp(D17O / 1000) * self.R17_VSMOW * self.R18_VSMOW ** -self.lambda_17
+		K = np.exp(D17O / 1000) * self.R17_VSMOW * self.R18_VSMOW ** -self.LAMBDA_17
 
-		A = -3 * K ** 2 * self.R18_VSMOW ** (2 * self.lambda_17)
-		B = 2 * K * R45 * self.R18_VSMOW ** self.lambda_17
+		A = -3 * K ** 2 * self.R18_VSMOW ** (2 * self.LAMBDA_17)
+		B = 2 * K * R45 * self.R18_VSMOW ** self.LAMBDA_17
 		C = 2 * self.R18_VSMOW
 		D = -R46
 
-		aa = A * self.lambda_17 * (2 * self.lambda_17 - 1) + B * self.lambda_17 * (self.lambda_17 - 1) / 2
-		bb = 2 * A * self.lambda_17 + B * self.lambda_17 + C
+		aa = A * self.LAMBDA_17 * (2 * self.LAMBDA_17 - 1) + B * self.LAMBDA_17 * (self.LAMBDA_17 - 1) / 2
+		bb = 2 * A * self.LAMBDA_17 + B * self.LAMBDA_17 + C
 		cc = A + B + C + D
 
 		d18O_VSMOW = 1000 * (-bb + (bb ** 2 - 4 * aa * cc) ** .5) / (2 * aa)
 
 		R18 = (1 + d18O_VSMOW / 1000) * self.R18_VSMOW
-		R17 = K * R18 ** self.lambda_17
+		R17 = K * R18 ** self.LAMBDA_17
 		R13 = R45 - 2 * R17
 
 		d13C_VPDB = 1000 * (R13 / self.R13_VPDB - 1)
 
 		return d13C_VPDB, d18O_VSMOW
-
-
-	def D47fromTeq(self, fCo2eqD47 = 'petersen', priority = 'new'):
-		'''
-		Find all samples for which `Teq` is specified, compute equilibrium Δ<sub>47</sub>
-		value for that temperature, and add treat these samples as additional anchors.
-
-		__Parameters__
-
-		+ `fCo2eqD47`: Which CO<sub>2</sub> equilibrium law to use
-		(`petersen`: [Petersen et al. (2019)];
-		`wang`: [Wang et al. (2019)]).
-		+ `priority`: if `replace`: forget old anchors and only use the new ones;
-		if `new`: keep pre-existing anchors but update them in case of conflict
-		between old and new Δ<sub>47</sub> values;
-		if `old`: keep pre-existing anchors but preserve their original Δ<sub>47</sub>
-		values in case of conflict.
-
-		[Petersen et al. (2019)]: https://doi.org/10.1029/2018GC008127
-		[Wang et al. (2019)]: https://doi.org/10.1016/j.gca.2004.05.039
-		'''
-		f = {
-			'petersen': fCO2eqD47_Petersen,
-			'wang': fCO2eqD47_Wang,
-			}[fCo2eqD47]
-		foo = {}
-		for r in self:
-			if 'Teq' in r:
-				if r['Sample'] in foo:
-					assert foo[r['Sample']] == f(r['Teq']), f'Different values of `Teq` provided for sample `{r["Sample"]}`.'
-				else:
-					foo[r['Sample']] = f(r['Teq'])
-			else:
-					assert r['Sample'] not in foo, f'`Teq` is inconsistently specified for sample `{r["Sample"]}`.'
-
-		if priority == 'replace':
-			self.Nominal_D47 = {}
-		for s in foo:
-			if priority != 'old' or s not in self.Nominal_D47:
-				self.Nominal_D47[s] = foo[s]
 
 
 	@make_verbal
@@ -842,6 +1274,7 @@ class D47data(list):
 		self.standardize_d18O()
 		self.msg(f"Crunched {len(self)} analyses.")
 
+
 	def fill_in_missing_info(self, session = 'mySession'):
 		'''
 		Fill in optional fields with default values
@@ -853,10 +1286,10 @@ class D47data(list):
 				r['UID'] = f'{i+1}'
 			if 'Session' not in r:
 				r['Session'] = session
-			for k in ['d48', 'd49']:
+			for k in ['d47', 'd48', 'd49']:
 				if k not in r:
 					r[k] = np.nan
-	
+
 
 	def standardize_d13C(self):
 		'''
@@ -939,6 +1372,7 @@ class D47data(list):
 		r['D48raw'] = 1000 * (R48 / R48stoch - 1)
 		r['D49raw'] = 1000 * (R49 / R49stoch - 1)
 
+
 	def compute_isobar_ratios(self, R13, R18, D17O=0, D47=0, D48=0, D49=0):
 		'''
 		Compute isobar ratios for a sample with isotopic ratios `R13` and `R18`,
@@ -947,7 +1381,7 @@ class D47data(list):
 		'''
 
 		# Compute R17
-		R17 = self.R17_VSMOW * np.exp(D17O / 1000) * (R18 / self.R18_VSMOW) ** self.lambda_17
+		R17 = self.R17_VSMOW * np.exp(D17O / 1000) * (R18 / self.R18_VSMOW) ** self.LAMBDA_17
 
 		# Compute isotope concentrations
 		C12 = (1 + R13) ** -1
@@ -985,13 +1419,14 @@ class D47data(list):
 		# Return isobar ratios
 		return R45, R46, R47, R48, R49
 
+
 	def split_samples(self, samples_to_split = 'all', grouping = 'by_session'):
 		'''
 		Split unknown samples by UID (treat all analyses as different samples)
 		or by session (treat analyses of a given sample in different sessions as
 		different samples).
 
-		__Parameters__
+		**Parameters**
 
 		+ `samples_to_split`: a list of samples to split, e.g., `['IAEA-C1', 'IAEA-C2']`
 		+ `grouping`: `by_uid` | `by_session`
@@ -1013,7 +1448,15 @@ class D47data(list):
 
 	def unsplit_samples(self, tables = False):
 		'''
-		Reverse the effects of `D47data.split_samples`.
+		Reverse the effects of `D47data.split_samples()`.
+		
+		This should only be used after `D4xdata.standardize()` with `method='pooled'`.
+		
+		After `D4xdata.standardize()` with `method='indep_sessions'`, one should
+		probably use `D4xdata.combine_samples()` instead to reverse the effects of
+		`D47data.split_samples()` with `grouping='by_uid'`, or `w_avg()` to reverse the
+		effects of `D47data.split_samples()` with `grouping='by_sessions'` (because in
+		that case session-averaged Δ<sub>4x</sub> values are statistically independent).
 		'''
 		unknowns_old = sorted({s for s in self.unknowns})
 		CM_old = self.standardization.covar[:,:]
@@ -1023,7 +1466,7 @@ class D47data(list):
 		unknowns_new = sorted({r['Sample_original'] for r in self if 'Sample_original' in r})
 
 		Ns = len(vars_old) - len(unknowns_old)
-		vars_new = vars_old[:Ns] + [f'D47_{pf(u)}' for u in unknowns_new]
+		vars_new = vars_old[:Ns] + [f'D{self._4x}_{pf(u)}' for u in unknowns_new]
 		VD_new = {k: VD_old[k] for k in vars_old[:Ns]}
 
 		W = np.zeros((len(vars_new), len(vars_old)))
@@ -1031,15 +1474,12 @@ class D47data(list):
 		for u in unknowns_new:
 			splits = sorted({r['Sample'] for r in self if 'Sample_original' in r and r['Sample_original'] == u})
 			if self.grouping == 'by_session':
-				weights = [self.samples[s]['SE_D47']**-2 for s in splits]
+				weights = [self.samples[s][f'SE_D{self._4x}']**-2 for s in splits]
 			elif self.grouping == 'by_uid':
 				weights = [1 for s in splits]
 			sw = sum(weights)
 			weights = [w/sw for w in weights]
-			W[vars_new.index(f'D47_{pf(u)}'),[vars_old.index(f'D47_{pf(s)}') for s in splits]] = weights[:]
-# 		print('\nUnsplitting weights matrix:')
-# 		print('\n'.join([' '.join([f'{x:.1f}' if x else ' - ' for x in l]) for l in W]))
-# 		print('---')
+			W[vars_new.index(f'D{self._4x}_{pf(u)}'),[vars_old.index(f'D{self._4x}_{pf(s)}') for s in splits]] = weights[:]
 
 		CM_new = W @ CM_old @ W.T
 		V = W @ np.array([[VD_old[k]] for k in vars_old])
@@ -1062,37 +1502,6 @@ class D47data(list):
 			self.table_of_analyses()
 			self.table_of_samples()
 
-
-	def combine_samples(self, sample_groups):
-		'''
-		Combine analyses of different samples to compute weighted average Δ<sub>47</sub>
-		and new error (co)variances corresponding to the groups defined by the `sample_groups`
-		dictionary.
-		
-		Returns a tuplet of:
-		+ the list of group names
-		+ an array of the corresponding Δ<sub>47</sub> values
-		+ the corresponding (co)variance matrix
-		
-		__Parameters__
-
-		+ `sample_groups`: a dictionary of the form `dict(group1 = [sample_1', 'sample_2'], group2 = ['sample_3', 'sample_4'])`
-		'''
-		
-		samples = [s for k in sorted(sample_groups.keys()) for s in sorted(sample_groups[k])]
-		groups = sorted(sample_groups.keys())
-		group_total_weights = {k: sum([self.samples[s]['N'] for s in sample_groups[k]]) for k in groups}
-		D47_old = np.array([[self.samples[x]['D47']] for x in samples])
-		CM_old = np.array([[self.sample_D47_covar(x,y) for x in samples] for y in samples])
-		W = np.array([
-			[self.samples[i]['N']/group_total_weights[j] if i in sample_groups[j] else 0 for i in samples]
-			for j in groups])
-		D47_new = W @ D47_old
-		CM_new = W @ CM_old @ W.T
-
-		return groups, D47_new[:,0], CM_new
-		
-
 	def assign_timestamps(self):
 		'''
 		Assign a time field `t` of type `float` to each analysis.
@@ -1108,12 +1517,58 @@ class D47data(list):
 				t0 = np.mean([r['TimeTag'] for r in sdata])
 				for r in sdata:
 					r['t'] = r['TimeTag'] - t0
-# 				print('DEBUG - USING TimeTag        <-----------------------------------')
 			except KeyError:
 				t0 = (len(sdata)-1)/2
 				for t,r in enumerate(sdata):
 					r['t'] = t - t0
 
+
+	def report(self):
+		'''
+		Prints a report on the standardization fit.
+		Only applicable after `D4xdata.standardize(method='pooled')`.
+		'''
+		report_fit(self.standardization)
+
+
+	def combine_samples(self, sample_groups):
+		'''
+		Combine analyses of different samples to compute weighted average Δ<sub>4x</sub>
+		and new error (co)variances corresponding to the groups defined by the `sample_groups`
+		dictionary.
+		
+		Caution: samples are weighted by number of replicate analyses, which is a
+		reasonable default behavior but is not always optimal (e.g., in the case of strongly
+		correlated analytical errors for one or more samples).
+		
+		Returns a tuplet of:
+		
+		+ the list of group names
+		+ an array of the corresponding Δ<sub>4x</sub> values
+		+ the corresponding (co)variance matrix
+		
+		**Parameters**
+
+		+ `sample_groups`: a dictionary of the form:
+		```py
+		{'group1': ['sample_1', 'sample_2'],
+		 'group2': ['sample_3', 'sample_4', 'sample_5']}
+		```
+		'''
+		
+		samples = [s for k in sorted(sample_groups.keys()) for s in sorted(sample_groups[k])]
+		groups = sorted(sample_groups.keys())
+		group_total_weights = {k: sum([self.samples[s]['N'] for s in sample_groups[k]]) for k in groups}
+		D4x_old = np.array([[self.samples[x][f'D{self._4x}']] for x in samples])
+		CM_old = np.array([[self.sample_D4x_covar(x,y) for x in samples] for y in samples])
+		W = np.array([
+			[self.samples[i]['N']/group_total_weights[j] if i in sample_groups[j] else 0 for i in samples]
+			for j in groups])
+		D4x_new = W @ D4x_old
+		CM_new = W @ CM_old @ W.T
+
+		return groups, D4x_new[:,0], CM_new
+		
 
 	@make_verbal
 	def standardize(self,
@@ -1125,12 +1580,13 @@ class D47data(list):
 		constraints = {},
 		):
 		'''
-		Compute absolute Δ<sub>47</sub> values for all replicate analyses and for sample averages.
+		Compute absolute Δ<sub>4x</sub> values for all replicate analyses and for sample averages.
 		If `method` argument is set to `'pooled'`, the standardization processes all sessions
-		in a single step, assuming that all samples (anchors and unknowns alike) are
-		homogeneous (i.e. that their true Δ<sub>47</sub> value does not change between sessions).
-		If `method` argument is set to `'indep_sessions'`, the standardization processes each
-		session independently, based only on anchors analyses.
+		in a single step, assuming that all samples (anchors and unknowns alike) are homogeneous,
+		i.e. that their true Δ<sub>4x</sub> value does not change between sessions,
+		([Daëron, 2021](https://doi.org/10.1029/2020GC009592)). If `method` argument is set to
+		`'indep_sessions'`, the standardization processes each session independently, based only
+		on anchors analyses.
 		'''
 
 		self.standardization_method = method
@@ -1139,16 +1595,18 @@ class D47data(list):
 		if method == 'pooled':
 			if weighted_sessions:
 				for session_group in weighted_sessions:
-					X = D47data([r for r in self if r['Session'] in session_group])
+					X = D4xdata([r for r in self if r['Session'] in session_group], mass = self._4x)
+					X.Nominal_D4x = self.Nominal_D4x.copy()
+					X.refresh()
 					result = X.standardize(method = 'pooled', weighted_sessions = [], consolidate = False)
 					w = np.sqrt(result.redchi)
 					self.msg(f'Session group {session_group} MRSWD = {w:.4f}')
 					for r in X:
-						r['wD47raw'] *= w
+						r[f'wD{self._4x}raw'] *= w
 			else:
-				self.msg('All D47raw weights set to 1 ‰')
+				self.msg(f'All D{self._4x}raw weights set to 1 ‰')
 				for r in self:
-					r['wD47raw'] = 1.
+					r[f'wD{self._4x}raw'] = 1.
 
 			params = Parameters()
 			for k,session in enumerate(self.sessions):
@@ -1163,7 +1621,7 @@ class D47data(list):
 				params.add(f'b2_{s}', value = 0., vary = self.sessions[session]['slope_drift'])
 				params.add(f'c2_{s}', value = 0., vary = self.sessions[session]['wg_drift'])
 			for sample in self.unknowns:
-				params.add(f'D47_{pf(sample)}', value = 0.5)
+				params.add(f'D{self._4x}_{pf(sample)}', value = 0.5)
 
 			for k in constraints:
 				params[k].expr = constraints[k]
@@ -1173,32 +1631,32 @@ class D47data(list):
 				for r in self:
 					session = pf(r['Session'])
 					sample = pf(r['Sample'])
-					if r['Sample'] in self.Nominal_D47:
+					if r['Sample'] in self.Nominal_D4x:
 						R += [ (
-							r['D47raw'] - (
-								p[f'a_{session}'] * self.Nominal_D47[r['Sample']]
-								+ p[f'b_{session}'] * r['d47']
+							r[f'D{self._4x}raw'] - (
+								p[f'a_{session}'] * self.Nominal_D4x[r['Sample']]
+								+ p[f'b_{session}'] * r[f'd{self._4x}']
 								+	p[f'c_{session}']
 								+ r['t'] * (
-									p[f'a2_{session}'] * self.Nominal_D47[r['Sample']]
-									+ p[f'b2_{session}'] * r['d47']
+									p[f'a2_{session}'] * self.Nominal_D4x[r['Sample']]
+									+ p[f'b2_{session}'] * r[f'd{self._4x}']
 									+	p[f'c2_{session}']
 									)
 								)
-							) / r['wD47raw'] ]
+							) / r[f'wD{self._4x}raw'] ]
 					else:
 						R += [ (
-							r['D47raw'] - (
-								p[f'a_{session}'] * p[f'D47_{sample}']
-								+ p[f'b_{session}'] * r['d47']
+							r[f'D{self._4x}raw'] - (
+								p[f'a_{session}'] * p[f'D{self._4x}_{sample}']
+								+ p[f'b_{session}'] * r[f'd{self._4x}']
 								+	p[f'c_{session}']
 								+ r['t'] * (
-									p[f'a2_{session}'] * p[f'D47_{sample}']
-									+ p[f'b2_{session}'] * r['d47']
+									p[f'a2_{session}'] * p[f'D{self._4x}_{sample}']
+									+ p[f'b2_{session}'] * r[f'd{self._4x}']
 									+	p[f'c2_{session}']
 									)
 								)
-							) / r['wD47raw'] ]
+							) / r[f'wD{self._4x}raw'] ]
 				return R
 
 			M = Minimizer(residuals, params)
@@ -1216,7 +1674,7 @@ class D47data(list):
 				a2 = result.params.valuesdict()[f'a2_{s}']
 				b2 = result.params.valuesdict()[f'b2_{s}']
 				c2 = result.params.valuesdict()[f'c2_{s}']
-				r['D47'] = (r['D47raw'] - c - b * r['d47'] - c2 * r['t'] - b2 * r['t'] * r['d47']) / (a + a2 * r['t'])
+				r[f'D{self._4x}'] = (r[f'D{self._4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
 
 			self.standardization = result
 
@@ -1235,16 +1693,16 @@ class D47data(list):
 
 			if weighted_sessions:
 				for session_group in weighted_sessions:
-					X = D47data([r for r in self if r['Session'] in session_group])
-					X.Nominal_D47 = self.Nominal_D47.copy()
+					X = D4xdata([r for r in self if r['Session'] in session_group], mass = self._4x)
+					X.Nominal_D4x = self.Nominal_D4x.copy()
 					X.refresh()
 					# This is only done to assign r['wD47raw'] for r in X:
 					X.standardize(method = method, weighted_sessions = [], consolidate = False)
-					self.msg(f'D47raw weights set to {1000*X[0]["wD47raw"]:.1f} ppm for sessions in {session_group}')
+					self.msg(f'D{self._4x}raw weights set to {1000*X[0][f"wD{self._4x}raw"]:.1f} ppm for sessions in {session_group}')
 			else:
 				self.msg('All weights set to 1 ‰')
 				for r in self:
-					r['wD47raw'] = 1
+					r[f'wD{self._4x}raw'] = 1
 
 			for session in self.sessions:
 				s = self.sessions[session]
@@ -1255,16 +1713,16 @@ class D47data(list):
 
 				A = np.array([
 					[
-						self.Nominal_D47[r['Sample']] / r['wD47raw'],
-						r['d47'] / r['wD47raw'],
-						1 / r['wD47raw'],
-						self.Nominal_D47[r['Sample']] * r['t'] / r['wD47raw'],
-						r['d47'] * r['t'] / r['wD47raw'],
-						r['t'] / r['wD47raw']
+						self.Nominal_D4x[r['Sample']] / r[f'wD{self._4x}raw'],
+						r[f'd{self._4x}'] / r[f'wD{self._4x}raw'],
+						1 / r[f'wD{self._4x}raw'],
+						self.Nominal_D4x[r['Sample']] * r['t'] / r[f'wD{self._4x}raw'],
+						r[f'd{self._4x}'] * r['t'] / r[f'wD{self._4x}raw'],
+						r['t'] / r[f'wD{self._4x}raw']
 						]
 					for r in sdata if r['Sample'] in self.anchors
 					])[:,p_active] # only keep columns for the active parameters
-				Y = np.array([[r['D47raw'] / r['wD47raw']] for r in sdata if r['Sample'] in self.anchors])
+				Y = np.array([[r[f'D{self._4x}raw'] / r[f'wD{self._4x}raw']] for r in sdata if r['Sample'] in self.anchors])
 				s['Na'] = Y.size
 				CM = linalg.inv(A.T @ A)
 				bf = (CM @ A.T @ Y).T[0,:]
@@ -1280,8 +1738,8 @@ class D47data(list):
 
 				for r in sdata :
 					a, b, c, a2, b2, c2 = s['a'], s['b'], s['c'], s['a2'], s['b2'], s['c2']
-					r['D47'] = (r['D47raw'] - c - b * r['d47'] - c2 * r['t'] - b2 * r['t'] * r['d47']) / (a + a2 * r['t'])
-					r['wD47'] = r['wD47raw'] / (a + a2 * r['t'])
+					r[f'D{self._4x}'] = (r[f'D{self._4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
+					r[f'wD{self._4x}'] = r[f'wD{self._4x}raw'] / (a + a2 * r['t'])
 
 				s['CM'] = np.zeros((6,6))
 				i = 0
@@ -1294,8 +1752,8 @@ class D47data(list):
 			if not weighted_sessions:
 				w = self.rmswd()['rmswd']
 				for r in self:
-						r['wD47'] *= w
-						r['wD47raw'] *= w
+						r[f'wD{self._4x}'] *= w
+						r[f'wD{self._4x}raw'] *= w
 				for session in self.sessions:
 					self.sessions[session]['CM'] *= w**2
 
@@ -1317,25 +1775,19 @@ class D47data(list):
 
 			self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
 
-			avgD47 = {
-				sample: np.mean([r['D47'] for r in self if r['Sample'] == sample])
+			avgD4x = {
+				sample: np.mean([r[f'D{self._4x}'] for r in self if r['Sample'] == sample])
 				for sample in self.samples
 				}
-			chi2 = np.sum([(r['D47'] - avgD47[r['Sample']])**2 for r in self])
-			rD47 = (chi2/self.Nf)**.5
-			self.repeatability['sigma_47'] = rD47
+			chi2 = np.sum([(r[f'D{self._4x}'] - avgD4x[r['Sample']])**2 for r in self])
+			rD4x = (chi2/self.Nf)**.5
+			self.repeatability[f'sigma_{self._4x}'] = rD4x
 
 			if consolidate:
 				self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
 
 
-	def report(self):
-		'''
-		Prints a report on the standardization fit.
-		'''
-		report_fit(self.standardization)
-
-	def standardization_error(self, session, d47, D47, t = 0):
+	def standardization_error(self, session, d4x, D4x, t = 0):
 		'''
 		Compute standardization error for a given session and
 		(δ<sub>47</sub>, Δ<sub>47</sub>) composition.
@@ -1348,7 +1800,7 @@ class D47data(list):
 		c2 = self.sessions[session]['c2']
 		CM = self.sessions[session]['CM']
 
-		x, y = D47, d47
+		x, y = D4x, d4x
 		z = a * x + b * y + c + a2 * x * t + b2 * y * t + c2 * t
 # 		x = (z - b*y - b2*y*t - c - c2*t) / (a+a2*t)
 		dxdy = -(b+b2*t) / (a+a2*t)
@@ -1366,14 +1818,15 @@ class D47data(list):
 
 	@make_verbal
 	def summary(self,
-		dir = 'results',
-		filename = 'summary.csv',
+		dir = 'output',
+		filename = None,
 		save_to_file = True,
-		print_out = True):
+		print_out = True,
+		):
 		'''
 		Print out an/or save to disk a summary of the standardization results.
 
-		__Parameters__
+		**Parameters**
 
 		+ `dir`: the directory in which to save the table
 		+ `filename`: the name to the csv file to write to
@@ -1386,9 +1839,9 @@ class D47data(list):
 		out += [['N analyses (anchors + unknowns)', f"{len(self)} ({len([r for r in self if r['Sample'] in self.anchors])} + {len([r for r in self if r['Sample'] in self.unknowns])})"]]
 		out += [['Repeatability of δ13C_VPDB', f"{1000 * self.repeatability['r_d13C_VPDB']:.1f} ppm"]]
 		out += [['Repeatability of δ18O_VSMOW', f"{1000 * self.repeatability['r_d18O_VSMOW']:.1f} ppm"]]
-		out += [['Repeatability of Δ47 (anchors)', f"{1000 * self.repeatability['r_D47a']:.1f} ppm"]]
-		out += [['Repeatability of Δ47 (unknowns)', f"{1000 * self.repeatability['r_D47u']:.1f} ppm"]]
-		out += [['Repeatability of Δ47 (all)', f"{1000 * self.repeatability['r_D47']:.1f} ppm"]]
+		out += [[f'Repeatability of Δ{self._4x} (anchors)', f"{1000 * self.repeatability[f'r_D{self._4x}a']:.1f} ppm"]]
+		out += [[f'Repeatability of Δ{self._4x} (unknowns)', f"{1000 * self.repeatability[f'r_D{self._4x}u']:.1f} ppm"]]
+		out += [[f'Repeatability of Δ{self._4x} (all)', f"{1000 * self.repeatability[f'r_D{self._4x}']:.1f} ppm"]]
 		out += [['Model degrees of freedom', f"{self.Nf}"]]
 		out += [['Student\'s 95% t-factor', f"{self.t95:.2f}"]]
 		out += [['Standardization method', self.standardization_method]]
@@ -1396,6 +1849,8 @@ class D47data(list):
 		if save_to_file:
 			if not os.path.exists(dir):
 				os.makedirs(dir)
+			if filename is None:
+				filename = f'D{self._4x}_summary.csv'
 			with open(f'{dir}/{filename}', 'w') as fid:
 				fid.write(make_csv(out))
 		if print_out:
@@ -1404,25 +1859,30 @@ class D47data(list):
 
 	@make_verbal
 	def table_of_sessions(self,
-		dir = 'results',
-		filename = 'sessions.csv',
+		dir = 'output',
+		filename = None,
 		save_to_file = True,
-		print_out = True):
+		print_out = True,
+		output = None,
+		):
 		'''
 		Print out an/or save to disk a table of sessions.
 
-		__Parameters__
+		**Parameters**
 
 		+ `dir`: the directory in which to save the table
 		+ `filename`: the name to the csv file to write to
 		+ `save_to_file`: whether to save the table to disk
 		+ `print_out`: whether to print out the table
+		+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		    if set to `'raw'`: return a list of list of strings
+		    (e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
 		'''
 		include_a2 = any([self.sessions[session]['scrambling_drift'] for session in self.sessions])
 		include_b2 = any([self.sessions[session]['slope_drift'] for session in self.sessions])
 		include_c2 = any([self.sessions[session]['wg_drift'] for session in self.sessions])
 
-		out = [['Session','Na','Nu','d13Cwg_VPDB','d18Owg_VSMOW','r_d13C','r_d18O','r_D47','a ± SE','1e3 x b ± SE','c ± SE']]
+		out = [['Session','Na','Nu','d13Cwg_VPDB','d18Owg_VSMOW','r_d13C','r_d18O',f'r_D{self._4x}','a ± SE','1e3 x b ± SE','c ± SE']]
 		if include_a2:
 			out[-1] += ['a2 ± SE']
 		if include_b2:
@@ -1438,7 +1898,7 @@ class D47data(list):
 				f"{self.sessions[session]['d18Owg_VSMOW']:.3f}",
 				f"{self.sessions[session]['r_d13C_VPDB']:.4f}",
 				f"{self.sessions[session]['r_d18O_VSMOW']:.4f}",
-				f"{self.sessions[session]['r_D47']:.4f}",
+				f"{self.sessions[session][f'r_D{self._4x}']:.4f}",
 				f"{self.sessions[session]['a']:.3f} ± {self.sessions[session]['SE_a']:.3f}",
 				f"{1e3*self.sessions[session]['b']:.3f} ± {1e3*self.sessions[session]['SE_b']:.3f}",
 				f"{self.sessions[session]['c']:.3f} ± {self.sessions[session]['SE_c']:.3f}",
@@ -1462,31 +1922,46 @@ class D47data(list):
 		if save_to_file:
 			if not os.path.exists(dir):
 				os.makedirs(dir)
+			if filename is None:
+				filename = f'D{self._4x}_sessions.csv'
 			with open(f'{dir}/{filename}', 'w') as fid:
 				fid.write(make_csv(out))
 		if print_out:
 			self.msg('\n' + pretty_table(out))
-		return out
+		if output == 'raw':
+			return out
+		elif output == 'pretty':
+			return pretty_table(out)
 
 
 	@make_verbal
-	def table_of_analyses(self, dir = 'results', filename = 'analyses.csv', save_to_file = True, print_out = True):
+	def table_of_analyses(
+		self,
+		dir = 'output',
+		filename = None,
+		save_to_file = True,
+		print_out = True,
+		output = None,
+		):
 		'''
 		Print out an/or save to disk a table of analyses.
 
-		__Parameters__
+		**Parameters**
 
 		+ `dir`: the directory in which to save the table
 		+ `filename`: the name to the csv file to write to
 		+ `save_to_file`: whether to save the table to disk
 		+ `print_out`: whether to print out the table
+		+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		    if set to `'raw'`: return a list of list of strings
+		    (e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
 		'''
 
 		out = [['UID','Session','Sample']]
 		extra_fields = [f for f in [('SampleMass','.2f'),('ColdFingerPressure','.1f'),('AcidReactionYield','.3f')] if f[0] in {k for r in self for k in r}]
 		for f in extra_fields:
 			out[-1] += [f[0]]
-		out[-1] += ['d13Cwg_VPDB','d18Owg_VSMOW','d45','d46','d47','d48','d49','d13C_VPDB','d18O_VSMOW','D47raw','D48raw','D49raw','D47']
+		out[-1] += ['d13Cwg_VPDB','d18Owg_VSMOW','d45','d46','d47','d48','d49','d13C_VPDB','d18O_VSMOW','D47raw','D48raw','D49raw',f'D{self._4x}']
 		for r in self:
 			out += [[f"{r['UID']}",f"{r['Session']}",f"{r['Sample']}"]]
 			for f in extra_fields:
@@ -1504,11 +1979,13 @@ class D47data(list):
 				f"{r['D47raw']:.6f}",
 				f"{r['D48raw']:.6f}",
 				f"{r['D49raw']:.6f}",
-				f"{r['D47']:.6f}"
+				f"{r[f'D{self._4x}']:.6f}"
 				]
 		if save_to_file:
 			if not os.path.exists(dir):
 				os.makedirs(dir)
+			if filename is None:
+				filename = f'D{self._4x}_analyses.csv'
 			with open(f'{dir}/{filename}', 'w') as fid:
 				fid.write(make_csv(out))
 		if print_out:
@@ -1517,27 +1994,37 @@ class D47data(list):
 
 
 	@make_verbal
-	def table_of_samples(self, dir = 'results', filename = 'samples.csv', save_to_file = True, print_out = True):
+	def table_of_samples(
+		self,
+		dir = 'output',
+		filename = None,
+		save_to_file = True,
+		print_out = True,
+		output = None,
+		):
 		'''
-		Print out an/or save to disk a table of samples.
+		Print out, save to disk and/or return a table of samples.
 
-		__Parameters__
+		**Parameters**
 
 		+ `dir`: the directory in which to save the table
 		+ `filename`: the name to the csv file to write to
 		+ `save_to_file`: whether to save the table to disk
 		+ `print_out`: whether to print out the table
+		+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
+		    if set to `'raw'`: return a list of list of strings
+		    (e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
 		'''
 
-		out = [['Sample','N','d13C_VPDB','d18O_VSMOW','D47','SE','95% CL','SD','p_Levene']]
+		out = [['Sample','N','d13C_VPDB','d18O_VSMOW',f'D{self._4x}','SE','95% CL','SD','p_Levene']]
 		for sample in self.anchors:
 			out += [[
 				f"{sample}",
 				f"{self.samples[sample]['N']}",
 				f"{self.samples[sample]['d13C_VPDB']:.2f}",
 				f"{self.samples[sample]['d18O_VSMOW']:.2f}",
-				f"{self.samples[sample]['D47']:.4f}",'','',
-				f"{self.samples[sample]['SD_D47']:.4f}" if self.samples[sample]['N'] > 1 else '', ''
+				f"{self.samples[sample][f'D{self._4x}']:.4f}",'','',
+				f"{self.samples[sample][f'SD_D{self._4x}']:.4f}" if self.samples[sample]['N'] > 1 else '', ''
 				]]
 		for sample in self.unknowns:
 			out += [[
@@ -1545,26 +2032,32 @@ class D47data(list):
 				f"{self.samples[sample]['N']}",
 				f"{self.samples[sample]['d13C_VPDB']:.2f}",
 				f"{self.samples[sample]['d18O_VSMOW']:.2f}",
-				f"{self.samples[sample]['D47']:.4f}",
-				f"{self.samples[sample]['SE_D47']:.4f}",
-				f"± {self.samples[sample]['SE_D47']*self.t95:.4f}",
-				f"{self.samples[sample]['SD_D47']:.4f}" if self.samples[sample]['N'] > 1 else '',
+				f"{self.samples[sample][f'D{self._4x}']:.4f}",
+				f"{self.samples[sample][f'SE_D{self._4x}']:.4f}",
+				f"± {self.samples[sample][f'SE_D{self._4x}'] * self.t95:.4f}",
+				f"{self.samples[sample][f'SD_D{self._4x}']:.4f}" if self.samples[sample]['N'] > 1 else '',
 				f"{self.samples[sample]['p_Levene']:.3f}" if self.samples[sample]['N'] > 2 else ''
 				]]
 		if save_to_file:
 			if not os.path.exists(dir):
 				os.makedirs(dir)
+			if filename is None:
+				filename = f'D{self._4x}_samples.csv'
 			with open(f'{dir}/{filename}', 'w') as fid:
 				fid.write(make_csv(out))
 		if print_out:
 			self.msg('\n'+pretty_table(out))
+		if output == 'raw':
+			return out
+		elif output == 'pretty':
+			return pretty_table(out)
 
 
-	def plot_sessions(self, dir = 'plots', figsize = (8,8)):
+	def plot_sessions(self, dir = 'output', figsize = (8,8)):
 		'''
 		Generate session plots and save them to disk.
 
-		__Parameters__
+		**Parameters**
 
 		+ `dir`: the directory in which to save the plots
 		+ `figsize`: the width and height (in inches) of each plot
@@ -1574,7 +2067,7 @@ class D47data(list):
 
 		for session in self.sessions:
 			sp = self.plot_single_session(session, xylimits = 'constant')
-			ppl.savefig(f'{dir}/D47model_{session}.pdf')
+			ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.pdf')
 			ppl.close(sp.fig)
 
 
@@ -1585,88 +2078,86 @@ class D47data(list):
 
 		For each anchor sample:
 
-		+ `D47`: the nominal Δ<sub>47</sub> value for this anchor, specified by `self.Nominal_D47`
-		+ `SE_D47`: set to zero by definition
+		+ `D47` or `D48`: the nominal Δ<sub>4x</sub> value for this anchor, specified by `self.Nominal_D4x`
+		+ `SE_D47` or `SE_D48`: set to zero by definition
 
 		For each unknown sample:
 
-		+ `D47`: the standardized Δ<sub>47</sub> value for this unknown
-		+ `SE_D47`: the standard error of Δ<sub>47</sub> for this unknown
+		+ `D47` or `D48`: the standardized Δ<sub>4x</sub> value for this unknown
+		+ `SE_D47` or `SE_D48`: the standard error of Δ<sub>4x</sub> for this unknown
 
 		For each anchor and unknown:
 
 		+ `N`: the total number of analyses of this sample
-		+ `SD_D47`: the “sample” (in the statistical sense) standard deviation for this sample
+		+ `SD_D47` or `SD_D48`: the “sample” (in the statistical sense) standard deviation for this sample
 		+ `d13C_VPDB`: the average δ<sup>13</sup>C<sub>VPDB</sub> value for this sample
 		+ `d18O_VSMOW`: the average δ<sup>18</sup>O<sub>VSMOW</sub> value for this sample (as CO<sub>2</sub>)
-		+ `p_Levene`: the p-value from a [Levene test] of equal variance, indicating whether
-		the Δ<sub>47</sub> repeatability this sample differs significantly from that observed
-		for the reference sample specified by `self.LEVENE_REF_SAMPLE`.
-
-		[Levene test]: https://en.wikipedia.org/wiki/Levene%27s_test
+		+ `p_Levene`: the p-value from a [Levene test](https://en.wikipedia.org/wiki/Levene%27s_test) of equal
+		variance, indicating whether the Δ<sub>4x</sub> repeatability this sample differs significantly from
+		that observed for the reference sample specified by `self.LEVENE_REF_SAMPLE`.
 		'''
-		D47_ref_pop = [r['D47'] for r in self.samples[self.LEVENE_REF_SAMPLE]['data']]
+		D4x_ref_pop = [r[f'D{self._4x}'] for r in self.samples[self.LEVENE_REF_SAMPLE]['data']]
 		for sample in self.samples:
 			self.samples[sample]['N'] = len(self.samples[sample]['data'])
 			if self.samples[sample]['N'] > 1:
-				self.samples[sample]['SD_D47'] = stdev([r['D47'] for r in self.samples[sample]['data']])
+				self.samples[sample][f'SD_D{self._4x}'] = stdev([r[f'D{self._4x}'] for r in self.samples[sample]['data']])
 
 			self.samples[sample]['d13C_VPDB'] = np.mean([r['d13C_VPDB'] for r in self.samples[sample]['data']])
 			self.samples[sample]['d18O_VSMOW'] = np.mean([r['d18O_VSMOW'] for r in self.samples[sample]['data']])
 
-			D47_pop = [r['D47'] for r in self.samples[sample]['data']]
-			if len(D47_pop) > 2:
-				self.samples[sample]['p_Levene'] = levene(D47_ref_pop, D47_pop, center = 'median')[1]
+			D4x_pop = [r[f'D{self._4x}'] for r in self.samples[sample]['data']]
+			if len(D4x_pop) > 2:
+				self.samples[sample]['p_Levene'] = levene(D4x_ref_pop, D4x_pop, center = 'median')[1]
 
 		if self.standardization_method == 'pooled':
 			for sample in self.anchors:
-				self.samples[sample]['D47'] = self.Nominal_D47[sample]
-				self.samples[sample]['SE_D47'] = 0.
+				self.samples[sample][f'D{self._4x}'] = self.Nominal_D4x[sample]
+				self.samples[sample][f'SE_D{self._4x}'] = 0.
 			for sample in self.unknowns:
-				self.samples[sample]['D47'] = self.standardization.params.valuesdict()[f'D47_{pf(sample)}']
+				self.samples[sample][f'D{self._4x}'] = self.standardization.params.valuesdict()[f'D{self._4x}_{pf(sample)}']
 				try:
-					self.samples[sample]['SE_D47'] = self.sample_D47_covar(sample)**.5
+					self.samples[sample][f'SE_D{self._4x}'] = self.sample_D4x_covar(sample)**.5
 				except ValueError:
 					# when `sample` is constrained by self.standardize(constraints = {...}),
 					# it is no longer listed in self.standardization.var_names.
 					# Temporary fix: define SE as zero for now
-					self.samples[sample]['SE_D47'] = 0.
+					self.samples[sample][f'SE_D4{self._4x}'] = 0.
 
 		elif self.standardization_method == 'indep_sessions':
 			for sample in self.anchors:
-				self.samples[sample]['D47'] = self.Nominal_D47[sample]
-				self.samples[sample]['SE_D47'] = 0.
+				self.samples[sample][f'D{self._4x}'] = self.Nominal_D4x[sample]
+				self.samples[sample][f'SE_D{self._4x}'] = 0.
 			for sample in self.unknowns:
 				self.msg(f'Consolidating sample {sample}')
-				self.unknowns[sample]['session_D47'] = {}
+				self.unknowns[sample][f'session_D{self._4x}'] = {}
 				session_avg = []
 				for session in self.sessions:
 					sdata = [r for r in self.sessions[session]['data'] if r['Sample'] == sample]
 					if sdata:
 						self.msg(f'{sample} found in session {session}')
-						avg_D47 = np.mean([r['D47'] for r in sdata])
-						avg_d47 = np.mean([r['d47'] for r in sdata])
+						avg_D4x = np.mean([r[f'D{self._4x}'] for r in sdata])
+						avg_d4x = np.mean([r[f'd{self._4x}'] for r in sdata])
 						# !! TODO: sigma_s below does not account for temporal changes in standardization error
-						sigma_s = self.standardization_error(session, avg_d47, avg_D47)
-						sigma_u = sdata[0]['wD47raw'] / self.sessions[session]['a'] / len(sdata)**.5
-						session_avg.append([avg_D47, (sigma_u**2 + sigma_s**2)**.5])
-						self.unknowns[sample]['session_D47'][session] = session_avg[-1]
-				self.samples[sample]['D47'], self.samples[sample]['SE_D47'] = w_avg(*zip(*session_avg))
-				weights = {s: self.unknowns[sample]['session_D47'][s][1]**-2 for s in self.unknowns[sample]['session_D47']}
+						sigma_s = self.standardization_error(session, avg_d4x, avg_D4x)
+						sigma_u = sdata[0][f'wD{self._4x}raw'] / self.sessions[session]['a'] / len(sdata)**.5
+						session_avg.append([avg_D4x, (sigma_u**2 + sigma_s**2)**.5])
+						self.unknowns[sample][f'session_D{self._4x}'][session] = session_avg[-1]
+				self.samples[sample][f'D{self._4x}'], self.samples[sample][f'SE_D{self._4x}'] = w_avg(*zip(*session_avg))
+				weights = {s: self.unknowns[sample][f'session_D{self._4x}'][s][1]**-2 for s in self.unknowns[sample][f'session_D{self._4x}']}
 				wsum = sum([weights[s] for s in weights])
 				for s in weights:
-					self.unknowns[sample]['session_D47'][s] += [self.unknowns[sample]['session_D47'][s][1]**-2 / wsum]
+					self.unknowns[sample][f'session_D{self._4x}'][s] += [self.unknowns[sample][f'session_D{self._4x}'][s][1]**-2 / wsum]
 
 
 	def consolidate_sessions(self):
 		'''
-		Compile various statistics for each session.
+		Compute various statistics for each session.
 
 		+ `Na`: Number of anchor analyses in the session
 		+ `Nu`: Number of unknown analyses in the session
 		+ `r_d13C_VPDB`: δ<sup>13</sup>C<sub>VPDB</sub> repeatability of analyses within the session
 		+ `r_d18O_VSMOW`: δ<sup>18</sup>O<sub>VSMOW</sub> repeatability of analyses within the session
-		+ `r_D47`: Δ<sub>47</sub> repeatability of analyses within the session
+		+ `r_D47` or `r_D48`: Δ<sub>4x</sub> repeatability of analyses within the session
 		+ `a`: scrambling factor
 		+ `b`: compositional slope
 		+ `c`: WG offset
@@ -1695,7 +2186,7 @@ class D47data(list):
 			self.msg(f'Computing repeatabilities for session {session}')
 			self.sessions[session]['r_d13C_VPDB'] = self.compute_r('d13C_VPDB', samples = 'anchors', sessions = [session])
 			self.sessions[session]['r_d18O_VSMOW'] = self.compute_r('d18O_VSMOW', samples = 'anchors', sessions = [session])
-			self.sessions[session]['r_D47'] = self.compute_r('D47', sessions = [session])
+			self.sessions[session][f'r_D{self._4x}'] = self.compute_r(f'D{self._4x}', sessions = [session])
 
 		if self.standardization_method == 'pooled':
 			for session in self.sessions:
@@ -1778,33 +2269,23 @@ class D47data(list):
 				self.sessions[session]['CM'] = CM
 
 		elif self.standardization_method == 'indep_sessions':
-			pass
+			pass # Not implemented yet
 
 
 	@make_verbal
 	def repeatabilities(self):
 		'''
 		Compute analytical repeatabilities for δ<sup>13</sup>C<sub>VPDB</sub>,
-		δ<sup>18</sup>O<sub>VSMOW</sub>, Δ<sub>47</sub> (for all samples, for anchors,
+		δ<sup>18</sup>O<sub>VSMOW</sub>, Δ<sub>4x</sub> (for all samples, for anchors,
 		and for unknowns).
 		'''
 		self.msg('Computing reproducibilities for all sessions')
+
 		self.repeatability['r_d13C_VPDB'] = self.compute_r('d13C_VPDB', samples = 'anchors')
 		self.repeatability['r_d18O_VSMOW'] = self.compute_r('d18O_VSMOW', samples = 'anchors')
-
-		N_anchor_analyses = len([r for r in self if r['Sample'] in self.anchors])
-
-		self.repeatability['r_D47a'] = self.compute_r('D47', samples = 'anchors')
-# 		self.repeatability['r_D47a'] /= (
-# 			(N_anchor_analyses - np.sum([self.sessions[s]['Np'] for s in self.sessions])) / (N_anchor_analyses - len(self.anchors))
-# 			)**.5
-
-		self.repeatability['r_D47u'] = self.compute_r('D47', samples = 'unknowns')
-
-		self.repeatability['r_D47'] = self.compute_r('D47', samples = 'all samples')
-# 		self.repeatability['r_D47'] /= (
-# 			(len(self) - len(self.unknowns) - np.sum([self.sessions[s]['Np'] for s in self.sessions])) / (len(self) - len(self.samples))
-# 			)**.5
+		self.repeatability[f'r_D{self._4x}a'] = self.compute_r(f'D{self._4x}', samples = 'anchors')
+		self.repeatability[f'r_D{self._4x}u'] = self.compute_r(f'D{self._4x}', samples = 'unknowns')
+		self.repeatability[f'r_D{self._4x}'] = self.compute_r(f'D{self._4x}', samples = 'all samples')
 
 
 	@make_verbal
@@ -1832,8 +2313,11 @@ class D47data(list):
 		sessions = 'all sessions',
 		):
 		'''
-		Compute the root mean squared weighted deviation, χ2 and
-		corresponding degrees of freedom of `[r['D47'] for r in self]`
+		Compute the χ<sup>2</sup>, root mean squared weighted deviation
+		(i.e. reduced χ<sup>2</sup>), and corresponding degrees of freedom of the
+		Δ<sub>4x</sub> values for samples in `samples` and sessions in `sessions`.
+		
+		Only used in `D4xdata.standardize()` with `method='indep_sessions'`.
 		'''
 		if samples == 'all samples':
 			mysamples = [k for k in self.samples]
@@ -1851,13 +2335,14 @@ class D47data(list):
 		for sample in mysamples :
 			G = [ r for r in self if r['Sample'] == sample and r['Session'] in sessions ]
 			if len(G) > 1 :
-				X, sX = w_avg([r['D47'] for r in G], [r['wD47'] for r in G])
+				X, sX = w_avg([r[f'D{self._4x}'] for r in G], [r[f'wD{self._4x}'] for r in G])
 				Nf += (len(G) - 1)
-				chisq += np.sum([ ((r['D47']-X)/r['wD47'])**2 for r in G])
+				chisq += np.sum([ ((r[f'D{self._4x}']-X)/r[f'wD{self._4x}'])**2 for r in G])
 		r = (chisq / Nf)**.5 if Nf > 0 else 0
-		self.msg(f'RMSWD of r["D47"] is {r:.6f} for {samples}.')
+		self.msg(f'RMSWD of r["D{self._4x}"] is {r:.6f} for {samples}.')
 		return {'rmswd': r, 'chisq': chisq, 'Nf': Nf}
 
+	
 	@make_verbal
 	def compute_r(self, key, samples = 'all samples', sessions = 'all sessions'):
 		'''
@@ -1879,12 +2364,12 @@ class D47data(list):
 		if sessions == 'all sessions':
 			sessions = [k for k in self.sessions]
 
-		if key == 'D47':
+		if key in ['D47', 'D48']:
 			chisq, Nf = 0, 0
 			for sample in mysamples :
 				X = [ r[key] for r in self if r['Sample'] == sample and r['Session'] in sessions ]
 				if len(X) > 1 :
-					chisq += np.sum([ (x-self.samples[sample]['D47'])**2 for x in X ])
+					chisq += np.sum([ (x-self.samples[sample][key])**2 for x in X ])
 					if sample in self.unknowns:
 						Nf += len(X) - 1
 					else:
@@ -1893,7 +2378,7 @@ class D47data(list):
 				Nf -= sum([self.sessions[s]['Np'] for s in sessions])
 			r = (chisq / Nf)**.5 if Nf > 0 else 0
 
-		else: # if key != 'D47'
+		else: # if key not in ['D47', 'D48']
 			chisq, Nf = 0, 0
 			for sample in mysamples :
 				X = [ r[key] for r in self if r['Sample'] == sample and r['Session'] in sessions ]
@@ -1907,27 +2392,27 @@ class D47data(list):
 
 	def sample_average(self, samples, weights = 'equal', normalize = True):
 		'''
-		Weighted average Δ<sub>47</sub> value of a group of samples, accounting for covariance.
+		Weighted average Δ<sub>4x</sub> value of a group of samples, accounting for covariance.
 
-		Returns the weighed average Δ47 value and associated SE
+		Returns the weighed average Δ<sub>4x</sub> value and associated SE
 		of a group of samples. Weights are equal by default. If `normalize` is
 		true, `weights` will be rescaled so that their sum equals 1.
 
-		__Examples__
+		**Examples**
 
 		```python
 		self.sample_average(['X','Y'], [1, 2])
 		```
 
-		returns the value and SE of [Δ<sub>47</sub>(X) + 2 Δ<sub>47</sub>(Y)]/3,
-		where Δ<sub>47</sub>(X) and Δ<sub>47</sub>(Y) are the average Δ<sub>47</sub>
+		returns the value and SE of [Δ<sub>4x</sub>(X) + 2 Δ<sub>4x</sub>(Y)]/3,
+		where Δ<sub>4x</sub>(X) and Δ<sub>4x</sub>(Y) are the average Δ<sub>4x</sub>
 		values of samples X and Y, respectively.
 
 		```python
 		self.sample_average(['X','Y'], [1, -1], normalize = False)
 		```
 
-		returns the value and SE of the difference Δ<sub>47</sub>(X) - Δ<sub>47</sub>(Y).
+		returns the value and SE of the difference Δ<sub>4x</sub>(X) - Δ<sub>4x</sub>(Y).
 		'''
 		if weights == 'equal':
 			weights = [1/len(samples)] * len(samples)
@@ -1940,30 +2425,30 @@ class D47data(list):
 		try:
 # 			indices = [self.standardization.var_names.index(f'D47_{pf(sample)}') for sample in samples]
 # 			C = self.standardization.covar[indices,:][:,indices]
-			C = np.array([[self.sample_D47_covar(x, y) for x in samples] for y in samples])
-			X = [self.samples[sample]['D47'] for sample in samples]
+			C = np.array([[self.sample_D4x_covar(x, y) for x in samples] for y in samples])
+			X = [self.samples[sample][f'D{self._4x}'] for sample in samples]
 			return correlated_sum(X, C, weights)
 		except ValueError:
 			return (0., 0.)
 
 
-	def sample_D47_covar(self, sample1, sample2 = ''):
+	def sample_D4x_covar(self, sample1, sample2 = None):
 		'''
-		Covariance between Δ<sub>47</sub> values of samples
+		Covariance between Δ<sub>4x</sub> values of samples
 
-		Returns the error covariance between the average Δ<sub>47</sub> values of two
+		Returns the error covariance between the average Δ<sub>4x</sub> values of two
 		samples. If if only `sample_1` is specified, or if `sample_1 == sample_2`),
-		returns the Δ<sub>47</sub> variance for that sample.
+		returns the Δ<sub>4x</sub> variance for that sample.
 		'''
-		if sample2 == '':
+		if sample2 is None:
 			sample2 = sample1
 		if self.standardization_method == 'pooled':
-			i = self.standardization.var_names.index(f'D47_{pf(sample1)}')
-			j = self.standardization.var_names.index(f'D47_{pf(sample2)}')
+			i = self.standardization.var_names.index(f'D{self._4x}_{pf(sample1)}')
+			j = self.standardization.var_names.index(f'D{self._4x}_{pf(sample2)}')
 			return self.standardization.covar[i, j]
 		elif self.standardization_method == 'indep_sessions':
 			if sample1 == sample2:
-				return self.samples[sample1]['SE_D47']**2
+				return self.samples[sample1][f'SE_D{self._4x}']**2
 			else:
 				c = 0
 				for session in self.sessions:
@@ -1973,31 +2458,31 @@ class D47data(list):
 						a = self.sessions[session]['a']
 						# !! TODO: CM below does not account for temporal changes in standardization parameters
 						CM = self.sessions[session]['CM'][:3,:3]
-						avg_D47_1 = np.mean([r['D47'] for r in sdata1])
-						avg_d47_1 = np.mean([r['d47'] for r in sdata1])
-						avg_D47_2 = np.mean([r['D47'] for r in sdata2])
-						avg_d47_2 = np.mean([r['d47'] for r in sdata2])
+						avg_D4x_1 = np.mean([r[f'D{self._4x}'] for r in sdata1])
+						avg_d4x_1 = np.mean([r[f'd{self._4x}'] for r in sdata1])
+						avg_D4x_2 = np.mean([r[f'D{self._4x}'] for r in sdata2])
+						avg_d4x_2 = np.mean([r[f'd{self._4x}'] for r in sdata2])
 						c += (
-							self.unknowns[sample1]['session_D47'][session][2]
-							* self.unknowns[sample2]['session_D47'][session][2]
-							* np.array([[avg_D47_1, avg_d47_1, 1]])
+							self.unknowns[sample1][f'session_D{self._4x}'][session][2]
+							* self.unknowns[sample2][f'session_D{self._4x}'][session][2]
+							* np.array([[avg_D4x_1, avg_d4x_1, 1]])
 							@ CM
-							@ np.array([[avg_D47_2, avg_d47_2, 1]]).T
+							@ np.array([[avg_D4x_2, avg_d4x_2, 1]]).T
 							) / a**2
 				return float(c)
 
-	def sample_D47_correl(self, sample1, sample2 = ''):
+	def sample_D4x_correl(self, sample1, sample2 = None):
 		'''
-		Correlation between Δ<sub>47</sub> errors of samples
+		Correlation between Δ<sub>4x</sub> errors of samples
 
-		Returns the error correlation between the average Δ47 values of two samples.
+		Returns the error correlation between the average Δ4x values of two samples.
 		'''
-		if sample2 == '' or sample2 == sample1:
+		if sample2 is None or sample2 == sample1:
 			return 1.
 		return (
-			self.sample_D47_covar(sample1, sample2)
-			/ self.unknowns[sample1]['SE_D47']
-			/ self.unknowns[sample2]['SE_D47']
+			self.sample_D4x_covar(sample1, sample2)
+			/ self.unknowns[sample1][f'SE_D{self._4x}']
+			/ self.unknowns[sample2][f'SE_D{self._4x}']
 			)
 
 	def plot_single_session(self,
@@ -2008,15 +2493,20 @@ class D47data(list):
 		kw_plot_unknown_avg = dict(ls='-', marker='None', color=(0, 0, .75), lw = .75),
 		kw_contour_error = dict(colors = [[0, 0, 0]], alpha = .5, linewidths = 0.75),
 		xylimits = 'free', # | 'constant'
-		x_label = 'δ$_{47}$ (‰)',
-		y_label = 'Δ$_{47}$ (‰)',
+		x_label = None,
+		y_label = None,
 		error_contour_interval = 'auto',
 		fig = 'new',
 		):
 		'''
 		Generate plot for a single session
 		'''
-		out = SessionPlot()
+		if x_label is None:
+			x_label = f'δ$_{{{self._4x}}}$ (‰)'
+		if y_label is None:
+			y_label = f'Δ$_{{{self._4x}}}$ (‰)'
+
+		out = _SessionPlot()
 		anchors = [a for a in self.anchors if [r for r in self.sessions[session]['data'] if r['Sample'] == a]]
 		unknowns = [u for u in self.unknowns if [r for r in self.sessions[session]['data'] if r['Sample'] == u]]
 		
@@ -2025,30 +2515,30 @@ class D47data(list):
 			ppl.subplots_adjust(.1,.1,.9,.9)
 
 		out.anchor_analyses, = ppl.plot(
-			[r['d47'] for r in self.sessions[session]['data'] if r['Sample'] in self.anchors],
-			[r['D47'] for r in self.sessions[session]['data'] if r['Sample'] in self.anchors],
+			[r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.anchors],
+			[r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.anchors],
 			**kw_plot_anchors)
 		out.unknown_analyses, = ppl.plot(
-			[r['d47'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns],
-			[r['D47'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns],
+			[r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns],
+			[r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns],
 			**kw_plot_unknowns)
 		out.anchor_avg = ppl.plot(
 			np.array([ np.array([
-				np.min([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
-				np.max([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
+				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
+				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
 				]) for sample in anchors]).T,
-			np.array([ np.array([0, 0]) + self.Nominal_D47[sample] for sample in anchors]).T,
-			'-', **kw_plot_anchor_avg)
+			np.array([ np.array([0, 0]) + self.Nominal_D4x[sample] for sample in anchors]).T,
+			**kw_plot_anchor_avg)
 		out.unknown_avg = ppl.plot(
 			np.array([ np.array([
-				np.min([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
-				np.max([r['d47'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
+				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
+				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
 				]) for sample in unknowns]).T,
-			np.array([ np.array([0, 0]) + self.unknowns[sample]['D47'] for sample in unknowns]).T,
-			'-', **kw_plot_unknown_avg)
+			np.array([ np.array([0, 0]) + self.unknowns[sample][f'D{self._4x}'] for sample in unknowns]).T,
+			**kw_plot_unknown_avg)
 		if xylimits == 'constant':
-			x = [r['d47'] for r in self]
-			y = [r['D47'] for r in self]
+			x = [r[f'd{self._4x}'] for r in self]
+			y = [r[f'D{self._4x}'] for r in self]
 			x1, x2, y1, y2 = np.min(x), np.max(x), np.min(y), np.max(y)
 			w, h = x2-x1, y2-y1
 			x1 -= w/20
@@ -2060,8 +2550,7 @@ class D47data(list):
 			x1, x2, y1, y2 = ppl.axis()
 		else:
 			x1, x2, y1, y2 = ppl.axis(xylimits)
-		
-		
+				
 		if error_contour_interval != 'none':
 			xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
 			XI,YI = np.meshgrid(xi, yi)
@@ -2095,14 +2584,14 @@ class D47data(list):
 
 		return out
 
-	def plot_residuals(self, dir = 'plots', filename = 'D47_residuals.pdf', highlight = [], colors = None):
+	def plot_residuals(self, dir = 'output', filename = None, highlight = [], colors = None):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
-		the order of analyses in the D47data() object)
+		the order of analyses in the `D4xdata` object)
 
 		+ `dir`: the directory in which to save the plot
 		+ `highlight`: a list of samples to highlight
-		+ `colors`: a dict of {<sample>: <color>} for all samples
+		+ `colors`: a dict of `{<sample>: <color>}` for all samples
 		'''
 		fig = ppl.figure(figsize = (8,4))
 		ppl.subplots_adjust(.1,.05,.78,.8)
@@ -2210,139 +2699,23 @@ class D47data(list):
 			os.makedirs(dir)
 		if filename is None:
 			return fig
+		elif filename == '':
+			filename = f'D{self._4x}_residuals.pdf'
 		ppl.savefig(f'{dir}/{filename}')
 		ppl.close(fig)
+				
 
-	def simulate(self,
-		samples = [
-			dict(Sample = 'ETH-1', N = 4),
-			dict(Sample = 'ETH-2', N = 4),
-			dict(Sample = 'ETH-3', N = 4),
-			dict(
-				Sample = 'FOO',
-				d47 = 0.,
-				D47 = 0.5,
-				N = 4,
-				),
-			],
-		a = 1.,
-		b = 0.,
-		c = -0.9,
-		rD47 = 0.015,
-		seed = 0,
-		):
+	def simulate(self, *args, **kwargs):
 		'''
-		Populate `D47data` instance with simulated analyses from a single session.
-		
-		__Parameters__
-
-		+ `samples`: a list of entries; each entry is a dictionary with the following fields:
-		    * `Sample`: the name of the sample
-		    * either `d47` (the δ<sub>47</sub> value of this sample), or `d13C_VPDB` and `d18O_VPDB` (its δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VPDB</sub> values)
-		    * `D47`: the absolute Δ<sub>47</sub> value of this sample
-		    * `N`: how many analyses of this sample should be generated
-		+ `a`: scrambling factor)
-		+ `b`: compositional nonlinearity
-		+ `c`: working gas offset
-		+ `rD47`: Δ<sub>47</sub> repeatability
-		+ `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
-		
-		Beware that `d47` values computed from `d13C_VPDB` and `d18O_VPDB` are calculated assuming
-		a working gas with δ<sup>13</sup>C<sub>VPDB</sub>&nbsp;=&nbsp;0 and δ<sup>18</sup>O<sub>VSMOW</sub>&nbsp;=&nbsp;0.
-		In the unusual case where simulating a different working gas composition is necessary, `d47` must be specified explicitly.
-		
-		Samples already defined in `D47data.Nominal_d13C_VPDB`, `D47data.Nominal_d18O_VPDB`, and `D47data.Nominal_D47`
-		do not require explicit `d47`, `D47`, `d13C_VPDB` nor `d18O_VPDB` (the nominal values will be used by default).
-		
-		Here is an example of using this method to simulate a given combination of anchors and unknowns:
-
-		````py
-		import D47crunch
-		D = D47crunch.D47data()
-		D.simulate([
-		    dict(Sample = 'ETH-1', N = 6),
-		    dict(Sample = 'ETH-2', N = 6),
-		    dict(Sample = 'ETH-3', N = 12),
-		    dict(Sample = 'FOO', d13C_VPDB = -5., d18O_VPDB = -10., D47 = 0.3, N = 4),
-		    ], rD47 = 0.010)
-		D.standardize()
-		D.plot_sessions()
-		D.verbose = True
-		D.table_of_samples()
-		````
-		
-		This should output something like:
-		
-		````
-		[table_of_samples] 
-		––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-		Sample   N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
-		––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-		ETH-1    6        nan         nan  0.2052                    0.0076          
-		ETH-2    6        nan         nan  0.2085                    0.0089          
-		ETH-3   12        nan         nan  0.6132                    0.0118          
-		FOO      4        nan         nan  0.3031  0.0057  ± 0.0118  0.0104     0.572
-		––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-		````
+		Legacy function with warning message pointing to `virtual_data()`
 		'''
-		from numpy import random as nprandom
-		if seed:
-			rng = nprandom.default_rng(seed)
-		else:
-			rng = nprandom.default_rng()
+		raise DeprecationWarning('D4xdata.simulate is deprecated and has been replaced by virtual_data()')
 
-		N = sum([s['N'] for s in samples])
-		errors = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
-		errors *= rD47 / stdev(errors) # scale errors to rD47
-		
-		k = 0
-		for s in samples:
-		
-			if 'D47' not in s:
-				if s['Sample'] not in self.Nominal_D47:
-					raise KeyError(f"Sample {s['Sample']} is missing a D47 value and it is not defined in Nominal_D47")
-				else:
-					s['D47'] = self.Nominal_D47[s['Sample']]					
-
-			if 'd47' not in s:
-				if s['Sample'] not in self.Nominal_d13C_VPDB or s['Sample'] not in self.Nominal_d18O_VPDB:
-					if 'd13C_VPDB' not in s or 'd18O_VPDB' not in s:
-						raise KeyError(f"Sample {s['Sample']} is missing a d47 value and it is not defined in Nominal_d13C_VPDB and Nominal_d18O_VPDB")
-					else:
-						R47wg = self.compute_isobar_ratios(self.R13_VPDB, self.R18_VPDB * self.ALPHA_18O_ACID_REACTION)[2]
-						R47s = self.compute_isobar_ratios(
-							self.R13_VPDB * (1 + s['d13C_VPDB']/1000),
-							self.R18_VPDB * (1 + s['d18O_VPDB']/1000) * self.ALPHA_18O_ACID_REACTION,
-							)[2]*(1+s['D47']/1000)
-						s['d47'] = (R47s/R47wg-1)*1000
-				else:
-					R47wg = self.compute_isobar_ratios(self.R13_VPDB, self.R18_VPDB * self.ALPHA_18O_ACID_REACTION)[2]
-					R47s = self.compute_isobar_ratios(
-						self.R13_VPDB * (1 + self.Nominal_d13C_VPDB[s['Sample']]/1000),
-						self.R18_VPDB * (1 + self.Nominal_d18O_VPDB[s['Sample']]/1000) * self.ALPHA_18O_ACID_REACTION,
-						)[2]*(1+s['D47']/1000)
-					s['d47'] = (R47s/R47wg-1)*1000
-					
-			while s['N']:
-				self.append({
-					'Sample': s['Sample'],
-					'd13Cwg_VPDB': np.nan,
-					'd18Owg_VSMOW': np.nan,
-					'd13C_VPDB': np.nan,
-					'd18O_VSMOW': np.nan,
-					'd47': s['d47'],
-					'D47raw': a * (s['D47'] + errors[k]) + b * s['d47'] + c,
-					})
-				s['N'] -= 1
-				k += 1
-
-		self.refresh()
-
-	def plot_distribution_of_analyses(self, dir = 'plots', filename = 'distribution_of_analyses.pdf', vs_time = False, output = None):
+	def plot_distribution_of_analyses(self, dir = 'output', filename = None, vs_time = False, output = None):
 		'''
-		Plot temporal distribution of all analyses.
+		Plot temporal distribution of all analyses in the data set.
 		
-		__Parameters__
+		**Parameters**
 
 		+ `vs_time`: if `True`, plot as a function of `TimeTag` rather than sequentially.
 		'''
@@ -2396,15 +2769,162 @@ class D47data(list):
 		if output is None:
 			if not os.path.exists(dir):
 				os.makedirs(dir)
+			if filename == None:
+				filename = f'D{self._4x}_distribution_of_analyses.pdf'
 			ppl.savefig(f'{dir}/{filename}')
 			ppl.close(fig)
 		elif output == 'ax':
 			return ppl.gca()
 		elif output == 'fig':
 			return fig
-			
-		
 
-class SessionPlot():
+
+class D47data(D4xdata):
+	'''
+	Store and process data for a large set of Δ<sub>47</sub> analyses,
+	usually comprising more than one analytical session.
+	'''
+
+	Nominal_D4x = {
+		'ETH-1':   0.2052,
+		'ETH-2':   0.2085,
+		'ETH-3':   0.6132,
+		'ETH-4':   0.4511,
+		'IAEA-C1': 0.3018,
+		'IAEA-C2': 0.6409,
+		'MERCK':   0.5135,
+		} # I-CDES (Bernasconi et al., 2021)
+	'''
+	Nominal Δ<sub>47</sub> values assigned to the Δ<sub>47</sub> anchor samples, used by
+	`D47data.standardize()` to normalize unknown samples to an absolute Δ<sub>47</sub>
+	reference frame.
+
+	By default equal to (after [Bernasconi et al. (2021)](https://doi.org/10.1029/2020GC009588)):
+	```py
+	{
+		'ETH-1'   : 0.2052,
+		'ETH-2'   : 0.2085,
+		'ETH-3'   : 0.6132,
+		'ETH-4'   : 0.4511,
+		'IAEA-C1' : 0.3018,
+		'IAEA-C2' : 0.6409,
+		'MERCK'   : 0.5135,
+	}
+	```
+	'''
+
+
+	@property
+	def Nominal_D47(self):
+		return self.Nominal_D4x
+	
+
+	@Nominal_D47.setter
+	def Nominal_D47(self, new):
+		self.Nominal_D4x = dict(**new)
+		self.refresh()
+
+
+	def __init__(self, l = [], **kwargs):
+		'''
+		**Parameters:** same as `D4xdata.__init__()`
+		'''
+		D4xdata.__init__(self, l = l, mass = '47', **kwargs)
+
+
+	def D47fromTeq(self, fCo2eqD47 = 'petersen', priority = 'new'):
+		'''
+		Find all samples for which `Teq` is specified, compute equilibrium Δ<sub>47</sub>
+		value for that temperature, and add treat these samples as additional anchors.
+
+		**Parameters**
+
+		+ `fCo2eqD47`: Which CO<sub>2</sub> equilibrium law to use
+		(`petersen`: [Petersen et al. (2019)](https://doi.org/10.1029/2018GC008127);
+		`wang`: [Wang et al. (2019)](https://doi.org/10.1016/j.gca.2004.05.039)).
+		+ `priority`: if `replace`: forget old anchors and only use the new ones;
+		if `new`: keep pre-existing anchors but update them in case of conflict
+		between old and new Δ<sub>47</sub> values;
+		if `old`: keep pre-existing anchors but preserve their original Δ<sub>47</sub>
+		values in case of conflict.
+		'''
+		f = {
+			'petersen': fCO2eqD47_Petersen,
+			'wang': fCO2eqD47_Wang,
+			}[fCo2eqD47]
+		foo = {}
+		for r in self:
+			if 'Teq' in r:
+				if r['Sample'] in foo:
+					assert foo[r['Sample']] == f(r['Teq']), f'Different values of `Teq` provided for sample `{r["Sample"]}`.'
+				else:
+					foo[r['Sample']] = f(r['Teq'])
+			else:
+					assert r['Sample'] not in foo, f'`Teq` is inconsistently specified for sample `{r["Sample"]}`.'
+
+		if priority == 'replace':
+			self.Nominal_D47 = {}
+		for s in foo:
+			if priority != 'old' or s not in self.Nominal_D47:
+				self.Nominal_D47[s] = foo[s]
+	
+
+
+
+class D48data(D4xdata):
+	'''
+	Store and process data for a large set of Δ<sub>48</sub> analyses,
+	usually comprising more than one analytical session.
+	'''
+
+	Nominal_D4x = {
+		'ETH-1':  0.138,
+		'ETH-2':  0.138,
+		'ETH-3':  0.270,
+		'ETH-4':  0.223,
+		'GU-1':  -0.419,
+		} # (Fiebig et al., 2019, 2021)
+	'''
+	Nominal Δ<sub>48</sub> values assigned to the Δ<sub>48</sub> anchor samples, used by
+	`D48data.standardize()` to normalize unknown samples to an absolute Δ<sub>48</sub>
+	reference frame.
+
+	By default equal to (after [Fiebig et al. (2019)](https://doi.org/10.1016/j.chemgeo.2019.05.019),
+	Fiebig et al. (in press)):
+
+	```py
+	{
+		'ETH-1' :  0.138,
+		'ETH-2' :  0.138,
+		'ETH-3' :  0.270,
+		'ETH-4' :  0.223,
+		'GU-1'  : -0.419,
+	}
+	```
+	'''
+
+
+	@property
+	def Nominal_D48(self):
+		return self.Nominal_D4x
+
+	
+	@Nominal_D48.setter
+	def Nominal_D48(self, new):
+		self.Nominal_D4x = dict(**new)
+		self.refresh()
+
+
+	def __init__(self, l = [], **kwargs):
+		'''
+		**Parameters:** same as `D4xdata.__init__()`
+		'''
+		D4xdata.__init__(self, l = l, mass = '48', **kwargs)
+
+
+class _SessionPlot():
+	'''
+	Simple placeholder class
+	'''
 	def __init__(self):
 		pass
