@@ -21,7 +21,11 @@
 
                     <h2>Contents</h2>
                     <ul>
-  <li><a href="#1-tutorial">1. Tutorial</a></li>
+  <li><a href="#1-tutorial">1. Tutorial</a>
+  <ul>
+    <li><a href="#11-installation">1.1 Installation</a></li>
+    <li><a href="#12-usage">1.2 Usage</a></li>
+  </ul></li>
   <li><a href="#2-how-to">2. How-to</a>
   <ul>
     <li><a href="#21-use-a-different-set-of-anchors-change-anchor-nominal-values-andor-change-sup17supo-correction-parameters">2.1 Use a different set of anchors, change anchor nominal values, and/or change <sup>17</sup>O correction parameters</a></li>
@@ -310,6 +314,34 @@ The <strong>how-to</strong> section provides instructions applicable to various 
 
 <h2 id="1-tutorial">1. Tutorial</h2>
 
+<h3 id="11-installation">1.1 Installation</h3>
+
+<p>The easy option is to use <code>pip</code>; open a shell terminal and simply type:</p>
+
+<pre><code>python -m pip install D47crunch
+</code></pre>
+
+<p>For those wishing to experiment with the bleeding-edge development version, this can be done through the following steps:</p>
+
+<ol>
+<li>Download the <code>dev</code> branch source code <a href="https://raw.githubusercontent.com/mdaeron/D47crunch/dev/D47crunch/__init__.py">here</a> and rename it to <code><a href="#py">D47crunch.py</a></code>.</li>
+<li>Do any of the following:
+<ul>
+<li>copy <code><a href="#py">D47crunch.py</a></code> to somewhere in your Python path</li>
+<li>copy <code><a href="#py">D47crunch.py</a></code> to a working directory (<code>import D47crunch</code> will only work if called within that directory)</li>
+<li>copy <code><a href="#py">D47crunch.py</a></code> to any other location (e.g., <code>/foo/bar</code>) and then use the following code snippet in your own code to import <code><a href="">D47crunch</a></code>:</li>
+</ul></li>
+</ol>
+
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;/foo/bar&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">D47crunch</span>
+</code></pre></div>
+
+<p>Documentation for the development version can be downloaded <a href="https://github.com/mdaeron/D47crunch/raw/dev/docs/index.html">here</a> (save html file and open it locally).</p>
+
+<h3 id="12-usage">1.2 Usage</h3>
+
 <p>Start by creating a file named <code>rawdata.csv</code> with the following contents:</p>
 
 <div class="codehilite"><pre><span></span><code>UID,  Sample,           d45,       d46,        d47,        d48,       d49
@@ -338,9 +370,16 @@ A08,  MYSAMPLE-2,  -3.87692,   4.86889,    0.52185,   10.40390,   1.07032
 <p>To load the analyses saved in <code>rawdata.csv</code> into our <code><a href="#D47data">D47data</a></code> object and process the data:</p>
 
 <div class="codehilite"><pre><span></span><code><span class="n">mydata</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;rawdata.csv&#39;</span><span class="p">)</span>
-<span class="n">mydata</span><span class="o">.</span><span class="n">wg</span><span class="p">()</span>          <span class="c1"># compute δ13C, δ18O of working gas</span>
-<span class="n">mydata</span><span class="o">.</span><span class="n">crunch</span><span class="p">()</span>      <span class="c1"># compute all δ13C, δ18O and raw Δ47 values</span>
-<span class="n">mydata</span><span class="o">.</span><span class="n">standardize</span><span class="p">()</span> <span class="c1"># compute absolute Δ47 values</span>
+
+<span class="c1"># compute δ13C, δ18O of working gas:</span>
+<span class="n">mydata</span><span class="o">.</span><span class="n">wg</span><span class="p">()</span>
+
+<span class="c1"># compute δ13C, δ18O, raw Δ47 values for each analysis:</span>
+<span class="n">mydata</span><span class="o">.</span><span class="n">crunch</span><span class="p">()</span>
+
+<span class="c1"># compute absolute Δ47 values for each analysis</span>
+<span class="c1"># as well as average Δ47 values for each sample:</span>
+<span class="n">mydata</span><span class="o">.</span><span class="n">standardize</span><span class="p">()</span>
 </code></pre></div>
 
 <p>We can now print a summary of the data processing:</p>
@@ -675,8 +714,8 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 <span class="n">__contact__</span>   <span class="o">=</span> <span class="s1">&#39;daeron@lsce.ipsl.fr&#39;</span>
 <span class="n">__copyright__</span> <span class="o">=</span> <span class="s1">&#39;Copyright (c) 2021 Mathieu Daëron&#39;</span>
 <span class="n">__license__</span>   <span class="o">=</span> <span class="s1">&#39;Modified BSD License - https://opensource.org/licenses/BSD-3-Clause&#39;</span>
-<span class="n">__date__</span>      <span class="o">=</span> <span class="s1">&#39;2021-08-07&#39;</span>
-<span class="n">__version__</span>   <span class="o">=</span> <span class="s1">&#39;2.0.0-beta&#39;</span>
+<span class="n">__date__</span>      <span class="o">=</span> <span class="s1">&#39;2021-08-08&#39;</span>
+<span class="n">__version__</span>   <span class="o">=</span> <span class="s1">&#39;2.0.1&#39;</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -2173,7 +2212,6 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 				<span class="n">t0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;TimeTag&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sdata</span><span class="p">])</span>
 				<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sdata</span><span class="p">:</span>
 					<span class="n">r</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;TimeTag&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">t0</span>
-<span class="c1"># 				print(&#39;DEBUG - USING TimeTag        &lt;-----------------------------------&#39;)</span>
 			<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
 				<span class="n">t0</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sdata</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
 				<span class="k">for</span> <span class="n">t</span><span class="p">,</span><span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sdata</span><span class="p">):</span>
@@ -5723,7 +5761,6 @@ the exact same sets of analyses, the table will have two columns
 				<span class="n">t0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;TimeTag&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sdata</span><span class="p">])</span>
 				<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sdata</span><span class="p">:</span>
 					<span class="n">r</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;TimeTag&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">t0</span>
-<span class="c1"># 				print(&#39;DEBUG - USING TimeTag        &lt;-----------------------------------&#39;)</span>
 			<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
 				<span class="n">t0</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sdata</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
 				<span class="k">for</span> <span class="n">t</span><span class="p">,</span><span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sdata</span><span class="p">):</span>
@@ -8172,7 +8209,6 @@ that case session-averaged Δ<sub>4x</sub> values are statistically independent)
 				<span class="n">t0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;TimeTag&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sdata</span><span class="p">])</span>
 				<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sdata</span><span class="p">:</span>
 					<span class="n">r</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;TimeTag&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">t0</span>
-<span class="c1"># 				print(&#39;DEBUG - USING TimeTag        &lt;-----------------------------------&#39;)</span>
 			<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
 				<span class="n">t0</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sdata</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
 				<span class="k">for</span> <span class="n">t</span><span class="p">,</span><span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sdata</span><span class="p">):</span>

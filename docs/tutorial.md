@@ -1,5 +1,31 @@
 ## 1. Tutorial
 
+### 1.1 Installation
+
+The easy option is to use `pip`; open a shell terminal and simply type:
+
+```
+python -m pip install D47crunch
+```
+
+For those wishing to experiment with the bleeding-edge development version, this can be done through the following steps:
+
+1. Download the `dev` branch source code [here](https://raw.githubusercontent.com/mdaeron/D47crunch/dev/D47crunch/__init__.py) and rename it to `D47crunch.py`.
+2. Do any of the following:
+    * copy `D47crunch.py` to somewhere in your Python path
+    * copy `D47crunch.py` to a working directory (`import D47crunch` will only work if called within that directory)
+    * copy `D47crunch.py` to any other location (e.g., `/foo/bar`) and then use the following code snippet in your own code to import `D47crunch`:
+
+```py
+import sys
+sys.path.append('/foo/bar')
+import D47crunch
+```
+
+Documentation for the development version can be downloaded [here](https://github.com/mdaeron/D47crunch/raw/dev/docs/index.html) (save html file and open it locally).
+
+### 1.2 Usage
+
 Start by creating a file named `rawdata.csv` with the following contents:
 
 ```html
@@ -32,9 +58,16 @@ To load the analyses saved in `rawdata.csv` into our `D47data` object and proces
 
 ```py
 mydata.read('rawdata.csv')
-mydata.wg()          # compute δ13C, δ18O of working gas
-mydata.crunch()      # compute all δ13C, δ18O and raw Δ47 values
-mydata.standardize() # compute absolute Δ47 values
+
+# compute δ13C, δ18O of working gas:
+mydata.wg()
+
+# compute δ13C, δ18O, raw Δ47 values for each analysis:
+mydata.crunch()
+
+# compute absolute Δ47 values for each analysis
+# as well as average Δ47 values for each sample:
+mydata.standardize()
 ```
 
 We can now print a summary of the data processing:
