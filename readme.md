@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4314550.svg)](https://doi.org/10.5281/zenodo.4314550)
 
-Python library for processing and standardizing carbonate clumped-isotope analyses, from low-level data out of a dual-inlet mass spectrometer to final, “absolute” Δ<sub>47</sub> values with fully propagated analytical error estimates.
+Python library for processing and standardizing carbonate clumped-isotope analyses, from low-level data out of a dual-inlet mass spectrometer to final, “absolute” Δ<sub>47</sub> and Δ<sub>47</sub> values with fully propagated analytical error estimates.
 
 ## Documentation
 
@@ -20,7 +20,7 @@ pip install D47crunch
 
 Alternatively:
 
-1. download the [current branch] or the [latest release] and unzip it
+1. download the [dev branch] or the [latest release] and unzip it
 2. rename the resulting directory to `D47crunch`
 3. chose one of one of the following options:
 	+ move the `D47crunch` directory to somewhere in your Python path
@@ -38,7 +38,7 @@ Having done any of the above you should now be able to `import D47crunch`, with 
 [lmfit]: https://lmfit.github.io
 [matplotlib]: https://matplotlib.org
 [scipy]: https://www.scipy.org
-[current branch]: https://github.com/mdaeron/D47crunch/archive/master.zip
+[dev branch]: https://github.com/mdaeron/D47crunch/archive/dev.zip
 [latest release]: https://github.com/mdaeron/D47crunch/releases/latest
 
 ## Contact
