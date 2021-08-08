@@ -19,8 +19,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2021 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2021-08-07'
-__version__   = '2.0.0-beta'
+__date__      = '2021-08-08'
+__version__   = '2.0.0'
 
 import os
 import numpy as np
@@ -1517,7 +1517,6 @@ class D4xdata(list):
 				t0 = np.mean([r['TimeTag'] for r in sdata])
 				for r in sdata:
 					r['t'] = r['TimeTag'] - t0
-# 				print('DEBUG - USING TimeTag        <-----------------------------------')
 			except KeyError:
 				t0 = (len(sdata)-1)/2
 				for t,r in enumerate(sdata):
