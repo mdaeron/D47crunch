@@ -1,6 +1,117 @@
 ## 2. How-to
 
-### 2.1 Use a different set of anchors, change anchor nominal values, and/or change <sup>17</sup>O correction parameters
+### 2.1 Simulate a virtual data set to play with
+
+It is sometimes convenient to quickly build a virtual data set of analyses, for instance to assess the final analytical precision achievable for a given combination of anchor and unknown analyses (see also Fig. 6 of [Daëron, 2021](https://doi.org/10.1029/2020GC009592)).
+
+This can be achieved with `virtual_data()`. The example below creates a dataset with four sessions, each of which comprises four analyses of anchor ETH-1, five of ETH-2, six of ETH-3, and two analyses of an unknown sample named `FOO` with an arbitrarily defined isotopic composition. Analytical repeatabilities for Δ<sub>47</sub> and Δ<sub>48</sub> are also specified arbitrarily. See the `virtual_data()` documentation for additional configuration parameters.
+
+```py
+from D47crunch import *
+
+args = dict(
+	samples = [
+		dict(Sample = 'ETH-1', N = 4),
+		dict(Sample = 'ETH-2', N = 5),
+		dict(Sample = 'ETH-3', N = 6),
+		dict(
+			Sample = 'FOO',
+			N = 2,
+			d13C_VPDB = -5.,
+			d18O_VPDB = -10.,
+			D47 = 0.3,
+			D48 = 0.15
+			),
+		],
+	rD47 = 0.010,
+	rD48 = 0.030,
+	)
+
+session1 = virtual_data(session = 'Session_01', **args)
+session2 = virtual_data(session = 'Session_02', **args)
+session3 = virtual_data(session = 'Session_03', **args)
+session4 = virtual_data(session = 'Session_04', **args)
+
+D = D47data(session1 + session2 + session3 + session4)
+
+D.crunch()
+D.standardize()
+
+D.table_of_sessions(verbose = True, save_to_file = False)
+D.table_of_samples(verbose = True, save_to_file = False)
+D.table_of_analyses(verbose = True, save_to_file = False)
+```
+
+### 2.2 Control data quality
+
+`D47crunch` offers several tools to visualize processed data. The examples below use the same virtual data set, generated with:
+
+```py
+from D47crunch import *
+from random import shuffle
+
+# generate virtual data:
+args = dict(
+	samples = [
+		dict(Sample = 'ETH-1', N = 8),
+		dict(Sample = 'ETH-2', N = 8),
+		dict(Sample = 'ETH-3', N = 8),
+		dict(Sample = 'FOO', N = 4,
+			d13C_VPDB = -5., d18O_VPDB = -10.,
+			D47 = 0.3, D48 = 0.15),
+		dict(Sample = 'BAR', N = 4,
+			d13C_VPDB = -15., d18O_VPDB = -15.,
+			D47 = 0.5, D48 = 0.2),
+		])
+
+sessions = [
+	virtual_data(session = f'Session_{k+1:02.0f}', seed = int('1234567890'[:k+1]), **args)
+	for k in range(10)]
+
+# shuffle the data:
+data = [r for s in sessions for r in s]
+shuffle(data)
+data = sorted(data, key = lambda r: r['Session'])
+
+# create D47data instance:
+data47 = D47data(data)
+
+# process D47data instance:
+data47.crunch()
+data47.standardize()
+```
+
+#### 2.1.1 Plotting the distribution of analyses through time
+
+```py
+data47.plot_distribution_of_analyses(filename = 'time_distribution.pdf')
+```
+
+![time_distribution.png](time_distribution.png)
+
+The plot above shows the succession of analyses as if they were all distributed at regular time intervals. See `D4xdata.plot_distribution_of_analyses()` for how to plot analyses as a function of “true” time (based on the `TimeTag` for each analysis).
+
+#### 2.1.2 Generating session plots
+
+```py
+data47.plot_sessions()
+```
+
+Below is one of the resulting sessions plots. Each cross marker is an analysis. Anchors are in red and unknowns in blue. Short horizontal lines show the nominal Δ<sub>47</sub> value for anchors, in red, or the average Δ<sub>47</sub> value for unknowns, in blue (overall average for all sessions). Curved grey contours correspond to Δ<sub>47</sub> standardization errors in this session.
+
+![D47_plot_Session_03.png](D47_plot_Session_03.png)
+
+#### 2.1.3 Plotting Δ<sub>47</sub> or Δ<sub>48</sub> residuals
+
+```py
+data47.plot_residuals(filename = 'residuals.pdf')
+```
+
+![residuals.png](residuals.png)
+
+Again, note that this plot only shows the succession of analyses as if they were all distributed at regular time intervals.
+
+### 2.3 Use a different set of anchors, change anchor nominal values, and/or change <sup>17</sup>O correction parameters
 
 Nominal values for various carbonate standards are defined in four places:
 
@@ -119,49 +230,7 @@ foo.table_of_samples(verbose = True, save_to_file = False)
 bar.table_of_samples(verbose = True, save_to_file = False)
 ```
 
-### 2.2 Simulate a virtual data set to play with
-
-It is sometimes convenient to quickly build a virtual data set of analyses, for instance to assess the final analytical precision achievable for a given combination of anchor and unknown analyses (see also Fig. 6 of [Daëron, 2021]).
-
-This can be achieved with `virtual_data()`. The example below creates a dataset with four sessions, each of which comprises four analyses of anchor ETH-1, five of ETH-2, six of ETH-3, and two analyses of an unknown sample named `FOO` with an arbitrarily defined isotopic composition. Analytical repeatabilities for Δ<sub>47</sub> and Δ<sub>48</sub> are also specified arbitrarily. See the `virtual_data()` documentation for additional configuration parameters.
-
-```py
-from D47crunch import *
-
-args = dict(
-	samples = [
-		dict(Sample = 'ETH-1', N = 4),
-		dict(Sample = 'ETH-2', N = 5),
-		dict(Sample = 'ETH-3', N = 6),
-		dict(
-			Sample = 'FOO',
-			N = 2,
-			d13C_VPDB = -5.,
-			d18O_VPDB = -10.,
-			D47 = 0.3,
-			D48 = 0.15
-			),
-		],
-	rD47 = 0.010,
-	rD48 = 0.030,
-	)
-
-session1 = virtual_data(session = 'Session_01', **args)
-session2 = virtual_data(session = 'Session_02', **args)
-session3 = virtual_data(session = 'Session_03', **args)
-session4 = virtual_data(session = 'Session_04', **args)
-
-D = D47data(session1 + session2 + session3 + session4)
-
-D.crunch()
-D.standardize()
-
-D.table_of_sessions(verbose = True, save_to_file = False)
-D.table_of_samples(verbose = True, save_to_file = False)
-D.table_of_analyses(verbose = True, save_to_file = False)
-```
-
-### 2.3 Process paired Δ<sub>47</sub> and Δ<sub>48</sub> values
+### 2.4 Process paired Δ<sub>47</sub> and Δ<sub>48</sub> values
 
 Purely in terms of data processing, it is not obvious why Δ<sub>47</sub> and Δ<sub>48</sub> data should not be handled separately. For now, `D47crunch` uses two independent classes — `D47data` and `D48data` — which crunch numbers and deal with standardization in very similar ways. The following example demonstrates how to print out combined outputs for `D47data` and `D48data`.
 
