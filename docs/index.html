@@ -33,11 +33,12 @@
     <ul>
       <li><a href="#211-plotting-the-distribution-of-analyses-through-time">2.1.1 Plotting the distribution of analyses through time</a></li>
       <li><a href="#212-generating-session-plots">2.1.2 Generating session plots</a></li>
-      <li><a href="#213-plotting-sub47sub-or-sub48sub-residuals">2.1.3 Plotting Δ<sub>47</sub> or Δ<sub>48</sub> residuals</a></li>
+      <li><a href="#213-plotting-47-or-48-residuals">2.1.3 Plotting Δ47 or Δ48 residuals</a></li>
     </ul></li>
-    <li><a href="#23-use-a-different-set-of-anchors-change-anchor-nominal-values-andor-change-sup17supo-correction-parameters">2.3 Use a different set of anchors, change anchor nominal values, and/or change <sup>17</sup>O correction parameters</a></li>
-    <li><a href="#24-process-paired-sub47sub-and-sub48sub-values">2.4 Process paired Δ<sub>47</sub> and Δ<sub>48</sub> values</a></li>
+    <li><a href="#23-use-a-different-set-of-anchors-change-anchor-nominal-values-andor-change-17o-correction-parameters">2.3 Use a different set of anchors, change anchor nominal values, and/or change 17O correction parameters</a></li>
+    <li><a href="#24-process-paired-47-and-48-values">2.4 Process paired Δ47 and Δ48 values</a></li>
   </ul></li>
+  <li><a href="#d47crunch-api">D47crunch API</a></li>
 </ul>
 
 
@@ -308,7 +309,7 @@
                     <h1 class="modulename">
 D47crunch    </h1>
 
-                        <div class="docstring"><p>Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotope measurements</p>
+                        <div class="docstring"><p>Standardization and analytical error propagation of Δ<sub>47</sub> and Δ<sub>48</sub> clumped-isotope measurements</p>
 
 <p>Process and standardize carbonate and/or CO<sub>2</sub> clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
@@ -423,7 +424,7 @@ MYSAMPLE-2  2      -8.17       30.05  0.6600  0.0115  ± 0.0366  0.0025
 ––––––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
 </code></pre></div>
 
-<p>This table lists, for each sample, the number of analytical replicates, average δ<sup>13</sup>C and δ<sup>18</sup>O values (for the analyte CO<sub>2</sub> , _not_ for the carbonate itself), the average Δ<sub>47</sub> value and the SD of Δ<sub>47</sub> for all replicates of this sample. For unknown samples, the SE and 95 % confidence limits for mean Δ<sub>47</sub> are also listed These 95 % CL take into account the number of degrees of freedom of the regression model, so that in large datasets the 95 % CL will tend to 1.96 times the SE, but in this case the applicable t-factor is much larger.</p>
+<p>This table lists, for each sample, the number of analytical replicates, average δ<sup>13</sup>C and δ<sup>18</sup>O values (for the analyte CO<sub>2</sub> , <em>not</em> for the carbonate itself), the average Δ<sub>47</sub> value and the SD of Δ<sub>47</sub> for all replicates of this sample. For unknown samples, the SE and 95 % confidence limits for mean Δ<sub>47</sub> are also listed These 95 % CL take into account the number of degrees of freedom of the regression model, so that in large datasets the 95 % CL will tend to 1.96 times the SE, but in this case the applicable t-factor is much larger.</p>
 
 <p>We can also generate a table of all analyses in the data set (again, note that <code>d18O_VSMOW</code> is the composition of the CO<sub>2</sub> analyte):</p>
 
@@ -760,6 +761,8 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 24   Session_02     FOO       -4.000        26.000  -0.840413   2.828738    1.310185    5.339898    4.665655   -5.000000   28.907344  -0.600291  -0.323761  -0.000006  0.300082  0.136830
 –––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––  ––––––––
 </code></pre>
+
+<h2 id="d47crunch-api">D47crunch API</h2>
 </div>
 
                         <details>
@@ -768,9 +771,9 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotope measurements</span>
 
-<span class="sd">Process and standardize carbonate and/or CO&lt;sub&gt;2&lt;/sub&gt; clumped-isotope analyses,</span>
+<span class="sd">Process and standardize carbonate and/or CO2 clumped-isotope analyses,</span>
 <span class="sd">from low-level data out of a dual-inlet mass spectrometer to final, “absolute”</span>
-<span class="sd">Δ&lt;sub&gt;47&lt;/sub&gt; and Δ&lt;sub&gt;48&lt;/sub&gt; values with fully propagated analytical error estimates</span>
+<span class="sd">Δ47 and Δ48 values with fully propagated analytical error estimates</span>
 <span class="sd">([Daëron, 2021](https://doi.org/10.1029/2020GC009592)).</span>
 
 <span class="sd">The **tutorial** section takes you through a series of simple steps to import/process data and print out the results.</span>
@@ -778,6 +781,8 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 <span class="sd">.. include:: ../docs/tutorial.md</span>
 <span class="sd">.. include:: ../docs/howto.md</span>
+
+<span class="sd">## D47crunch API</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
 <span class="n">__docformat__</span> <span class="o">=</span> <span class="s2">&quot;restructuredtext&quot;</span>
@@ -826,7 +831,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 <span class="n">_fCO2eqD47_Petersen</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">Petersen_etal_CO2eqD47</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">Petersen_etal_CO2eqD47</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">fCO2eqD47_Petersen</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	CO&lt;sub&gt;2&lt;/sub&gt; equilibrium Δ&lt;sub&gt;47&lt;/sub&gt; value as a function of T (in degrees C)</span>
+<span class="sd">	CO2 equilibrium Δ47 value as a function of T (in degrees C)</span>
 <span class="sd">	according to [Petersen et al. (2019)](https://doi.org/10.1029/2018GC008127).</span>
 
 <span class="sd">	&#39;&#39;&#39;</span>
@@ -837,7 +842,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 <span class="n">_fCO2eqD47_Wang</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">Wang_etal_CO2eqD47</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.15</span><span class="p">,</span> <span class="n">Wang_etal_CO2eqD47</span><span class="p">[:,</span><span class="mi">1</span><span class="p">])</span>
 <span class="k">def</span> <span class="nf">fCO2eqD47_Wang</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	CO&lt;sub&gt;2&lt;/sub&gt; equilibrium Δ&lt;sub&gt;47&lt;/sub&gt; value as a function of `T` (in degrees C)</span>
+<span class="sd">	CO2 equilibrium Δ47 value as a function of `T` (in degrees C)</span>
 <span class="sd">	according to [Wang et al. (2004)](https://doi.org/10.1016/j.gca.2004.05.039)</span>
 <span class="sd">	(supplementary data of [Dennis et al., 2011](https://doi.org/10.1016/j.gca.2011.09.025)).</span>
 <span class="sd">	&#39;&#39;&#39;</span>
@@ -1057,11 +1062,11 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 <span class="sd">	+ `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample</span>
 <span class="sd">	+ `D47`, `D48`, `D49`, `D17O`: clumped-isotope and oxygen-17 anomalies</span>
 <span class="sd">		of the carbonate sample</span>
-<span class="sd">	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ&lt;sub&gt;47&lt;/sub&gt; and</span>
-<span class="sd">		Δ&lt;sub&gt;48&lt;/sub&gt; values if `D47` or `D48` are not specified</span>
-<span class="sd">	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ&lt;sup&gt;13&lt;/sup&gt;C and</span>
-<span class="sd">		δ&lt;sup&gt;18&lt;/sup&gt;O values if `d13C_VPDB` or `d18O_VPDB` are not specified</span>
-<span class="sd">	+ `ALPHA_18O_ACID_REACTION`: &lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;O acid fractionation factor</span>
+<span class="sd">	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ47 and</span>
+<span class="sd">		Δ48 values if `D47` or `D48` are not specified</span>
+<span class="sd">	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ13C and</span>
+<span class="sd">		δ18O values if `d13C_VPDB` or `d18O_VPDB` are not specified</span>
+<span class="sd">	+ `ALPHA_18O_ACID_REACTION`: 18O/16O acid fractionation factor</span>
 <span class="sd">	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `LAMBDA_17`, `R18_VPDB`: oxygen-17</span>
 <span class="sd">		correction parameters (by default equal to the `D4xdata` default values)</span>
 <span class="sd">	</span>
@@ -1200,23 +1205,23 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 <span class="sd">	    * `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample</span>
 <span class="sd">	    * `D47`, `D48`, `D49`, `D17O` (all optional): clumped-isotope and oxygen-17 anomalies of the carbonate sample</span>
 <span class="sd">	    * `N`: how many analyses to generate for this sample</span>
-<span class="sd">	+ `a47`: scrambling factor for Δ&lt;sub&gt;47&lt;/sub&gt;</span>
-<span class="sd">	+ `b47`: compositional nonlinearity for Δ&lt;sub&gt;47&lt;/sub&gt;</span>
-<span class="sd">	+ `c47`: working gas offset for Δ&lt;sub&gt;47&lt;/sub&gt;</span>
-<span class="sd">	+ `a48`: scrambling factor for Δ&lt;sub&gt;48&lt;/sub&gt;</span>
-<span class="sd">	+ `b48`: compositional nonlinearity for Δ&lt;sub&gt;48&lt;/sub&gt;</span>
-<span class="sd">	+ `c48`: working gas offset for Δ&lt;sub&gt;48&lt;/sub&gt;</span>
-<span class="sd">	+ `rD47`: analytical repeatability of Δ&lt;sub&gt;47&lt;/sub&gt;</span>
-<span class="sd">	+ `rD48`: analytical repeatability of Δ&lt;sub&gt;48&lt;/sub&gt;</span>
+<span class="sd">	+ `a47`: scrambling factor for Δ47</span>
+<span class="sd">	+ `b47`: compositional nonlinearity for Δ47</span>
+<span class="sd">	+ `c47`: working gas offset for Δ47</span>
+<span class="sd">	+ `a48`: scrambling factor for Δ48</span>
+<span class="sd">	+ `b48`: compositional nonlinearity for Δ48</span>
+<span class="sd">	+ `c48`: working gas offset for Δ48</span>
+<span class="sd">	+ `rD47`: analytical repeatability of Δ47</span>
+<span class="sd">	+ `rD48`: analytical repeatability of Δ48</span>
 <span class="sd">	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas</span>
 <span class="sd">		(by default equal to the `simulate_single_analysis` default values)</span>
 <span class="sd">	+ `session`: name of the session (no name by default)</span>
-<span class="sd">	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ&lt;sub&gt;47&lt;/sub&gt; and Δ&lt;sub&gt;48&lt;/sub&gt; values</span>
+<span class="sd">	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ47 and Δ48 values</span>
 <span class="sd">		if `D47` or `D48` are not specified (by default equal to the `simulate_single_analysis` defaults)</span>
-<span class="sd">	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ&lt;sup&gt;13&lt;/sup&gt;C and</span>
-<span class="sd">		δ&lt;sup&gt;18&lt;/sup&gt;O values if `d13C_VPDB` or `d18O_VPDB` are not specified </span>
+<span class="sd">	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ13C and</span>
+<span class="sd">		δ18O values if `d13C_VPDB` or `d18O_VPDB` are not specified </span>
 <span class="sd">		(by default equal to the `simulate_single_analysis` defaults)</span>
-<span class="sd">	+ `ALPHA_18O_ACID_REACTION`: &lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;O acid fractionation factor</span>
+<span class="sd">	+ `ALPHA_18O_ACID_REACTION`: 18O/16O acid fractionation factor</span>
 <span class="sd">		(by default equal to the `simulate_single_analysis` defaults)</span>
 <span class="sd">	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `LAMBDA_17`, `R18_VPDB`: oxygen-17</span>
 <span class="sd">		correction parameters (by default equal to the `simulate_single_analysis` default)</span>
@@ -1613,20 +1618,20 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 <span class="k">class</span> <span class="nc">D4xdata</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Store and process data for a large set of Δ&lt;sub&gt;47&lt;/sub&gt; and/or Δ&lt;sub&gt;48&lt;/sub&gt;</span>
+<span class="sd">	Store and process data for a large set of Δ47 and/or Δ48</span>
 <span class="sd">	analyses, usually comprising more than one analytical session.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
 	<span class="c1">### 17O CORRECTION PARAMETERS</span>
 	<span class="n">R13_VPDB</span> <span class="o">=</span> <span class="mf">0.01118</span>  <span class="c1"># (Chang &amp; Li, 1990)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Absolute (&lt;sup&gt;13&lt;/sup&gt;C/&lt;sup&gt;12&lt;/sup&gt;C) ratio of VPDB.</span>
+<span class="sd">	Absolute (13C/12C) ratio of VPDB.</span>
 <span class="sd">	By default equal to 0.01118 ([Chang &amp; Li, 1990](http://www.cnki.com.cn/Article/CJFDTotal-JXTW199004006.htm))</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
 	<span class="n">R18_VSMOW</span> <span class="o">=</span> <span class="mf">0.0020052</span>  <span class="c1"># (Baertschi, 1976)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Absolute (&lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VSMOW.</span>
+<span class="sd">	Absolute (18O/16C) ratio of VSMOW.</span>
 <span class="sd">	By default equal to 0.0020052 ([Baertschi, 1976](https://doi.org/10.1016/0012-821X(76)90115-1))</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
@@ -1638,7 +1643,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="n">R17_VSMOW</span> <span class="o">=</span> <span class="mf">0.00038475</span>  <span class="c1"># (Assonov &amp; Brenninkmeijer, 2003, rescaled to R13_VPDB)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Absolute (&lt;sup&gt;17&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VSMOW.</span>
+<span class="sd">	Absolute (17O/16C) ratio of VSMOW.</span>
 <span class="sd">	By default equal to 0.00038475</span>
 <span class="sd">	([Assonov &amp; Brenninkmeijer, 2003](https://dx.doi.org/10.1002/rcm.1011),</span>
 <span class="sd">	rescaled to `R13_VPDB`)</span>
@@ -1646,20 +1651,20 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="n">R18_VPDB</span> <span class="o">=</span> <span class="n">R18_VSMOW</span> <span class="o">*</span> <span class="mf">1.03092</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Absolute (&lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VPDB.</span>
+<span class="sd">	Absolute (18O/16C) ratio of VPDB.</span>
 <span class="sd">	By definition equal to `R18_VSMOW * 1.03092`.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
 	<span class="n">R17_VPDB</span> <span class="o">=</span> <span class="n">R17_VSMOW</span> <span class="o">*</span> <span class="mf">1.03092</span> <span class="o">**</span> <span class="n">LAMBDA_17</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Absolute (&lt;sup&gt;17&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VPDB.</span>
+<span class="sd">	Absolute (17O/16C) ratio of VPDB.</span>
 <span class="sd">	By definition equal to `R17_VSMOW * 1.03092 ** LAMBDA_17`.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
 	<span class="n">LEVENE_REF_SAMPLE</span> <span class="o">=</span> <span class="s1">&#39;ETH-3&#39;</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	After the Δ&lt;sub&gt;4x&lt;/sub&gt; standardization step, each sample is tested to</span>
-<span class="sd">	assess whether the Δ&lt;sub&gt;4x&lt;/sub&gt; variance within all analyses for that</span>
+<span class="sd">	After the Δ4x standardization step, each sample is tested to</span>
+<span class="sd">	assess whether the Δ4x variance within all analyses for that</span>
 <span class="sd">	sample differs significantly from that observed for a given reference</span>
 <span class="sd">	sample (using [Levene&#39;s test](https://en.wikipedia.org/wiki/Levene%27s_test),</span>
 <span class="sd">	which yields a p-value corresponding to the null hypothesis that the</span>
@@ -1671,7 +1676,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="n">ALPHA_18O_ACID_REACTION</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">3.59</span> <span class="o">/</span> <span class="p">(</span><span class="mi">90</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.79e-3</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>  <span class="c1"># (Kim et al., 2007, calcite)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Specifies the &lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;O fractionation factor generally applicable</span>
+<span class="sd">	Specifies the 18O/16O fractionation factor generally applicable</span>
 <span class="sd">	to acid reactions in the dataset. Currently used by `D4xdata.wg()`,</span>
 <span class="sd">	`D4xdata.standardize_d13C`, and `D4xdata.standardize_d18O`.</span>
 
@@ -1685,7 +1690,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 		<span class="s1">&#39;ETH-3&#39;</span><span class="p">:</span> <span class="mf">1.71</span><span class="p">,</span>
 		<span class="p">}</span>	<span class="c1"># (Bernasconi et al., 2018)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Nominal δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; values assigned to carbonate standards, used by</span>
+<span class="sd">	Nominal δ13C_VPDB values assigned to carbonate standards, used by</span>
 <span class="sd">	`D4xdata.standardize_d13C()`.</span>
 
 <span class="sd">	By default equal to `{&#39;ETH-1&#39;: 2.02, &#39;ETH-2&#39;: -10.17, &#39;ETH-3&#39;: 1.71}` after</span>
@@ -1698,7 +1703,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 		<span class="s1">&#39;ETH-3&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.78</span><span class="p">,</span>
 		<span class="p">}</span>	<span class="c1"># (Bernasconi et al., 2018)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Nominal δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt; values assigned to carbonate standards, used by</span>
+<span class="sd">	Nominal δ18O_VPDB values assigned to carbonate standards, used by</span>
 <span class="sd">	`D4xdata.standardize_d18O()`.</span>
 
 <span class="sd">	By default equal to `{&#39;ETH-1&#39;: -2.19, &#39;ETH-2&#39;: -18.69, &#39;ETH-3&#39;: -1.78}` after</span>
@@ -1707,28 +1712,28 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="n">d13C_STANDARDIZATION_METHOD</span> <span class="o">=</span> <span class="s1">&#39;2pt&#39;</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Method by which to standardize δ&lt;sup&gt;13&lt;/sup&gt;C values:</span>
+<span class="sd">	Method by which to standardize δ13C values:</span>
 <span class="sd">	</span>
-<span class="sd">	+ `none`: do not apply any δ&lt;sup&gt;13&lt;/sup&gt;C standardization.</span>
-<span class="sd">	+ `&#39;1pt&#39;`: within each session, offset all initial δ&lt;sup&gt;13&lt;/sup&gt;C values so as to</span>
-<span class="sd">	minimize the difference between final δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; values and</span>
+<span class="sd">	+ `none`: do not apply any δ13C standardization.</span>
+<span class="sd">	+ `&#39;1pt&#39;`: within each session, offset all initial δ13C values so as to</span>
+<span class="sd">	minimize the difference between final δ13C_VPDB values and</span>
 <span class="sd">	`Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB` is defined).</span>
-<span class="sd">	+ `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ&lt;sup&gt;13&lt;/sup&gt;C</span>
-<span class="sd">	values so as to minimize the difference between final δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;</span>
+<span class="sd">	+ `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ13C</span>
+<span class="sd">	values so as to minimize the difference between final δ13C_VPDB</span>
 <span class="sd">	values and `Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB`</span>
 <span class="sd">	is defined).</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
 	<span class="n">d18O_STANDARDIZATION_METHOD</span> <span class="o">=</span> <span class="s1">&#39;2pt&#39;</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Method by which to standardize δ&lt;sup&gt;18&lt;/sup&gt;O values:</span>
+<span class="sd">	Method by which to standardize δ18O values:</span>
 <span class="sd">	</span>
-<span class="sd">	+ `none`: do not apply any δ&lt;sup&gt;18&lt;/sup&gt;O standardization.</span>
-<span class="sd">	+ `&#39;1pt&#39;`: within each session, offset all initial δ&lt;sup&gt;18&lt;/sup&gt;O values so as to</span>
-<span class="sd">	minimize the difference between final δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt; values and</span>
+<span class="sd">	+ `none`: do not apply any δ18O standardization.</span>
+<span class="sd">	+ `&#39;1pt&#39;`: within each session, offset all initial δ18O values so as to</span>
+<span class="sd">	minimize the difference between final δ18O_VPDB values and</span>
 <span class="sd">	`Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB` is defined).</span>
-<span class="sd">	+ `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ&lt;sup&gt;18&lt;/sup&gt;O</span>
-<span class="sd">	values so as to minimize the difference between final δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt;</span>
+<span class="sd">	+ `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ18O</span>
+<span class="sd">	values so as to minimize the difference between final δ18O_VPDB</span>
 <span class="sd">	values and `Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB`</span>
 <span class="sd">	is defined).</span>
 <span class="sd">	&#39;&#39;&#39;</span>
@@ -1999,10 +2004,10 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="k">def</span> <span class="nf">compute_bulk_delta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R45</span><span class="p">,</span> <span class="n">R46</span><span class="p">,</span> <span class="n">D17O</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;,</span>
+<span class="sd">		Compute δ13C_VPDB and δ18O_VSMOW,</span>
 <span class="sd">		by solving the generalized form of equation (17) from</span>
 <span class="sd">		[Brand et al. (2010)](https://doi.org/10.1351/PAC-REP-09-01-05),</span>
-<span class="sd">		assuming that δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; is not too big (0 ± 50 ‰) and</span>
+<span class="sd">		assuming that δ18O_VSMOW is not too big (0 ± 50 ‰) and</span>
 <span class="sd">		solving the corresponding second-order Taylor polynomial.</span>
 <span class="sd">		(Appendix A of [Daëron et al., 2016](https://doi.org/10.1016/j.chemgeo.2016.08.014))</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -2059,7 +2064,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="k">def</span> <span class="nf">standardize_d13C</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Perform δ&lt;sup&gt;13&lt;/sup&gt;C standadization within each session `s` according to</span>
+<span class="sd">		Perform δ13C standadization within each session `s` according to</span>
 <span class="sd">		`self.sessions[s][&#39;d13C_standardization_method&#39;]`, which is defined by default</span>
 <span class="sd">		by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but</span>
 <span class="sd">		may be redefined abitrarily at a later stage.</span>
@@ -2079,7 +2084,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="k">def</span> <span class="nf">standardize_d18O</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Perform δ&lt;sup&gt;18&lt;/sup&gt;O standadization within each session `s` according to</span>
+<span class="sd">		Perform δ18O standadization within each session `s` according to</span>
 <span class="sd">		`self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_standardization_method&#39;]`,</span>
 <span class="sd">		which is defined by default by `D47data.refresh_sessions()`as equal to</span>
 <span class="sd">		`self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.</span>
@@ -2101,8 +2106,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="k">def</span> <span class="nf">compute_bulk_and_clumping_deltas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;, δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, and</span>
-<span class="sd">		raw Δ&lt;sub&gt;47&lt;/sub&gt;, Δ&lt;sub&gt;48&lt;/sub&gt;, Δ&lt;sub&gt;49&lt;/sub&gt; values for an analysis `r`.</span>
+<span class="sd">		Compute δ13C_VPDB, δ18O_VSMOW, and raw Δ47, Δ48, Δ49 values for a single analysis `r`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 
 		<span class="c1"># Compute working gas R13, R18, and isobar ratios</span>
@@ -2142,7 +2146,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 	<span class="k">def</span> <span class="nf">compute_isobar_ratios</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R13</span><span class="p">,</span> <span class="n">R18</span><span class="p">,</span> <span class="n">D17O</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">D47</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">D48</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">D49</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Compute isobar ratios for a sample with isotopic ratios `R13` and `R18`,</span>
-<span class="sd">		optionally accounting for non-zero values of Δ&lt;sup&gt;17&lt;/sup&gt;O (`D17O`) and clumped isotope</span>
+<span class="sd">		optionally accounting for non-zero values of Δ17O (`D17O`) and clumped isotope</span>
 <span class="sd">		anomalies (`D47`, `D48`, `D49`), all expressed in permil.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 
@@ -2222,7 +2226,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 <span class="sd">		probably use `D4xdata.combine_samples()` instead to reverse the effects of</span>
 <span class="sd">		`D47data.split_samples()` with `grouping=&#39;by_uid&#39;`, or `w_avg()` to reverse the</span>
 <span class="sd">		effects of `D47data.split_samples()` with `grouping=&#39;by_sessions&#39;` (because in</span>
-<span class="sd">		that case session-averaged Δ&lt;sub&gt;4x&lt;/sub&gt; values are statistically independent).</span>
+<span class="sd">		that case session-averaged Δ4x values are statistically independent).</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">unknowns_old</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknowns</span><span class="p">})</span>
 		<span class="n">CM_old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">standardization</span><span class="o">.</span><span class="n">covar</span><span class="p">[:,:]</span>
@@ -2299,7 +2303,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="k">def</span> <span class="nf">combine_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Combine analyses of different samples to compute weighted average Δ&lt;sub&gt;4x&lt;/sub&gt;</span>
+<span class="sd">		Combine analyses of different samples to compute weighted average Δ4x</span>
 <span class="sd">		and new error (co)variances corresponding to the groups defined by the `sample_groups`</span>
 <span class="sd">		dictionary.</span>
 <span class="sd">		</span>
@@ -2310,7 +2314,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 <span class="sd">		Returns a tuplet of:</span>
 <span class="sd">		</span>
 <span class="sd">		+ the list of group names</span>
-<span class="sd">		+ an array of the corresponding Δ&lt;sub&gt;4x&lt;/sub&gt; values</span>
+<span class="sd">		+ an array of the corresponding Δ4x values</span>
 <span class="sd">		+ the corresponding (co)variance matrix</span>
 <span class="sd">		</span>
 <span class="sd">		**Parameters**</span>
@@ -2346,10 +2350,10 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 		<span class="n">constraints</span> <span class="o">=</span> <span class="p">{},</span>
 		<span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute absolute Δ&lt;sub&gt;4x&lt;/sub&gt; values for all replicate analyses and for sample averages.</span>
+<span class="sd">		Compute absolute Δ4x values for all replicate analyses and for sample averages.</span>
 <span class="sd">		If `method` argument is set to `&#39;pooled&#39;`, the standardization processes all sessions</span>
 <span class="sd">		in a single step, assuming that all samples (anchors and unknowns alike) are homogeneous,</span>
-<span class="sd">		i.e. that their true Δ&lt;sub&gt;4x&lt;/sub&gt; value does not change between sessions,</span>
+<span class="sd">		i.e. that their true Δ4x value does not change between sessions,</span>
 <span class="sd">		([Daëron, 2021](https://doi.org/10.1029/2020GC009592)). If `method` argument is set to</span>
 <span class="sd">		`&#39;indep_sessions&#39;`, the standardization processes each session independently, based only</span>
 <span class="sd">		on anchors analyses.</span>
@@ -2556,7 +2560,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 	<span class="k">def</span> <span class="nf">standardization_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">d4x</span><span class="p">,</span> <span class="n">D4x</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Compute standardization error for a given session and</span>
-<span class="sd">		(δ&lt;sub&gt;47&lt;/sub&gt;, Δ&lt;sub&gt;47&lt;/sub&gt;) composition.</span>
+<span class="sd">		(δ47, Δ47) composition.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
 		<span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
@@ -2844,22 +2848,22 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 <span class="sd">		For each anchor sample:</span>
 
-<span class="sd">		+ `D47` or `D48`: the nominal Δ&lt;sub&gt;4x&lt;/sub&gt; value for this anchor, specified by `self.Nominal_D4x`</span>
+<span class="sd">		+ `D47` or `D48`: the nominal Δ4x value for this anchor, specified by `self.Nominal_D4x`</span>
 <span class="sd">		+ `SE_D47` or `SE_D48`: set to zero by definition</span>
 
 <span class="sd">		For each unknown sample:</span>
 
-<span class="sd">		+ `D47` or `D48`: the standardized Δ&lt;sub&gt;4x&lt;/sub&gt; value for this unknown</span>
-<span class="sd">		+ `SE_D47` or `SE_D48`: the standard error of Δ&lt;sub&gt;4x&lt;/sub&gt; for this unknown</span>
+<span class="sd">		+ `D47` or `D48`: the standardized Δ4x value for this unknown</span>
+<span class="sd">		+ `SE_D47` or `SE_D48`: the standard error of Δ4x for this unknown</span>
 
 <span class="sd">		For each anchor and unknown:</span>
 
 <span class="sd">		+ `N`: the total number of analyses of this sample</span>
 <span class="sd">		+ `SD_D47` or `SD_D48`: the “sample” (in the statistical sense) standard deviation for this sample</span>
-<span class="sd">		+ `d13C_VPDB`: the average δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; value for this sample</span>
-<span class="sd">		+ `d18O_VSMOW`: the average δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; value for this sample (as CO&lt;sub&gt;2&lt;/sub&gt;)</span>
+<span class="sd">		+ `d13C_VPDB`: the average δ13C_VPDB value for this sample</span>
+<span class="sd">		+ `d18O_VSMOW`: the average δ18O_VSMOW value for this sample (as CO2)</span>
 <span class="sd">		+ `p_Levene`: the p-value from a [Levene test](https://en.wikipedia.org/wiki/Levene%27s_test) of equal</span>
-<span class="sd">		variance, indicating whether the Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability this sample differs significantly from</span>
+<span class="sd">		variance, indicating whether the Δ4x repeatability this sample differs significantly from</span>
 <span class="sd">		that observed for the reference sample specified by `self.LEVENE_REF_SAMPLE`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">D4x_ref_pop</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;D</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_4x</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">LEVENE_REF_SAMPLE</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]]</span>
@@ -2921,9 +2925,9 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 <span class="sd">		+ `Na`: Number of anchor analyses in the session</span>
 <span class="sd">		+ `Nu`: Number of unknown analyses in the session</span>
-<span class="sd">		+ `r_d13C_VPDB`: δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; repeatability of analyses within the session</span>
-<span class="sd">		+ `r_d18O_VSMOW`: δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; repeatability of analyses within the session</span>
-<span class="sd">		+ `r_D47` or `r_D48`: Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability of analyses within the session</span>
+<span class="sd">		+ `r_d13C_VPDB`: δ13C_VPDB repeatability of analyses within the session</span>
+<span class="sd">		+ `r_d18O_VSMOW`: δ18O_VSMOW repeatability of analyses within the session</span>
+<span class="sd">		+ `r_D47` or `r_D48`: Δ4x repeatability of analyses within the session</span>
 <span class="sd">		+ `a`: scrambling factor</span>
 <span class="sd">		+ `b`: compositional slope</span>
 <span class="sd">		+ `c`: WG offset</span>
@@ -2938,8 +2942,8 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 <span class="sd">		+ `c2`: WG offset drift</span>
 <span class="sd">		+ `Np`: Number of standardization parameters to fit</span>
 <span class="sd">		+ `CM`: model covariance matrix for (`a`, `b`, `c`, `a2`, `b2`, `c2`)</span>
-<span class="sd">		+ `d13Cwg_VPDB`: δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; of WG</span>
-<span class="sd">		+ `d18Owg_VSMOW`: δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; of WG</span>
+<span class="sd">		+ `d13Cwg_VPDB`: δ13C_VPDB of WG</span>
+<span class="sd">		+ `d18Owg_VSMOW`: δ18O_VSMOW of WG</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">:</span>
 			<span class="k">if</span> <span class="s1">&#39;d13Cwg_VPDB&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">[</span><span class="n">session</span><span class="p">]:</span>
@@ -3041,9 +3045,8 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 	<span class="nd">@make_verbal</span>
 	<span class="k">def</span> <span class="nf">repeatabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute analytical repeatabilities for δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;,</span>
-<span class="sd">		δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, Δ&lt;sub&gt;4x&lt;/sub&gt; (for all samples, for anchors,</span>
-<span class="sd">		and for unknowns).</span>
+<span class="sd">		Compute analytical repeatabilities for δ13C_VPDB, δ18O_VSMOW, Δ4x</span>
+<span class="sd">		(for all samples, for anchors, and for unknowns).</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s1">&#39;Computing reproducibilities for all sessions&#39;</span><span class="p">)</span>
 
@@ -3079,9 +3082,9 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 		<span class="n">sessions</span> <span class="o">=</span> <span class="s1">&#39;all sessions&#39;</span><span class="p">,</span>
 		<span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute the χ&lt;sup&gt;2&lt;/sup&gt;, root mean squared weighted deviation</span>
-<span class="sd">		(i.e. reduced χ&lt;sup&gt;2&lt;/sup&gt;), and corresponding degrees of freedom of the</span>
-<span class="sd">		Δ&lt;sub&gt;4x&lt;/sub&gt; values for samples in `samples` and sessions in `sessions`.</span>
+<span class="sd">		Compute the χ2, root mean squared weighted deviation</span>
+<span class="sd">		(i.e. reduced χ2), and corresponding degrees of freedom of the</span>
+<span class="sd">		Δ4x values for samples in `samples` and sessions in `sessions`.</span>
 <span class="sd">		</span>
 <span class="sd">		Only used in `D4xdata.standardize()` with `method=&#39;indep_sessions&#39;`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -3158,9 +3161,9 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="k">def</span> <span class="nf">sample_average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="s1">&#39;equal&#39;</span><span class="p">,</span> <span class="n">normalize</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Weighted average Δ&lt;sub&gt;4x&lt;/sub&gt; value of a group of samples, accounting for covariance.</span>
+<span class="sd">		Weighted average Δ4x value of a group of samples, accounting for covariance.</span>
 
-<span class="sd">		Returns the weighed average Δ&lt;sub&gt;4x&lt;/sub&gt; value and associated SE</span>
+<span class="sd">		Returns the weighed average Δ4x value and associated SE</span>
 <span class="sd">		of a group of samples. Weights are equal by default. If `normalize` is</span>
 <span class="sd">		true, `weights` will be rescaled so that their sum equals 1.</span>
 
@@ -3170,15 +3173,15 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 <span class="sd">		self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])</span>
 <span class="sd">		```</span>
 
-<span class="sd">		returns the value and SE of [Δ&lt;sub&gt;4x&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;4x&lt;/sub&gt;(Y)]/3,</span>
-<span class="sd">		where Δ&lt;sub&gt;4x&lt;/sub&gt;(X) and Δ&lt;sub&gt;4x&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;4x&lt;/sub&gt;</span>
+<span class="sd">		returns the value and SE of [Δ4x(X) + 2 Δ4x(Y)]/3,</span>
+<span class="sd">		where Δ4x(X) and Δ4x(Y) are the average Δ4x</span>
 <span class="sd">		values of samples X and Y, respectively.</span>
 
 <span class="sd">		```python</span>
 <span class="sd">		self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)</span>
 <span class="sd">		```</span>
 
-<span class="sd">		returns the value and SE of the difference Δ&lt;sub&gt;4x&lt;/sub&gt;(X) - Δ&lt;sub&gt;4x&lt;/sub&gt;(Y).</span>
+<span class="sd">		returns the value and SE of the difference Δ4x(X) - Δ4x(Y).</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="n">weights</span> <span class="o">==</span> <span class="s1">&#39;equal&#39;</span><span class="p">:</span>
 			<span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
@@ -3200,11 +3203,11 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="k">def</span> <span class="nf">sample_D4x_covar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample1</span><span class="p">,</span> <span class="n">sample2</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Covariance between Δ&lt;sub&gt;4x&lt;/sub&gt; values of samples</span>
+<span class="sd">		Covariance between Δ4x values of samples</span>
 
-<span class="sd">		Returns the error covariance between the average Δ&lt;sub&gt;4x&lt;/sub&gt; values of two</span>
+<span class="sd">		Returns the error covariance between the average Δ4x values of two</span>
 <span class="sd">		samples. If if only `sample_1` is specified, or if `sample_1 == sample_2`),</span>
-<span class="sd">		returns the Δ&lt;sub&gt;4x&lt;/sub&gt; variance for that sample.</span>
+<span class="sd">		returns the Δ4x variance for that sample.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="n">sample2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 			<span class="n">sample2</span> <span class="o">=</span> <span class="n">sample1</span>
@@ -3239,7 +3242,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="k">def</span> <span class="nf">sample_D4x_correl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample1</span><span class="p">,</span> <span class="n">sample2</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Correlation between Δ&lt;sub&gt;4x&lt;/sub&gt; errors of samples</span>
+<span class="sd">		Correlation between Δ4x errors of samples</span>
 
 <span class="sd">		Returns the error correlation between the average Δ4x values of two samples.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -3547,7 +3550,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 <span class="k">class</span> <span class="nc">D47data</span><span class="p">(</span><span class="n">D4xdata</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Store and process data for a large set of Δ&lt;sub&gt;47&lt;/sub&gt; analyses,</span>
+<span class="sd">	Store and process data for a large set of Δ47 analyses,</span>
 <span class="sd">	usually comprising more than one analytical session.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
@@ -3561,8 +3564,8 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 		<span class="s1">&#39;MERCK&#39;</span><span class="p">:</span>   <span class="mf">0.5135</span><span class="p">,</span>
 		<span class="p">}</span> <span class="c1"># I-CDES (Bernasconi et al., 2021)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Nominal Δ&lt;sub&gt;47&lt;/sub&gt; values assigned to the Δ&lt;sub&gt;47&lt;/sub&gt; anchor samples, used by</span>
-<span class="sd">	`D47data.standardize()` to normalize unknown samples to an absolute Δ&lt;sub&gt;47&lt;/sub&gt;</span>
+<span class="sd">	Nominal Δ47 values assigned to the Δ47 anchor samples, used by</span>
+<span class="sd">	`D47data.standardize()` to normalize unknown samples to an absolute Δ47</span>
 <span class="sd">	reference frame.</span>
 
 <span class="sd">	By default equal to (after [Bernasconi et al. (2021)](https://doi.org/10.1029/2020GC009588)):</span>
@@ -3600,18 +3603,18 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 	<span class="k">def</span> <span class="nf">D47fromTeq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fCo2eqD47</span> <span class="o">=</span> <span class="s1">&#39;petersen&#39;</span><span class="p">,</span> <span class="n">priority</span> <span class="o">=</span> <span class="s1">&#39;new&#39;</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Find all samples for which `Teq` is specified, compute equilibrium Δ&lt;sub&gt;47&lt;/sub&gt;</span>
+<span class="sd">		Find all samples for which `Teq` is specified, compute equilibrium Δ47</span>
 <span class="sd">		value for that temperature, and add treat these samples as additional anchors.</span>
 
 <span class="sd">		**Parameters**</span>
 
-<span class="sd">		+ `fCo2eqD47`: Which CO&lt;sub&gt;2&lt;/sub&gt; equilibrium law to use</span>
+<span class="sd">		+ `fCo2eqD47`: Which CO2 equilibrium law to use</span>
 <span class="sd">		(`petersen`: [Petersen et al. (2019)](https://doi.org/10.1029/2018GC008127);</span>
 <span class="sd">		`wang`: [Wang et al. (2019)](https://doi.org/10.1016/j.gca.2004.05.039)).</span>
 <span class="sd">		+ `priority`: if `replace`: forget old anchors and only use the new ones;</span>
 <span class="sd">		if `new`: keep pre-existing anchors but update them in case of conflict</span>
-<span class="sd">		between old and new Δ&lt;sub&gt;47&lt;/sub&gt; values;</span>
-<span class="sd">		if `old`: keep pre-existing anchors but preserve their original Δ&lt;sub&gt;47&lt;/sub&gt;</span>
+<span class="sd">		between old and new Δ47 values;</span>
+<span class="sd">		if `old`: keep pre-existing anchors but preserve their original Δ47</span>
 <span class="sd">		values in case of conflict.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">f</span> <span class="o">=</span> <span class="p">{</span>
@@ -3639,7 +3642,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 
 <span class="k">class</span> <span class="nc">D48data</span><span class="p">(</span><span class="n">D4xdata</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Store and process data for a large set of Δ&lt;sub&gt;48&lt;/sub&gt; analyses,</span>
+<span class="sd">	Store and process data for a large set of Δ48 analyses,</span>
 <span class="sd">	usually comprising more than one analytical session.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
@@ -3651,8 +3654,8 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
 		<span class="s1">&#39;GU-1&#39;</span><span class="p">:</span>  <span class="o">-</span><span class="mf">0.419</span><span class="p">,</span>
 		<span class="p">}</span> <span class="c1"># (Fiebig et al., 2019, 2021)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Nominal Δ&lt;sub&gt;48&lt;/sub&gt; values assigned to the Δ&lt;sub&gt;48&lt;/sub&gt; anchor samples, used by</span>
-<span class="sd">	`D48data.standardize()` to normalize unknown samples to an absolute Δ&lt;sub&gt;48&lt;/sub&gt;</span>
+<span class="sd">	Nominal Δ48 values assigned to the Δ48 anchor samples, used by</span>
+<span class="sd">	`D48data.standardize()` to normalize unknown samples to an absolute Δ48</span>
 <span class="sd">	reference frame.</span>
 
 <span class="sd">	By default equal to (after [Fiebig et al. (2019)](https://doi.org/10.1016/j.chemgeo.2019.05.019),</span>
@@ -3711,7 +3714,7 @@ UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46        
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">fCO2eqD47_Petersen</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	CO&lt;sub&gt;2&lt;/sub&gt; equilibrium Δ&lt;sub&gt;47&lt;/sub&gt; value as a function of T (in degrees C)</span>
+<span class="sd">	CO2 equilibrium Δ47 value as a function of T (in degrees C)</span>
 <span class="sd">	according to [Petersen et al. (2019)](https://doi.org/10.1029/2018GC008127).</span>
 
 <span class="sd">	&#39;&#39;&#39;</span>
@@ -3738,7 +3741,7 @@ according to <a href="https://doi.org/10.1029/2018GC008127">Petersen et al. (201
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">fCO2eqD47_Wang</span><span class="p">(</span><span class="n">T</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	CO&lt;sub&gt;2&lt;/sub&gt; equilibrium Δ&lt;sub&gt;47&lt;/sub&gt; value as a function of `T` (in degrees C)</span>
+<span class="sd">	CO2 equilibrium Δ47 value as a function of `T` (in degrees C)</span>
 <span class="sd">	according to [Wang et al. (2004)](https://doi.org/10.1016/j.gca.2004.05.039)</span>
 <span class="sd">	(supplementary data of [Dennis et al., 2011](https://doi.org/10.1016/j.gca.2011.09.025)).</span>
 <span class="sd">	&#39;&#39;&#39;</span>
@@ -4240,11 +4243,11 @@ whichever appers most often in the contents of <code>filename</code>.</li>
 <span class="sd">	+ `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample</span>
 <span class="sd">	+ `D47`, `D48`, `D49`, `D17O`: clumped-isotope and oxygen-17 anomalies</span>
 <span class="sd">		of the carbonate sample</span>
-<span class="sd">	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ&lt;sub&gt;47&lt;/sub&gt; and</span>
-<span class="sd">		Δ&lt;sub&gt;48&lt;/sub&gt; values if `D47` or `D48` are not specified</span>
-<span class="sd">	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ&lt;sup&gt;13&lt;/sup&gt;C and</span>
-<span class="sd">		δ&lt;sup&gt;18&lt;/sup&gt;O values if `d13C_VPDB` or `d18O_VPDB` are not specified</span>
-<span class="sd">	+ `ALPHA_18O_ACID_REACTION`: &lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;O acid fractionation factor</span>
+<span class="sd">	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ47 and</span>
+<span class="sd">		Δ48 values if `D47` or `D48` are not specified</span>
+<span class="sd">	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ13C and</span>
+<span class="sd">		δ18O values if `d13C_VPDB` or `d18O_VPDB` are not specified</span>
+<span class="sd">	+ `ALPHA_18O_ACID_REACTION`: 18O/16O acid fractionation factor</span>
 <span class="sd">	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `LAMBDA_17`, `R18_VPDB`: oxygen-17</span>
 <span class="sd">		correction parameters (by default equal to the `D4xdata` default values)</span>
 <span class="sd">	</span>
@@ -4446,23 +4449,23 @@ gas and a “perfect” measurement (i.e. raw Δ values are identical to absolut
 <span class="sd">	    * `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample</span>
 <span class="sd">	    * `D47`, `D48`, `D49`, `D17O` (all optional): clumped-isotope and oxygen-17 anomalies of the carbonate sample</span>
 <span class="sd">	    * `N`: how many analyses to generate for this sample</span>
-<span class="sd">	+ `a47`: scrambling factor for Δ&lt;sub&gt;47&lt;/sub&gt;</span>
-<span class="sd">	+ `b47`: compositional nonlinearity for Δ&lt;sub&gt;47&lt;/sub&gt;</span>
-<span class="sd">	+ `c47`: working gas offset for Δ&lt;sub&gt;47&lt;/sub&gt;</span>
-<span class="sd">	+ `a48`: scrambling factor for Δ&lt;sub&gt;48&lt;/sub&gt;</span>
-<span class="sd">	+ `b48`: compositional nonlinearity for Δ&lt;sub&gt;48&lt;/sub&gt;</span>
-<span class="sd">	+ `c48`: working gas offset for Δ&lt;sub&gt;48&lt;/sub&gt;</span>
-<span class="sd">	+ `rD47`: analytical repeatability of Δ&lt;sub&gt;47&lt;/sub&gt;</span>
-<span class="sd">	+ `rD48`: analytical repeatability of Δ&lt;sub&gt;48&lt;/sub&gt;</span>
+<span class="sd">	+ `a47`: scrambling factor for Δ47</span>
+<span class="sd">	+ `b47`: compositional nonlinearity for Δ47</span>
+<span class="sd">	+ `c47`: working gas offset for Δ47</span>
+<span class="sd">	+ `a48`: scrambling factor for Δ48</span>
+<span class="sd">	+ `b48`: compositional nonlinearity for Δ48</span>
+<span class="sd">	+ `c48`: working gas offset for Δ48</span>
+<span class="sd">	+ `rD47`: analytical repeatability of Δ47</span>
+<span class="sd">	+ `rD48`: analytical repeatability of Δ48</span>
 <span class="sd">	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas</span>
 <span class="sd">		(by default equal to the `simulate_single_analysis` default values)</span>
 <span class="sd">	+ `session`: name of the session (no name by default)</span>
-<span class="sd">	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ&lt;sub&gt;47&lt;/sub&gt; and Δ&lt;sub&gt;48&lt;/sub&gt; values</span>
+<span class="sd">	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ47 and Δ48 values</span>
 <span class="sd">		if `D47` or `D48` are not specified (by default equal to the `simulate_single_analysis` defaults)</span>
-<span class="sd">	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ&lt;sup&gt;13&lt;/sup&gt;C and</span>
-<span class="sd">		δ&lt;sup&gt;18&lt;/sup&gt;O values if `d13C_VPDB` or `d18O_VPDB` are not specified </span>
+<span class="sd">	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ13C and</span>
+<span class="sd">		δ18O values if `d13C_VPDB` or `d18O_VPDB` are not specified </span>
 <span class="sd">		(by default equal to the `simulate_single_analysis` defaults)</span>
-<span class="sd">	+ `ALPHA_18O_ACID_REACTION`: &lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;O acid fractionation factor</span>
+<span class="sd">	+ `ALPHA_18O_ACID_REACTION`: 18O/16O acid fractionation factor</span>
 <span class="sd">		(by default equal to the `simulate_single_analysis` defaults)</span>
 <span class="sd">	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `LAMBDA_17`, `R18_VPDB`: oxygen-17</span>
 <span class="sd">		correction parameters (by default equal to the `simulate_single_analysis` default)</span>
@@ -5162,20 +5165,20 @@ the exact same sets of analyses, the table will have two columns
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">D4xdata</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Store and process data for a large set of Δ&lt;sub&gt;47&lt;/sub&gt; and/or Δ&lt;sub&gt;48&lt;/sub&gt;</span>
+<span class="sd">	Store and process data for a large set of Δ47 and/or Δ48</span>
 <span class="sd">	analyses, usually comprising more than one analytical session.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
 	<span class="c1">### 17O CORRECTION PARAMETERS</span>
 	<span class="n">R13_VPDB</span> <span class="o">=</span> <span class="mf">0.01118</span>  <span class="c1"># (Chang &amp; Li, 1990)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Absolute (&lt;sup&gt;13&lt;/sup&gt;C/&lt;sup&gt;12&lt;/sup&gt;C) ratio of VPDB.</span>
+<span class="sd">	Absolute (13C/12C) ratio of VPDB.</span>
 <span class="sd">	By default equal to 0.01118 ([Chang &amp; Li, 1990](http://www.cnki.com.cn/Article/CJFDTotal-JXTW199004006.htm))</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
 	<span class="n">R18_VSMOW</span> <span class="o">=</span> <span class="mf">0.0020052</span>  <span class="c1"># (Baertschi, 1976)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Absolute (&lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VSMOW.</span>
+<span class="sd">	Absolute (18O/16C) ratio of VSMOW.</span>
 <span class="sd">	By default equal to 0.0020052 ([Baertschi, 1976](https://doi.org/10.1016/0012-821X(76)90115-1))</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
@@ -5187,7 +5190,7 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="n">R17_VSMOW</span> <span class="o">=</span> <span class="mf">0.00038475</span>  <span class="c1"># (Assonov &amp; Brenninkmeijer, 2003, rescaled to R13_VPDB)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Absolute (&lt;sup&gt;17&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VSMOW.</span>
+<span class="sd">	Absolute (17O/16C) ratio of VSMOW.</span>
 <span class="sd">	By default equal to 0.00038475</span>
 <span class="sd">	([Assonov &amp; Brenninkmeijer, 2003](https://dx.doi.org/10.1002/rcm.1011),</span>
 <span class="sd">	rescaled to `R13_VPDB`)</span>
@@ -5195,20 +5198,20 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="n">R18_VPDB</span> <span class="o">=</span> <span class="n">R18_VSMOW</span> <span class="o">*</span> <span class="mf">1.03092</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Absolute (&lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VPDB.</span>
+<span class="sd">	Absolute (18O/16C) ratio of VPDB.</span>
 <span class="sd">	By definition equal to `R18_VSMOW * 1.03092`.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
 	<span class="n">R17_VPDB</span> <span class="o">=</span> <span class="n">R17_VSMOW</span> <span class="o">*</span> <span class="mf">1.03092</span> <span class="o">**</span> <span class="n">LAMBDA_17</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Absolute (&lt;sup&gt;17&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;C) ratio of VPDB.</span>
+<span class="sd">	Absolute (17O/16C) ratio of VPDB.</span>
 <span class="sd">	By definition equal to `R17_VSMOW * 1.03092 ** LAMBDA_17`.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
 	<span class="n">LEVENE_REF_SAMPLE</span> <span class="o">=</span> <span class="s1">&#39;ETH-3&#39;</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	After the Δ&lt;sub&gt;4x&lt;/sub&gt; standardization step, each sample is tested to</span>
-<span class="sd">	assess whether the Δ&lt;sub&gt;4x&lt;/sub&gt; variance within all analyses for that</span>
+<span class="sd">	After the Δ4x standardization step, each sample is tested to</span>
+<span class="sd">	assess whether the Δ4x variance within all analyses for that</span>
 <span class="sd">	sample differs significantly from that observed for a given reference</span>
 <span class="sd">	sample (using [Levene&#39;s test](https://en.wikipedia.org/wiki/Levene%27s_test),</span>
 <span class="sd">	which yields a p-value corresponding to the null hypothesis that the</span>
@@ -5220,7 +5223,7 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="n">ALPHA_18O_ACID_REACTION</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">3.59</span> <span class="o">/</span> <span class="p">(</span><span class="mi">90</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.79e-3</span><span class="p">),</span> <span class="mi">6</span><span class="p">)</span>  <span class="c1"># (Kim et al., 2007, calcite)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Specifies the &lt;sup&gt;18&lt;/sup&gt;O/&lt;sup&gt;16&lt;/sup&gt;O fractionation factor generally applicable</span>
+<span class="sd">	Specifies the 18O/16O fractionation factor generally applicable</span>
 <span class="sd">	to acid reactions in the dataset. Currently used by `D4xdata.wg()`,</span>
 <span class="sd">	`D4xdata.standardize_d13C`, and `D4xdata.standardize_d18O`.</span>
 
@@ -5234,7 +5237,7 @@ the exact same sets of analyses, the table will have two columns
 		<span class="s1">&#39;ETH-3&#39;</span><span class="p">:</span> <span class="mf">1.71</span><span class="p">,</span>
 		<span class="p">}</span>	<span class="c1"># (Bernasconi et al., 2018)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Nominal δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; values assigned to carbonate standards, used by</span>
+<span class="sd">	Nominal δ13C_VPDB values assigned to carbonate standards, used by</span>
 <span class="sd">	`D4xdata.standardize_d13C()`.</span>
 
 <span class="sd">	By default equal to `{&#39;ETH-1&#39;: 2.02, &#39;ETH-2&#39;: -10.17, &#39;ETH-3&#39;: 1.71}` after</span>
@@ -5247,7 +5250,7 @@ the exact same sets of analyses, the table will have two columns
 		<span class="s1">&#39;ETH-3&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.78</span><span class="p">,</span>
 		<span class="p">}</span>	<span class="c1"># (Bernasconi et al., 2018)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Nominal δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt; values assigned to carbonate standards, used by</span>
+<span class="sd">	Nominal δ18O_VPDB values assigned to carbonate standards, used by</span>
 <span class="sd">	`D4xdata.standardize_d18O()`.</span>
 
 <span class="sd">	By default equal to `{&#39;ETH-1&#39;: -2.19, &#39;ETH-2&#39;: -18.69, &#39;ETH-3&#39;: -1.78}` after</span>
@@ -5256,28 +5259,28 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="n">d13C_STANDARDIZATION_METHOD</span> <span class="o">=</span> <span class="s1">&#39;2pt&#39;</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Method by which to standardize δ&lt;sup&gt;13&lt;/sup&gt;C values:</span>
+<span class="sd">	Method by which to standardize δ13C values:</span>
 <span class="sd">	</span>
-<span class="sd">	+ `none`: do not apply any δ&lt;sup&gt;13&lt;/sup&gt;C standardization.</span>
-<span class="sd">	+ `&#39;1pt&#39;`: within each session, offset all initial δ&lt;sup&gt;13&lt;/sup&gt;C values so as to</span>
-<span class="sd">	minimize the difference between final δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; values and</span>
+<span class="sd">	+ `none`: do not apply any δ13C standardization.</span>
+<span class="sd">	+ `&#39;1pt&#39;`: within each session, offset all initial δ13C values so as to</span>
+<span class="sd">	minimize the difference between final δ13C_VPDB values and</span>
 <span class="sd">	`Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB` is defined).</span>
-<span class="sd">	+ `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ&lt;sup&gt;13&lt;/sup&gt;C</span>
-<span class="sd">	values so as to minimize the difference between final δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;</span>
+<span class="sd">	+ `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ13C</span>
+<span class="sd">	values so as to minimize the difference between final δ13C_VPDB</span>
 <span class="sd">	values and `Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB`</span>
 <span class="sd">	is defined).</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
 	<span class="n">d18O_STANDARDIZATION_METHOD</span> <span class="o">=</span> <span class="s1">&#39;2pt&#39;</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Method by which to standardize δ&lt;sup&gt;18&lt;/sup&gt;O values:</span>
+<span class="sd">	Method by which to standardize δ18O values:</span>
 <span class="sd">	</span>
-<span class="sd">	+ `none`: do not apply any δ&lt;sup&gt;18&lt;/sup&gt;O standardization.</span>
-<span class="sd">	+ `&#39;1pt&#39;`: within each session, offset all initial δ&lt;sup&gt;18&lt;/sup&gt;O values so as to</span>
-<span class="sd">	minimize the difference between final δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt; values and</span>
+<span class="sd">	+ `none`: do not apply any δ18O standardization.</span>
+<span class="sd">	+ `&#39;1pt&#39;`: within each session, offset all initial δ18O values so as to</span>
+<span class="sd">	minimize the difference between final δ18O_VPDB values and</span>
 <span class="sd">	`Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB` is defined).</span>
-<span class="sd">	+ `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ&lt;sup&gt;18&lt;/sup&gt;O</span>
-<span class="sd">	values so as to minimize the difference between final δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VPDB&lt;/sub&gt;</span>
+<span class="sd">	+ `&#39;2pt&#39;`: within each session, apply a affine trasformation to all δ18O</span>
+<span class="sd">	values so as to minimize the difference between final δ18O_VPDB</span>
 <span class="sd">	values and `Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB`</span>
 <span class="sd">	is defined).</span>
 <span class="sd">	&#39;&#39;&#39;</span>
@@ -5548,10 +5551,10 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="k">def</span> <span class="nf">compute_bulk_delta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R45</span><span class="p">,</span> <span class="n">R46</span><span class="p">,</span> <span class="n">D17O</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;,</span>
+<span class="sd">		Compute δ13C_VPDB and δ18O_VSMOW,</span>
 <span class="sd">		by solving the generalized form of equation (17) from</span>
 <span class="sd">		[Brand et al. (2010)](https://doi.org/10.1351/PAC-REP-09-01-05),</span>
-<span class="sd">		assuming that δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; is not too big (0 ± 50 ‰) and</span>
+<span class="sd">		assuming that δ18O_VSMOW is not too big (0 ± 50 ‰) and</span>
 <span class="sd">		solving the corresponding second-order Taylor polynomial.</span>
 <span class="sd">		(Appendix A of [Daëron et al., 2016](https://doi.org/10.1016/j.chemgeo.2016.08.014))</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -5608,7 +5611,7 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="k">def</span> <span class="nf">standardize_d13C</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Perform δ&lt;sup&gt;13&lt;/sup&gt;C standadization within each session `s` according to</span>
+<span class="sd">		Perform δ13C standadization within each session `s` according to</span>
 <span class="sd">		`self.sessions[s][&#39;d13C_standardization_method&#39;]`, which is defined by default</span>
 <span class="sd">		by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but</span>
 <span class="sd">		may be redefined abitrarily at a later stage.</span>
@@ -5628,7 +5631,7 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="k">def</span> <span class="nf">standardize_d18O</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Perform δ&lt;sup&gt;18&lt;/sup&gt;O standadization within each session `s` according to</span>
+<span class="sd">		Perform δ18O standadization within each session `s` according to</span>
 <span class="sd">		`self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_standardization_method&#39;]`,</span>
 <span class="sd">		which is defined by default by `D47data.refresh_sessions()`as equal to</span>
 <span class="sd">		`self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.</span>
@@ -5650,8 +5653,7 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="k">def</span> <span class="nf">compute_bulk_and_clumping_deltas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;, δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, and</span>
-<span class="sd">		raw Δ&lt;sub&gt;47&lt;/sub&gt;, Δ&lt;sub&gt;48&lt;/sub&gt;, Δ&lt;sub&gt;49&lt;/sub&gt; values for an analysis `r`.</span>
+<span class="sd">		Compute δ13C_VPDB, δ18O_VSMOW, and raw Δ47, Δ48, Δ49 values for a single analysis `r`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 
 		<span class="c1"># Compute working gas R13, R18, and isobar ratios</span>
@@ -5691,7 +5693,7 @@ the exact same sets of analyses, the table will have two columns
 	<span class="k">def</span> <span class="nf">compute_isobar_ratios</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R13</span><span class="p">,</span> <span class="n">R18</span><span class="p">,</span> <span class="n">D17O</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">D47</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">D48</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">D49</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Compute isobar ratios for a sample with isotopic ratios `R13` and `R18`,</span>
-<span class="sd">		optionally accounting for non-zero values of Δ&lt;sup&gt;17&lt;/sup&gt;O (`D17O`) and clumped isotope</span>
+<span class="sd">		optionally accounting for non-zero values of Δ17O (`D17O`) and clumped isotope</span>
 <span class="sd">		anomalies (`D47`, `D48`, `D49`), all expressed in permil.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 
@@ -5771,7 +5773,7 @@ the exact same sets of analyses, the table will have two columns
 <span class="sd">		probably use `D4xdata.combine_samples()` instead to reverse the effects of</span>
 <span class="sd">		`D47data.split_samples()` with `grouping=&#39;by_uid&#39;`, or `w_avg()` to reverse the</span>
 <span class="sd">		effects of `D47data.split_samples()` with `grouping=&#39;by_sessions&#39;` (because in</span>
-<span class="sd">		that case session-averaged Δ&lt;sub&gt;4x&lt;/sub&gt; values are statistically independent).</span>
+<span class="sd">		that case session-averaged Δ4x values are statistically independent).</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">unknowns_old</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknowns</span><span class="p">})</span>
 		<span class="n">CM_old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">standardization</span><span class="o">.</span><span class="n">covar</span><span class="p">[:,:]</span>
@@ -5848,7 +5850,7 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="k">def</span> <span class="nf">combine_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Combine analyses of different samples to compute weighted average Δ&lt;sub&gt;4x&lt;/sub&gt;</span>
+<span class="sd">		Combine analyses of different samples to compute weighted average Δ4x</span>
 <span class="sd">		and new error (co)variances corresponding to the groups defined by the `sample_groups`</span>
 <span class="sd">		dictionary.</span>
 <span class="sd">		</span>
@@ -5859,7 +5861,7 @@ the exact same sets of analyses, the table will have two columns
 <span class="sd">		Returns a tuplet of:</span>
 <span class="sd">		</span>
 <span class="sd">		+ the list of group names</span>
-<span class="sd">		+ an array of the corresponding Δ&lt;sub&gt;4x&lt;/sub&gt; values</span>
+<span class="sd">		+ an array of the corresponding Δ4x values</span>
 <span class="sd">		+ the corresponding (co)variance matrix</span>
 <span class="sd">		</span>
 <span class="sd">		**Parameters**</span>
@@ -5895,10 +5897,10 @@ the exact same sets of analyses, the table will have two columns
 		<span class="n">constraints</span> <span class="o">=</span> <span class="p">{},</span>
 		<span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute absolute Δ&lt;sub&gt;4x&lt;/sub&gt; values for all replicate analyses and for sample averages.</span>
+<span class="sd">		Compute absolute Δ4x values for all replicate analyses and for sample averages.</span>
 <span class="sd">		If `method` argument is set to `&#39;pooled&#39;`, the standardization processes all sessions</span>
 <span class="sd">		in a single step, assuming that all samples (anchors and unknowns alike) are homogeneous,</span>
-<span class="sd">		i.e. that their true Δ&lt;sub&gt;4x&lt;/sub&gt; value does not change between sessions,</span>
+<span class="sd">		i.e. that their true Δ4x value does not change between sessions,</span>
 <span class="sd">		([Daëron, 2021](https://doi.org/10.1029/2020GC009592)). If `method` argument is set to</span>
 <span class="sd">		`&#39;indep_sessions&#39;`, the standardization processes each session independently, based only</span>
 <span class="sd">		on anchors analyses.</span>
@@ -6105,7 +6107,7 @@ the exact same sets of analyses, the table will have two columns
 	<span class="k">def</span> <span class="nf">standardization_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">d4x</span><span class="p">,</span> <span class="n">D4x</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Compute standardization error for a given session and</span>
-<span class="sd">		(δ&lt;sub&gt;47&lt;/sub&gt;, Δ&lt;sub&gt;47&lt;/sub&gt;) composition.</span>
+<span class="sd">		(δ47, Δ47) composition.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
 		<span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
@@ -6393,22 +6395,22 @@ the exact same sets of analyses, the table will have two columns
 
 <span class="sd">		For each anchor sample:</span>
 
-<span class="sd">		+ `D47` or `D48`: the nominal Δ&lt;sub&gt;4x&lt;/sub&gt; value for this anchor, specified by `self.Nominal_D4x`</span>
+<span class="sd">		+ `D47` or `D48`: the nominal Δ4x value for this anchor, specified by `self.Nominal_D4x`</span>
 <span class="sd">		+ `SE_D47` or `SE_D48`: set to zero by definition</span>
 
 <span class="sd">		For each unknown sample:</span>
 
-<span class="sd">		+ `D47` or `D48`: the standardized Δ&lt;sub&gt;4x&lt;/sub&gt; value for this unknown</span>
-<span class="sd">		+ `SE_D47` or `SE_D48`: the standard error of Δ&lt;sub&gt;4x&lt;/sub&gt; for this unknown</span>
+<span class="sd">		+ `D47` or `D48`: the standardized Δ4x value for this unknown</span>
+<span class="sd">		+ `SE_D47` or `SE_D48`: the standard error of Δ4x for this unknown</span>
 
 <span class="sd">		For each anchor and unknown:</span>
 
 <span class="sd">		+ `N`: the total number of analyses of this sample</span>
 <span class="sd">		+ `SD_D47` or `SD_D48`: the “sample” (in the statistical sense) standard deviation for this sample</span>
-<span class="sd">		+ `d13C_VPDB`: the average δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; value for this sample</span>
-<span class="sd">		+ `d18O_VSMOW`: the average δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; value for this sample (as CO&lt;sub&gt;2&lt;/sub&gt;)</span>
+<span class="sd">		+ `d13C_VPDB`: the average δ13C_VPDB value for this sample</span>
+<span class="sd">		+ `d18O_VSMOW`: the average δ18O_VSMOW value for this sample (as CO2)</span>
 <span class="sd">		+ `p_Levene`: the p-value from a [Levene test](https://en.wikipedia.org/wiki/Levene%27s_test) of equal</span>
-<span class="sd">		variance, indicating whether the Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability this sample differs significantly from</span>
+<span class="sd">		variance, indicating whether the Δ4x repeatability this sample differs significantly from</span>
 <span class="sd">		that observed for the reference sample specified by `self.LEVENE_REF_SAMPLE`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">D4x_ref_pop</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;D</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_4x</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">LEVENE_REF_SAMPLE</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]]</span>
@@ -6470,9 +6472,9 @@ the exact same sets of analyses, the table will have two columns
 
 <span class="sd">		+ `Na`: Number of anchor analyses in the session</span>
 <span class="sd">		+ `Nu`: Number of unknown analyses in the session</span>
-<span class="sd">		+ `r_d13C_VPDB`: δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; repeatability of analyses within the session</span>
-<span class="sd">		+ `r_d18O_VSMOW`: δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; repeatability of analyses within the session</span>
-<span class="sd">		+ `r_D47` or `r_D48`: Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability of analyses within the session</span>
+<span class="sd">		+ `r_d13C_VPDB`: δ13C_VPDB repeatability of analyses within the session</span>
+<span class="sd">		+ `r_d18O_VSMOW`: δ18O_VSMOW repeatability of analyses within the session</span>
+<span class="sd">		+ `r_D47` or `r_D48`: Δ4x repeatability of analyses within the session</span>
 <span class="sd">		+ `a`: scrambling factor</span>
 <span class="sd">		+ `b`: compositional slope</span>
 <span class="sd">		+ `c`: WG offset</span>
@@ -6487,8 +6489,8 @@ the exact same sets of analyses, the table will have two columns
 <span class="sd">		+ `c2`: WG offset drift</span>
 <span class="sd">		+ `Np`: Number of standardization parameters to fit</span>
 <span class="sd">		+ `CM`: model covariance matrix for (`a`, `b`, `c`, `a2`, `b2`, `c2`)</span>
-<span class="sd">		+ `d13Cwg_VPDB`: δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; of WG</span>
-<span class="sd">		+ `d18Owg_VSMOW`: δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; of WG</span>
+<span class="sd">		+ `d13Cwg_VPDB`: δ13C_VPDB of WG</span>
+<span class="sd">		+ `d18Owg_VSMOW`: δ18O_VSMOW of WG</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">:</span>
 			<span class="k">if</span> <span class="s1">&#39;d13Cwg_VPDB&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">[</span><span class="n">session</span><span class="p">]:</span>
@@ -6590,9 +6592,8 @@ the exact same sets of analyses, the table will have two columns
 	<span class="nd">@make_verbal</span>
 	<span class="k">def</span> <span class="nf">repeatabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute analytical repeatabilities for δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;,</span>
-<span class="sd">		δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, Δ&lt;sub&gt;4x&lt;/sub&gt; (for all samples, for anchors,</span>
-<span class="sd">		and for unknowns).</span>
+<span class="sd">		Compute analytical repeatabilities for δ13C_VPDB, δ18O_VSMOW, Δ4x</span>
+<span class="sd">		(for all samples, for anchors, and for unknowns).</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s1">&#39;Computing reproducibilities for all sessions&#39;</span><span class="p">)</span>
 
@@ -6628,9 +6629,9 @@ the exact same sets of analyses, the table will have two columns
 		<span class="n">sessions</span> <span class="o">=</span> <span class="s1">&#39;all sessions&#39;</span><span class="p">,</span>
 		<span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute the χ&lt;sup&gt;2&lt;/sup&gt;, root mean squared weighted deviation</span>
-<span class="sd">		(i.e. reduced χ&lt;sup&gt;2&lt;/sup&gt;), and corresponding degrees of freedom of the</span>
-<span class="sd">		Δ&lt;sub&gt;4x&lt;/sub&gt; values for samples in `samples` and sessions in `sessions`.</span>
+<span class="sd">		Compute the χ2, root mean squared weighted deviation</span>
+<span class="sd">		(i.e. reduced χ2), and corresponding degrees of freedom of the</span>
+<span class="sd">		Δ4x values for samples in `samples` and sessions in `sessions`.</span>
 <span class="sd">		</span>
 <span class="sd">		Only used in `D4xdata.standardize()` with `method=&#39;indep_sessions&#39;`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -6707,9 +6708,9 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="k">def</span> <span class="nf">sample_average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="s1">&#39;equal&#39;</span><span class="p">,</span> <span class="n">normalize</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Weighted average Δ&lt;sub&gt;4x&lt;/sub&gt; value of a group of samples, accounting for covariance.</span>
+<span class="sd">		Weighted average Δ4x value of a group of samples, accounting for covariance.</span>
 
-<span class="sd">		Returns the weighed average Δ&lt;sub&gt;4x&lt;/sub&gt; value and associated SE</span>
+<span class="sd">		Returns the weighed average Δ4x value and associated SE</span>
 <span class="sd">		of a group of samples. Weights are equal by default. If `normalize` is</span>
 <span class="sd">		true, `weights` will be rescaled so that their sum equals 1.</span>
 
@@ -6719,15 +6720,15 @@ the exact same sets of analyses, the table will have two columns
 <span class="sd">		self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])</span>
 <span class="sd">		```</span>
 
-<span class="sd">		returns the value and SE of [Δ&lt;sub&gt;4x&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;4x&lt;/sub&gt;(Y)]/3,</span>
-<span class="sd">		where Δ&lt;sub&gt;4x&lt;/sub&gt;(X) and Δ&lt;sub&gt;4x&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;4x&lt;/sub&gt;</span>
+<span class="sd">		returns the value and SE of [Δ4x(X) + 2 Δ4x(Y)]/3,</span>
+<span class="sd">		where Δ4x(X) and Δ4x(Y) are the average Δ4x</span>
 <span class="sd">		values of samples X and Y, respectively.</span>
 
 <span class="sd">		```python</span>
 <span class="sd">		self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)</span>
 <span class="sd">		```</span>
 
-<span class="sd">		returns the value and SE of the difference Δ&lt;sub&gt;4x&lt;/sub&gt;(X) - Δ&lt;sub&gt;4x&lt;/sub&gt;(Y).</span>
+<span class="sd">		returns the value and SE of the difference Δ4x(X) - Δ4x(Y).</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="n">weights</span> <span class="o">==</span> <span class="s1">&#39;equal&#39;</span><span class="p">:</span>
 			<span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
@@ -6749,11 +6750,11 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="k">def</span> <span class="nf">sample_D4x_covar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample1</span><span class="p">,</span> <span class="n">sample2</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Covariance between Δ&lt;sub&gt;4x&lt;/sub&gt; values of samples</span>
+<span class="sd">		Covariance between Δ4x values of samples</span>
 
-<span class="sd">		Returns the error covariance between the average Δ&lt;sub&gt;4x&lt;/sub&gt; values of two</span>
+<span class="sd">		Returns the error covariance between the average Δ4x values of two</span>
 <span class="sd">		samples. If if only `sample_1` is specified, or if `sample_1 == sample_2`),</span>
-<span class="sd">		returns the Δ&lt;sub&gt;4x&lt;/sub&gt; variance for that sample.</span>
+<span class="sd">		returns the Δ4x variance for that sample.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="n">sample2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 			<span class="n">sample2</span> <span class="o">=</span> <span class="n">sample1</span>
@@ -6788,7 +6789,7 @@ the exact same sets of analyses, the table will have two columns
 
 	<span class="k">def</span> <span class="nf">sample_D4x_correl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample1</span><span class="p">,</span> <span class="n">sample2</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Correlation between Δ&lt;sub&gt;4x&lt;/sub&gt; errors of samples</span>
+<span class="sd">		Correlation between Δ4x errors of samples</span>
 
 <span class="sd">		Returns the error correlation between the average Δ4x values of two samples.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -7167,7 +7168,7 @@ By default equal to 0.01118 (<a href="http://www.cnki.com.cn/Article/CJFDTotal-J
         <span class="name">R18_VSMOW</span><span class="default_value"> = 0.0020052</span>
     </div>
 
-            <div class="docstring"><p>Absolute (<sup>18</sup>O/<sup>16</sup>C) ratio of VSMOW.
+            <div class="docstring"><p>Absolute (<sup>18</sup>O/16C) ratio of VSMOW.
 By default equal to 0.0020052 (<a href="https://doi.org/10.1016/0012-821X(76)90115-1">Baertschi, 1976</a>)</p>
 </div>
 
@@ -7191,7 +7192,7 @@ By default equal to 0.528 (<a href="https://doi.org/10.1002/rcm.2250">Barkan &am
         <span class="name">R17_VSMOW</span><span class="default_value"> = 0.00038475</span>
     </div>
 
-            <div class="docstring"><p>Absolute (<sup>17</sup>O/<sup>16</sup>C) ratio of VSMOW.
+            <div class="docstring"><p>Absolute (<sup>17</sup>O/16C) ratio of VSMOW.
 By default equal to 0.00038475
 (<a href="https://dx.doi.org/10.1002/rcm.1011">Assonov &amp; Brenninkmeijer, 2003</a>,
 rescaled to <code><a href="#D4xdata.R13_VPDB">R13_VPDB</a></code>)</p>
@@ -7205,7 +7206,7 @@ rescaled to <code><a href="#D4xdata.R13_VPDB">R13_VPDB</a></code>)</p>
         <span class="name">R18_VPDB</span><span class="default_value"> = 0.0020672007840000003</span>
     </div>
 
-            <div class="docstring"><p>Absolute (<sup>18</sup>O/<sup>16</sup>C) ratio of VPDB.
+            <div class="docstring"><p>Absolute (<sup>18</sup>O/16C) ratio of VPDB.
 By definition equal to <code>R18_VSMOW * 1.03092</code>.</p>
 </div>
 
@@ -7217,7 +7218,7 @@ By definition equal to <code>R18_VSMOW * 1.03092</code>.</p>
         <span class="name">R17_VPDB</span><span class="default_value"> = 0.0003909861828790272</span>
     </div>
 
-            <div class="docstring"><p>Absolute (<sup>17</sup>O/<sup>16</sup>C) ratio of VPDB.
+            <div class="docstring"><p>Absolute (<sup>17</sup>O/16C) ratio of VPDB.
 By definition equal to <code>R17_VSMOW * 1.03092 ** LAMBDA_17</code>.</p>
 </div>
 
@@ -7809,10 +7810,10 @@ the carbonate standards defined in both <code>self.Nominal_d13C_VPDB</code> and
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>	<span class="k">def</span> <span class="nf">compute_bulk_delta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R45</span><span class="p">,</span> <span class="n">R46</span><span class="p">,</span> <span class="n">D17O</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; and δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;,</span>
+<span class="sd">		Compute δ13C_VPDB and δ18O_VSMOW,</span>
 <span class="sd">		by solving the generalized form of equation (17) from</span>
 <span class="sd">		[Brand et al. (2010)](https://doi.org/10.1351/PAC-REP-09-01-05),</span>
-<span class="sd">		assuming that δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; is not too big (0 ± 50 ‰) and</span>
+<span class="sd">		assuming that δ18O_VSMOW is not too big (0 ± 50 ‰) and</span>
 <span class="sd">		solving the corresponding second-order Taylor polynomial.</span>
 <span class="sd">		(Appendix A of [Daëron et al., 2016](https://doi.org/10.1016/j.chemgeo.2016.08.014))</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -7926,7 +7927,7 @@ solving the corresponding second-order Taylor polynomial.
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>	<span class="k">def</span> <span class="nf">standardize_d13C</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Perform δ&lt;sup&gt;13&lt;/sup&gt;C standadization within each session `s` according to</span>
+<span class="sd">		Perform δ13C standadization within each session `s` according to</span>
 <span class="sd">		`self.sessions[s][&#39;d13C_standardization_method&#39;]`, which is defined by default</span>
 <span class="sd">		by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but</span>
 <span class="sd">		may be redefined abitrarily at a later stage.</span>
@@ -7967,7 +7968,7 @@ may be redefined abitrarily at a later stage.</p>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>	<span class="k">def</span> <span class="nf">standardize_d18O</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Perform δ&lt;sup&gt;18&lt;/sup&gt;O standadization within each session `s` according to</span>
+<span class="sd">		Perform δ18O standadization within each session `s` according to</span>
 <span class="sd">		`self.ALPHA_18O_ACID_REACTION` and `self.sessions[s][&#39;d18O_standardization_method&#39;]`,</span>
 <span class="sd">		which is defined by default by `D47data.refresh_sessions()`as equal to</span>
 <span class="sd">		`self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.</span>
@@ -8009,8 +8010,7 @@ which is defined by default by <code><a href="#D47data.refresh_sessions">D47data
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>	<span class="k">def</span> <span class="nf">compute_bulk_and_clumping_deltas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;, δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, and</span>
-<span class="sd">		raw Δ&lt;sub&gt;47&lt;/sub&gt;, Δ&lt;sub&gt;48&lt;/sub&gt;, Δ&lt;sub&gt;49&lt;/sub&gt; values for an analysis `r`.</span>
+<span class="sd">		Compute δ13C_VPDB, δ18O_VSMOW, and raw Δ47, Δ48, Δ49 values for a single analysis `r`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 
 		<span class="c1"># Compute working gas R13, R18, and isobar ratios</span>
@@ -8049,8 +8049,7 @@ which is defined by default by <code><a href="#D47data.refresh_sessions">D47data
 
         </details>
 
-            <div class="docstring"><p>Compute δ<sup>13</sup>C<sub>VPDB</sub>, δ<sup>18</sup>O<sub>VSMOW</sub>, and
-raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values for an analysis <code>r</code>.</p>
+            <div class="docstring"><p>Compute δ<sup>13</sup>C<sub>VPDB</sub>, δ<sup>18</sup>O<sub>VSMOW</sub>, and raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values for a single analysis <code>r</code>.</p>
 </div>
 
 
@@ -8068,7 +8067,7 @@ raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values for an analysis <co
             <div class="codehilite"><pre><span></span>	<span class="k">def</span> <span class="nf">compute_isobar_ratios</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">R13</span><span class="p">,</span> <span class="n">R18</span><span class="p">,</span> <span class="n">D17O</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">D47</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">D48</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">D49</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Compute isobar ratios for a sample with isotopic ratios `R13` and `R18`,</span>
-<span class="sd">		optionally accounting for non-zero values of Δ&lt;sup&gt;17&lt;/sup&gt;O (`D17O`) and clumped isotope</span>
+<span class="sd">		optionally accounting for non-zero values of Δ17O (`D17O`) and clumped isotope</span>
 <span class="sd">		anomalies (`D47`, `D48`, `D49`), all expressed in permil.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 
@@ -8193,7 +8192,7 @@ different samples).</p>
 <span class="sd">		probably use `D4xdata.combine_samples()` instead to reverse the effects of</span>
 <span class="sd">		`D47data.split_samples()` with `grouping=&#39;by_uid&#39;`, or `w_avg()` to reverse the</span>
 <span class="sd">		effects of `D47data.split_samples()` with `grouping=&#39;by_sessions&#39;` (because in</span>
-<span class="sd">		that case session-averaged Δ&lt;sub&gt;4x&lt;/sub&gt; values are statistically independent).</span>
+<span class="sd">		that case session-averaged Δ4x values are statistically independent).</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">unknowns_old</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknowns</span><span class="p">})</span>
 		<span class="n">CM_old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">standardization</span><span class="o">.</span><span class="n">covar</span><span class="p">[:,:]</span>
@@ -8336,7 +8335,7 @@ Only applicable after <code><a href="#D4xdata.standardize">D4xdata.standardize</
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>	<span class="k">def</span> <span class="nf">combine_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_groups</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Combine analyses of different samples to compute weighted average Δ&lt;sub&gt;4x&lt;/sub&gt;</span>
+<span class="sd">		Combine analyses of different samples to compute weighted average Δ4x</span>
 <span class="sd">		and new error (co)variances corresponding to the groups defined by the `sample_groups`</span>
 <span class="sd">		dictionary.</span>
 <span class="sd">		</span>
@@ -8347,7 +8346,7 @@ Only applicable after <code><a href="#D4xdata.standardize">D4xdata.standardize</
 <span class="sd">		Returns a tuplet of:</span>
 <span class="sd">		</span>
 <span class="sd">		+ the list of group names</span>
-<span class="sd">		+ an array of the corresponding Δ&lt;sub&gt;4x&lt;/sub&gt; values</span>
+<span class="sd">		+ an array of the corresponding Δ4x values</span>
 <span class="sd">		+ the corresponding (co)variance matrix</span>
 <span class="sd">		</span>
 <span class="sd">		**Parameters**</span>
@@ -8433,10 +8432,10 @@ correlated analytical errors for one or more samples).</p>
 		<span class="n">constraints</span> <span class="o">=</span> <span class="p">{},</span>
 		<span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute absolute Δ&lt;sub&gt;4x&lt;/sub&gt; values for all replicate analyses and for sample averages.</span>
+<span class="sd">		Compute absolute Δ4x values for all replicate analyses and for sample averages.</span>
 <span class="sd">		If `method` argument is set to `&#39;pooled&#39;`, the standardization processes all sessions</span>
 <span class="sd">		in a single step, assuming that all samples (anchors and unknowns alike) are homogeneous,</span>
-<span class="sd">		i.e. that their true Δ&lt;sub&gt;4x&lt;/sub&gt; value does not change between sessions,</span>
+<span class="sd">		i.e. that their true Δ4x value does not change between sessions,</span>
 <span class="sd">		([Daëron, 2021](https://doi.org/10.1029/2020GC009592)). If `method` argument is set to</span>
 <span class="sd">		`&#39;indep_sessions&#39;`, the standardization processes each session independently, based only</span>
 <span class="sd">		on anchors analyses.</span>
@@ -8666,7 +8665,7 @@ on anchors analyses.</p>
             <div class="codehilite"><pre><span></span>	<span class="k">def</span> <span class="nf">standardization_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">d4x</span><span class="p">,</span> <span class="n">D4x</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">		Compute standardization error for a given session and</span>
-<span class="sd">		(δ&lt;sub&gt;47&lt;/sub&gt;, Δ&lt;sub&gt;47&lt;/sub&gt;) composition.</span>
+<span class="sd">		(δ47, Δ47) composition.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
 		<span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">[</span><span class="n">session</span><span class="p">][</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
@@ -9135,22 +9134,22 @@ if set to <code>'raw'</code>: return a list of list of strings
 
 <span class="sd">		For each anchor sample:</span>
 
-<span class="sd">		+ `D47` or `D48`: the nominal Δ&lt;sub&gt;4x&lt;/sub&gt; value for this anchor, specified by `self.Nominal_D4x`</span>
+<span class="sd">		+ `D47` or `D48`: the nominal Δ4x value for this anchor, specified by `self.Nominal_D4x`</span>
 <span class="sd">		+ `SE_D47` or `SE_D48`: set to zero by definition</span>
 
 <span class="sd">		For each unknown sample:</span>
 
-<span class="sd">		+ `D47` or `D48`: the standardized Δ&lt;sub&gt;4x&lt;/sub&gt; value for this unknown</span>
-<span class="sd">		+ `SE_D47` or `SE_D48`: the standard error of Δ&lt;sub&gt;4x&lt;/sub&gt; for this unknown</span>
+<span class="sd">		+ `D47` or `D48`: the standardized Δ4x value for this unknown</span>
+<span class="sd">		+ `SE_D47` or `SE_D48`: the standard error of Δ4x for this unknown</span>
 
 <span class="sd">		For each anchor and unknown:</span>
 
 <span class="sd">		+ `N`: the total number of analyses of this sample</span>
 <span class="sd">		+ `SD_D47` or `SD_D48`: the “sample” (in the statistical sense) standard deviation for this sample</span>
-<span class="sd">		+ `d13C_VPDB`: the average δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; value for this sample</span>
-<span class="sd">		+ `d18O_VSMOW`: the average δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; value for this sample (as CO&lt;sub&gt;2&lt;/sub&gt;)</span>
+<span class="sd">		+ `d13C_VPDB`: the average δ13C_VPDB value for this sample</span>
+<span class="sd">		+ `d18O_VSMOW`: the average δ18O_VSMOW value for this sample (as CO2)</span>
 <span class="sd">		+ `p_Levene`: the p-value from a [Levene test](https://en.wikipedia.org/wiki/Levene%27s_test) of equal</span>
-<span class="sd">		variance, indicating whether the Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability this sample differs significantly from</span>
+<span class="sd">		variance, indicating whether the Δ4x repeatability this sample differs significantly from</span>
 <span class="sd">		that observed for the reference sample specified by `self.LEVENE_REF_SAMPLE`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">D4x_ref_pop</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;D</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_4x</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">samples</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">LEVENE_REF_SAMPLE</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]]</span>
@@ -9255,9 +9254,9 @@ that observed for the reference sample specified by <code>self.LEVENE_REF_SAMPLE
 
 <span class="sd">		+ `Na`: Number of anchor analyses in the session</span>
 <span class="sd">		+ `Nu`: Number of unknown analyses in the session</span>
-<span class="sd">		+ `r_d13C_VPDB`: δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; repeatability of analyses within the session</span>
-<span class="sd">		+ `r_d18O_VSMOW`: δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; repeatability of analyses within the session</span>
-<span class="sd">		+ `r_D47` or `r_D48`: Δ&lt;sub&gt;4x&lt;/sub&gt; repeatability of analyses within the session</span>
+<span class="sd">		+ `r_d13C_VPDB`: δ13C_VPDB repeatability of analyses within the session</span>
+<span class="sd">		+ `r_d18O_VSMOW`: δ18O_VSMOW repeatability of analyses within the session</span>
+<span class="sd">		+ `r_D47` or `r_D48`: Δ4x repeatability of analyses within the session</span>
 <span class="sd">		+ `a`: scrambling factor</span>
 <span class="sd">		+ `b`: compositional slope</span>
 <span class="sd">		+ `c`: WG offset</span>
@@ -9272,8 +9271,8 @@ that observed for the reference sample specified by <code>self.LEVENE_REF_SAMPLE
 <span class="sd">		+ `c2`: WG offset drift</span>
 <span class="sd">		+ `Np`: Number of standardization parameters to fit</span>
 <span class="sd">		+ `CM`: model covariance matrix for (`a`, `b`, `c`, `a2`, `b2`, `c2`)</span>
-<span class="sd">		+ `d13Cwg_VPDB`: δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt; of WG</span>
-<span class="sd">		+ `d18Owg_VSMOW`: δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt; of WG</span>
+<span class="sd">		+ `d13Cwg_VPDB`: δ13C_VPDB of WG</span>
+<span class="sd">		+ `d18Owg_VSMOW`: δ18O_VSMOW of WG</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">for</span> <span class="n">session</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">:</span>
 			<span class="k">if</span> <span class="s1">&#39;d13Cwg_VPDB&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sessions</span><span class="p">[</span><span class="n">session</span><span class="p">]:</span>
@@ -9417,9 +9416,8 @@ that observed for the reference sample specified by <code>self.LEVENE_REF_SAMPLE
             <div class="codehilite"><pre><span></span>	<span class="nd">@make_verbal</span>
 	<span class="k">def</span> <span class="nf">repeatabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute analytical repeatabilities for δ&lt;sup&gt;13&lt;/sup&gt;C&lt;sub&gt;VPDB&lt;/sub&gt;,</span>
-<span class="sd">		δ&lt;sup&gt;18&lt;/sup&gt;O&lt;sub&gt;VSMOW&lt;/sub&gt;, Δ&lt;sub&gt;4x&lt;/sub&gt; (for all samples, for anchors,</span>
-<span class="sd">		and for unknowns).</span>
+<span class="sd">		Compute analytical repeatabilities for δ13C_VPDB, δ18O_VSMOW, Δ4x</span>
+<span class="sd">		(for all samples, for anchors, and for unknowns).</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">(</span><span class="s1">&#39;Computing reproducibilities for all sessions&#39;</span><span class="p">)</span>
 
@@ -9432,9 +9430,8 @@ that observed for the reference sample specified by <code>self.LEVENE_REF_SAMPLE
 
         </details>
 
-            <div class="docstring"><p>Compute analytical repeatabilities for δ<sup>13</sup>C<sub>VPDB</sub>,
-δ<sup>18</sup>O<sub>VSMOW</sub>, Δ<sub>4x</sub> (for all samples, for anchors,
-and for unknowns).</p>
+            <div class="docstring"><p>Compute analytical repeatabilities for δ<sup>13</sup>C<sub>VPDB</sub>, δ<sup>18</sup>O<sub>VSMOW</sub>, Δ<sub>4x</sub>
+(for all samples, for anchors, and for unknowns).</p>
 </div>
 
 
@@ -9493,9 +9490,9 @@ and for unknowns).</p>
 		<span class="n">sessions</span> <span class="o">=</span> <span class="s1">&#39;all sessions&#39;</span><span class="p">,</span>
 		<span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Compute the χ&lt;sup&gt;2&lt;/sup&gt;, root mean squared weighted deviation</span>
-<span class="sd">		(i.e. reduced χ&lt;sup&gt;2&lt;/sup&gt;), and corresponding degrees of freedom of the</span>
-<span class="sd">		Δ&lt;sub&gt;4x&lt;/sub&gt; values for samples in `samples` and sessions in `sessions`.</span>
+<span class="sd">		Compute the χ2, root mean squared weighted deviation</span>
+<span class="sd">		(i.e. reduced χ2), and corresponding degrees of freedom of the</span>
+<span class="sd">		Δ4x values for samples in `samples` and sessions in `sessions`.</span>
 <span class="sd">		</span>
 <span class="sd">		Only used in `D4xdata.standardize()` with `method=&#39;indep_sessions&#39;`.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -9612,9 +9609,9 @@ and for unknowns).</p>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>	<span class="k">def</span> <span class="nf">sample_average</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="s1">&#39;equal&#39;</span><span class="p">,</span> <span class="n">normalize</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Weighted average Δ&lt;sub&gt;4x&lt;/sub&gt; value of a group of samples, accounting for covariance.</span>
+<span class="sd">		Weighted average Δ4x value of a group of samples, accounting for covariance.</span>
 
-<span class="sd">		Returns the weighed average Δ&lt;sub&gt;4x&lt;/sub&gt; value and associated SE</span>
+<span class="sd">		Returns the weighed average Δ4x value and associated SE</span>
 <span class="sd">		of a group of samples. Weights are equal by default. If `normalize` is</span>
 <span class="sd">		true, `weights` will be rescaled so that their sum equals 1.</span>
 
@@ -9624,15 +9621,15 @@ and for unknowns).</p>
 <span class="sd">		self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, 2])</span>
 <span class="sd">		```</span>
 
-<span class="sd">		returns the value and SE of [Δ&lt;sub&gt;4x&lt;/sub&gt;(X) + 2 Δ&lt;sub&gt;4x&lt;/sub&gt;(Y)]/3,</span>
-<span class="sd">		where Δ&lt;sub&gt;4x&lt;/sub&gt;(X) and Δ&lt;sub&gt;4x&lt;/sub&gt;(Y) are the average Δ&lt;sub&gt;4x&lt;/sub&gt;</span>
+<span class="sd">		returns the value and SE of [Δ4x(X) + 2 Δ4x(Y)]/3,</span>
+<span class="sd">		where Δ4x(X) and Δ4x(Y) are the average Δ4x</span>
 <span class="sd">		values of samples X and Y, respectively.</span>
 
 <span class="sd">		```python</span>
 <span class="sd">		self.sample_average([&#39;X&#39;,&#39;Y&#39;], [1, -1], normalize = False)</span>
 <span class="sd">		```</span>
 
-<span class="sd">		returns the value and SE of the difference Δ&lt;sub&gt;4x&lt;/sub&gt;(X) - Δ&lt;sub&gt;4x&lt;/sub&gt;(Y).</span>
+<span class="sd">		returns the value and SE of the difference Δ4x(X) - Δ4x(Y).</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="n">weights</span> <span class="o">==</span> <span class="s1">&#39;equal&#39;</span><span class="p">:</span>
 			<span class="n">weights</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
@@ -9689,11 +9686,11 @@ values of samples X and Y, respectively.</p>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>	<span class="k">def</span> <span class="nf">sample_D4x_covar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample1</span><span class="p">,</span> <span class="n">sample2</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Covariance between Δ&lt;sub&gt;4x&lt;/sub&gt; values of samples</span>
+<span class="sd">		Covariance between Δ4x values of samples</span>
 
-<span class="sd">		Returns the error covariance between the average Δ&lt;sub&gt;4x&lt;/sub&gt; values of two</span>
+<span class="sd">		Returns the error covariance between the average Δ4x values of two</span>
 <span class="sd">		samples. If if only `sample_1` is specified, or if `sample_1 == sample_2`),</span>
-<span class="sd">		returns the Δ&lt;sub&gt;4x&lt;/sub&gt; variance for that sample.</span>
+<span class="sd">		returns the Δ4x variance for that sample.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="k">if</span> <span class="n">sample2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 			<span class="n">sample2</span> <span class="o">=</span> <span class="n">sample1</span>
@@ -9750,7 +9747,7 @@ returns the Δ<sub>4x</sub> variance for that sample.</p>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>	<span class="k">def</span> <span class="nf">sample_D4x_correl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample1</span><span class="p">,</span> <span class="n">sample2</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Correlation between Δ&lt;sub&gt;4x&lt;/sub&gt; errors of samples</span>
+<span class="sd">		Correlation between Δ4x errors of samples</span>
 
 <span class="sd">		Returns the error correlation between the average Δ4x values of two samples.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
@@ -9767,7 +9764,7 @@ returns the Δ<sub>4x</sub> variance for that sample.</p>
 
             <div class="docstring"><p>Correlation between Δ<sub>4x</sub> errors of samples</p>
 
-<p>Returns the error correlation between the average Δ4x values of two samples.</p>
+<p>Returns the error correlation between the average Δ<sub>4x</sub> values of two samples.</p>
 </div>
 
 
@@ -10195,7 +10192,7 @@ the order of analyses in the <code><a href="#D4xdata">D4xdata</a></code> object)
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">D47data</span><span class="p">(</span><span class="n">D4xdata</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Store and process data for a large set of Δ&lt;sub&gt;47&lt;/sub&gt; analyses,</span>
+<span class="sd">	Store and process data for a large set of Δ47 analyses,</span>
 <span class="sd">	usually comprising more than one analytical session.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
@@ -10209,8 +10206,8 @@ the order of analyses in the <code><a href="#D4xdata">D4xdata</a></code> object)
 		<span class="s1">&#39;MERCK&#39;</span><span class="p">:</span>   <span class="mf">0.5135</span><span class="p">,</span>
 		<span class="p">}</span> <span class="c1"># I-CDES (Bernasconi et al., 2021)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Nominal Δ&lt;sub&gt;47&lt;/sub&gt; values assigned to the Δ&lt;sub&gt;47&lt;/sub&gt; anchor samples, used by</span>
-<span class="sd">	`D47data.standardize()` to normalize unknown samples to an absolute Δ&lt;sub&gt;47&lt;/sub&gt;</span>
+<span class="sd">	Nominal Δ47 values assigned to the Δ47 anchor samples, used by</span>
+<span class="sd">	`D47data.standardize()` to normalize unknown samples to an absolute Δ47</span>
 <span class="sd">	reference frame.</span>
 
 <span class="sd">	By default equal to (after [Bernasconi et al. (2021)](https://doi.org/10.1029/2020GC009588)):</span>
@@ -10248,18 +10245,18 @@ the order of analyses in the <code><a href="#D4xdata">D4xdata</a></code> object)
 
 	<span class="k">def</span> <span class="nf">D47fromTeq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fCo2eqD47</span> <span class="o">=</span> <span class="s1">&#39;petersen&#39;</span><span class="p">,</span> <span class="n">priority</span> <span class="o">=</span> <span class="s1">&#39;new&#39;</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Find all samples for which `Teq` is specified, compute equilibrium Δ&lt;sub&gt;47&lt;/sub&gt;</span>
+<span class="sd">		Find all samples for which `Teq` is specified, compute equilibrium Δ47</span>
 <span class="sd">		value for that temperature, and add treat these samples as additional anchors.</span>
 
 <span class="sd">		**Parameters**</span>
 
-<span class="sd">		+ `fCo2eqD47`: Which CO&lt;sub&gt;2&lt;/sub&gt; equilibrium law to use</span>
+<span class="sd">		+ `fCo2eqD47`: Which CO2 equilibrium law to use</span>
 <span class="sd">		(`petersen`: [Petersen et al. (2019)](https://doi.org/10.1029/2018GC008127);</span>
 <span class="sd">		`wang`: [Wang et al. (2019)](https://doi.org/10.1016/j.gca.2004.05.039)).</span>
 <span class="sd">		+ `priority`: if `replace`: forget old anchors and only use the new ones;</span>
 <span class="sd">		if `new`: keep pre-existing anchors but update them in case of conflict</span>
-<span class="sd">		between old and new Δ&lt;sub&gt;47&lt;/sub&gt; values;</span>
-<span class="sd">		if `old`: keep pre-existing anchors but preserve their original Δ&lt;sub&gt;47&lt;/sub&gt;</span>
+<span class="sd">		between old and new Δ47 values;</span>
+<span class="sd">		if `old`: keep pre-existing anchors but preserve their original Δ47</span>
 <span class="sd">		values in case of conflict.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">f</span> <span class="o">=</span> <span class="p">{</span>
@@ -10360,18 +10357,18 @@ reference frame.</p>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>	<span class="k">def</span> <span class="nf">D47fromTeq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fCo2eqD47</span> <span class="o">=</span> <span class="s1">&#39;petersen&#39;</span><span class="p">,</span> <span class="n">priority</span> <span class="o">=</span> <span class="s1">&#39;new&#39;</span><span class="p">):</span>
 		<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">		Find all samples for which `Teq` is specified, compute equilibrium Δ&lt;sub&gt;47&lt;/sub&gt;</span>
+<span class="sd">		Find all samples for which `Teq` is specified, compute equilibrium Δ47</span>
 <span class="sd">		value for that temperature, and add treat these samples as additional anchors.</span>
 
 <span class="sd">		**Parameters**</span>
 
-<span class="sd">		+ `fCo2eqD47`: Which CO&lt;sub&gt;2&lt;/sub&gt; equilibrium law to use</span>
+<span class="sd">		+ `fCo2eqD47`: Which CO2 equilibrium law to use</span>
 <span class="sd">		(`petersen`: [Petersen et al. (2019)](https://doi.org/10.1029/2018GC008127);</span>
 <span class="sd">		`wang`: [Wang et al. (2019)](https://doi.org/10.1016/j.gca.2004.05.039)).</span>
 <span class="sd">		+ `priority`: if `replace`: forget old anchors and only use the new ones;</span>
 <span class="sd">		if `new`: keep pre-existing anchors but update them in case of conflict</span>
-<span class="sd">		between old and new Δ&lt;sub&gt;47&lt;/sub&gt; values;</span>
-<span class="sd">		if `old`: keep pre-existing anchors but preserve their original Δ&lt;sub&gt;47&lt;/sub&gt;</span>
+<span class="sd">		between old and new Δ47 values;</span>
+<span class="sd">		if `old`: keep pre-existing anchors but preserve their original Δ47</span>
 <span class="sd">		values in case of conflict.</span>
 <span class="sd">		&#39;&#39;&#39;</span>
 		<span class="n">f</span> <span class="o">=</span> <span class="p">{</span>
@@ -10506,7 +10503,7 @@ values in case of conflict.</li>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">D48data</span><span class="p">(</span><span class="n">D4xdata</span><span class="p">):</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Store and process data for a large set of Δ&lt;sub&gt;48&lt;/sub&gt; analyses,</span>
+<span class="sd">	Store and process data for a large set of Δ48 analyses,</span>
 <span class="sd">	usually comprising more than one analytical session.</span>
 <span class="sd">	&#39;&#39;&#39;</span>
 
@@ -10518,8 +10515,8 @@ values in case of conflict.</li>
 		<span class="s1">&#39;GU-1&#39;</span><span class="p">:</span>  <span class="o">-</span><span class="mf">0.419</span><span class="p">,</span>
 		<span class="p">}</span> <span class="c1"># (Fiebig et al., 2019, 2021)</span>
 	<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">	Nominal Δ&lt;sub&gt;48&lt;/sub&gt; values assigned to the Δ&lt;sub&gt;48&lt;/sub&gt; anchor samples, used by</span>
-<span class="sd">	`D48data.standardize()` to normalize unknown samples to an absolute Δ&lt;sub&gt;48&lt;/sub&gt;</span>
+<span class="sd">	Nominal Δ48 values assigned to the Δ48 anchor samples, used by</span>
+<span class="sd">	`D48data.standardize()` to normalize unknown samples to an absolute Δ48</span>
 <span class="sd">	reference frame.</span>
 
 <span class="sd">	By default equal to (after [Fiebig et al. (2019)](https://doi.org/10.1016/j.chemgeo.2019.05.019),</span>

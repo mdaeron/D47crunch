@@ -4,7 +4,7 @@
 
 It is sometimes convenient to quickly build a virtual data set of analyses, for instance to assess the final analytical precision achievable for a given combination of anchor and unknown analyses (see also Fig. 6 of [Daëron, 2021](https://doi.org/10.1029/2020GC009592)).
 
-This can be achieved with `virtual_data()`. The example below creates a dataset with four sessions, each of which comprises four analyses of anchor ETH-1, five of ETH-2, six of ETH-3, and two analyses of an unknown sample named `FOO` with an arbitrarily defined isotopic composition. Analytical repeatabilities for Δ<sub>47</sub> and Δ<sub>48</sub> are also specified arbitrarily. See the `virtual_data()` documentation for additional configuration parameters.
+This can be achieved with `virtual_data()`. The example below creates a dataset with four sessions, each of which comprises four analyses of anchor ETH-1, five of ETH-2, six of ETH-3, and two analyses of an unknown sample named `FOO` with an arbitrarily defined isotopic composition. Analytical repeatabilities for Δ47 and Δ48 are also specified arbitrarily. See the `virtual_data()` documentation for additional configuration parameters.
 
 ```py
 from D47crunch import *
@@ -97,11 +97,11 @@ The plot above shows the succession of analyses as if they were all distributed 
 data47.plot_sessions()
 ```
 
-Below is one of the resulting sessions plots. Each cross marker is an analysis. Anchors are in red and unknowns in blue. Short horizontal lines show the nominal Δ<sub>47</sub> value for anchors, in red, or the average Δ<sub>47</sub> value for unknowns, in blue (overall average for all sessions). Curved grey contours correspond to Δ<sub>47</sub> standardization errors in this session.
+Below is one of the resulting sessions plots. Each cross marker is an analysis. Anchors are in red and unknowns in blue. Short horizontal lines show the nominal Δ47 value for anchors, in red, or the average Δ47 value for unknowns, in blue (overall average for all sessions). Curved grey contours correspond to Δ47 standardization errors in this session.
 
 ![D47_plot_Session_03.png](D47_plot_Session_03.png)
 
-#### 2.1.3 Plotting Δ<sub>47</sub> or Δ<sub>48</sub> residuals
+#### 2.1.3 Plotting Δ47 or Δ48 residuals
 
 ```py
 data47.plot_residuals(filename = 'residuals.pdf')
@@ -111,7 +111,7 @@ data47.plot_residuals(filename = 'residuals.pdf')
 
 Again, note that this plot only shows the succession of analyses as if they were all distributed at regular time intervals.
 
-### 2.3 Use a different set of anchors, change anchor nominal values, and/or change <sup>17</sup>O correction parameters
+### 2.3 Use a different set of anchors, change anchor nominal values, and/or change 17O correction parameters
 
 Nominal values for various carbonate standards are defined in four places:
 
@@ -120,7 +120,7 @@ Nominal values for various carbonate standards are defined in four places:
 * `D47data.Nominal_D4x` (also accessible through `D47data.Nominal_D47`)
 * `D48data.Nominal_D4x` (also accessible through `D48data.Nominal_D48`)
 
-<sup>17</sup>O correction parameters are defined by:
+17O correction parameters are defined by:
 
 * `D4xdata.R13_VPDB`
 * `D4xdata.R18_VSMOW`
@@ -230,9 +230,9 @@ foo.table_of_samples(verbose = True, save_to_file = False)
 bar.table_of_samples(verbose = True, save_to_file = False)
 ```
 
-### 2.4 Process paired Δ<sub>47</sub> and Δ<sub>48</sub> values
+### 2.4 Process paired Δ47 and Δ48 values
 
-Purely in terms of data processing, it is not obvious why Δ<sub>47</sub> and Δ<sub>48</sub> data should not be handled separately. For now, `D47crunch` uses two independent classes — `D47data` and `D48data` — which crunch numbers and deal with standardization in very similar ways. The following example demonstrates how to print out combined outputs for `D47data` and `D48data`.
+Purely in terms of data processing, it is not obvious why Δ47 and Δ48 data should not be handled separately. For now, `D47crunch` uses two independent classes — `D47data` and `D48data` — which crunch numbers and deal with standardization in very similar ways. The following example demonstrates how to print out combined outputs for `D47data` and `D48data`.
 
 ```py
 from D47crunch import *
