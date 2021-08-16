@@ -2,9 +2,9 @@
 '''
 Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotope measurements
 
-Process and standardize carbonate and/or CO<sub>2</sub> clumped-isotope analyses,
+Process and standardize carbonate and/or CO2 clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
-Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates
+Δ47 and Δ48 values with fully propagated analytical error estimates
 ([Daëron, 2021](https://doi.org/10.1029/2020GC009592)).
 
 The **tutorial** section takes you through a series of simple steps to import/process data and print out the results.
@@ -12,6 +12,8 @@ The **how-to** section provides instructions applicable to various specific task
 
 .. include:: ../docs/tutorial.md
 .. include:: ../docs/howto.md
+
+## D47crunch API
 '''
 
 __docformat__ = "restructuredtext"
@@ -19,8 +21,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2021 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2021-08-08'
-__version__   = '2.0.1'
+__date__      = '2021-08-16'
+__version__   = '2.0.2'
 
 import os
 import numpy as np
@@ -60,7 +62,7 @@ Petersen_etal_CO2eqD47 = np.array([[-12, 1.147113572], [-11, 1.139961218], [-10,
 _fCO2eqD47_Petersen = interp1d(Petersen_etal_CO2eqD47[:,0], Petersen_etal_CO2eqD47[:,1])
 def fCO2eqD47_Petersen(T):
 	'''
-	CO<sub>2</sub> equilibrium Δ<sub>47</sub> value as a function of T (in degrees C)
+	CO2 equilibrium Δ47 value as a function of T (in degrees C)
 	according to [Petersen et al. (2019)](https://doi.org/10.1029/2018GC008127).
 
 	'''
@@ -71,7 +73,7 @@ Wang_etal_CO2eqD47 = np.array([[-83., 1.8954], [-73., 1.7530], [-63., 1.6261], [
 _fCO2eqD47_Wang = interp1d(Wang_etal_CO2eqD47[:,0] - 0.15, Wang_etal_CO2eqD47[:,1])
 def fCO2eqD47_Wang(T):
 	'''
-	CO<sub>2</sub> equilibrium Δ<sub>47</sub> value as a function of `T` (in degrees C)
+	CO2 equilibrium Δ47 value as a function of `T` (in degrees C)
 	according to [Wang et al. (2004)](https://doi.org/10.1016/j.gca.2004.05.039)
 	(supplementary data of [Dennis et al., 2011](https://doi.org/10.1016/j.gca.2011.09.025)).
 	'''
@@ -291,11 +293,11 @@ def simulate_single_analysis(
 	+ `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample
 	+ `D47`, `D48`, `D49`, `D17O`: clumped-isotope and oxygen-17 anomalies
 		of the carbonate sample
-	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ<sub>47</sub> and
-		Δ<sub>48</sub> values if `D47` or `D48` are not specified
-	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ<sup>13</sup>C and
-		δ<sup>18</sup>O values if `d13C_VPDB` or `d18O_VPDB` are not specified
-	+ `ALPHA_18O_ACID_REACTION`: <sup>18</sup>O/<sup>16</sup>O acid fractionation factor
+	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ47 and
+		Δ48 values if `D47` or `D48` are not specified
+	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ13C and
+		δ18O values if `d13C_VPDB` or `d18O_VPDB` are not specified
+	+ `ALPHA_18O_ACID_REACTION`: 18O/16O acid fractionation factor
 	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `LAMBDA_17`, `R18_VPDB`: oxygen-17
 		correction parameters (by default equal to the `D4xdata` default values)
 	
@@ -434,23 +436,23 @@ def virtual_data(
 	    * `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample
 	    * `D47`, `D48`, `D49`, `D17O` (all optional): clumped-isotope and oxygen-17 anomalies of the carbonate sample
 	    * `N`: how many analyses to generate for this sample
-	+ `a47`: scrambling factor for Δ<sub>47</sub>
-	+ `b47`: compositional nonlinearity for Δ<sub>47</sub>
-	+ `c47`: working gas offset for Δ<sub>47</sub>
-	+ `a48`: scrambling factor for Δ<sub>48</sub>
-	+ `b48`: compositional nonlinearity for Δ<sub>48</sub>
-	+ `c48`: working gas offset for Δ<sub>48</sub>
-	+ `rD47`: analytical repeatability of Δ<sub>47</sub>
-	+ `rD48`: analytical repeatability of Δ<sub>48</sub>
+	+ `a47`: scrambling factor for Δ47
+	+ `b47`: compositional nonlinearity for Δ47
+	+ `c47`: working gas offset for Δ47
+	+ `a48`: scrambling factor for Δ48
+	+ `b48`: compositional nonlinearity for Δ48
+	+ `c48`: working gas offset for Δ48
+	+ `rD47`: analytical repeatability of Δ47
+	+ `rD48`: analytical repeatability of Δ48
 	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
 		(by default equal to the `simulate_single_analysis` default values)
 	+ `session`: name of the session (no name by default)
-	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ<sub>47</sub> and Δ<sub>48</sub> values
+	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ47 and Δ48 values
 		if `D47` or `D48` are not specified (by default equal to the `simulate_single_analysis` defaults)
-	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ<sup>13</sup>C and
-		δ<sup>18</sup>O values if `d13C_VPDB` or `d18O_VPDB` are not specified 
+	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ13C and
+		δ18O values if `d13C_VPDB` or `d18O_VPDB` are not specified 
 		(by default equal to the `simulate_single_analysis` defaults)
-	+ `ALPHA_18O_ACID_REACTION`: <sup>18</sup>O/<sup>16</sup>O acid fractionation factor
+	+ `ALPHA_18O_ACID_REACTION`: 18O/16O acid fractionation factor
 		(by default equal to the `simulate_single_analysis` defaults)
 	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `LAMBDA_17`, `R18_VPDB`: oxygen-17
 		correction parameters (by default equal to the `simulate_single_analysis` default)
@@ -847,20 +849,20 @@ def table_of_analyses(
 
 class D4xdata(list):
 	'''
-	Store and process data for a large set of Δ<sub>47</sub> and/or Δ<sub>48</sub>
+	Store and process data for a large set of Δ47 and/or Δ48
 	analyses, usually comprising more than one analytical session.
 	'''
 
 	### 17O CORRECTION PARAMETERS
 	R13_VPDB = 0.01118  # (Chang & Li, 1990)
 	'''
-	Absolute (<sup>13</sup>C/<sup>12</sup>C) ratio of VPDB.
+	Absolute (13C/12C) ratio of VPDB.
 	By default equal to 0.01118 ([Chang & Li, 1990](http://www.cnki.com.cn/Article/CJFDTotal-JXTW199004006.htm))
 	'''
 
 	R18_VSMOW = 0.0020052  # (Baertschi, 1976)
 	'''
-	Absolute (<sup>18</sup>O/<sup>16</sup>C) ratio of VSMOW.
+	Absolute (18O/16C) ratio of VSMOW.
 	By default equal to 0.0020052 ([Baertschi, 1976](https://doi.org/10.1016/0012-821X(76)90115-1))
 	'''
 
@@ -872,7 +874,7 @@ class D4xdata(list):
 
 	R17_VSMOW = 0.00038475  # (Assonov & Brenninkmeijer, 2003, rescaled to R13_VPDB)
 	'''
-	Absolute (<sup>17</sup>O/<sup>16</sup>C) ratio of VSMOW.
+	Absolute (17O/16C) ratio of VSMOW.
 	By default equal to 0.00038475
 	([Assonov & Brenninkmeijer, 2003](https://dx.doi.org/10.1002/rcm.1011),
 	rescaled to `R13_VPDB`)
@@ -880,20 +882,20 @@ class D4xdata(list):
 
 	R18_VPDB = R18_VSMOW * 1.03092
 	'''
-	Absolute (<sup>18</sup>O/<sup>16</sup>C) ratio of VPDB.
+	Absolute (18O/16C) ratio of VPDB.
 	By definition equal to `R18_VSMOW * 1.03092`.
 	'''
 
 	R17_VPDB = R17_VSMOW * 1.03092 ** LAMBDA_17
 	'''
-	Absolute (<sup>17</sup>O/<sup>16</sup>C) ratio of VPDB.
+	Absolute (17O/16C) ratio of VPDB.
 	By definition equal to `R17_VSMOW * 1.03092 ** LAMBDA_17`.
 	'''
 
 	LEVENE_REF_SAMPLE = 'ETH-3'
 	'''
-	After the Δ<sub>4x</sub> standardization step, each sample is tested to
-	assess whether the Δ<sub>4x</sub> variance within all analyses for that
+	After the Δ4x standardization step, each sample is tested to
+	assess whether the Δ4x variance within all analyses for that
 	sample differs significantly from that observed for a given reference
 	sample (using [Levene's test](https://en.wikipedia.org/wiki/Levene%27s_test),
 	which yields a p-value corresponding to the null hypothesis that the
@@ -905,7 +907,7 @@ class D4xdata(list):
 
 	ALPHA_18O_ACID_REACTION = round(np.exp(3.59 / (90 + 273.15) - 1.79e-3), 6)  # (Kim et al., 2007, calcite)
 	'''
-	Specifies the <sup>18</sup>O/<sup>16</sup>O fractionation factor generally applicable
+	Specifies the 18O/16O fractionation factor generally applicable
 	to acid reactions in the dataset. Currently used by `D4xdata.wg()`,
 	`D4xdata.standardize_d13C`, and `D4xdata.standardize_d18O`.
 
@@ -919,7 +921,7 @@ class D4xdata(list):
 		'ETH-3': 1.71,
 		}	# (Bernasconi et al., 2018)
 	'''
-	Nominal δ<sup>13</sup>C<sub>VPDB</sub> values assigned to carbonate standards, used by
+	Nominal δ13C_VPDB values assigned to carbonate standards, used by
 	`D4xdata.standardize_d13C()`.
 
 	By default equal to `{'ETH-1': 2.02, 'ETH-2': -10.17, 'ETH-3': 1.71}` after
@@ -932,7 +934,7 @@ class D4xdata(list):
 		'ETH-3': -1.78,
 		}	# (Bernasconi et al., 2018)
 	'''
-	Nominal δ<sup>18</sup>O<sub>VPDB</sub> values assigned to carbonate standards, used by
+	Nominal δ18O_VPDB values assigned to carbonate standards, used by
 	`D4xdata.standardize_d18O()`.
 
 	By default equal to `{'ETH-1': -2.19, 'ETH-2': -18.69, 'ETH-3': -1.78}` after
@@ -941,28 +943,28 @@ class D4xdata(list):
 
 	d13C_STANDARDIZATION_METHOD = '2pt'
 	'''
-	Method by which to standardize δ<sup>13</sup>C values:
+	Method by which to standardize δ13C values:
 	
-	+ `none`: do not apply any δ<sup>13</sup>C standardization.
-	+ `'1pt'`: within each session, offset all initial δ<sup>13</sup>C values so as to
-	minimize the difference between final δ<sup>13</sup>C<sub>VPDB</sub> values and
+	+ `none`: do not apply any δ13C standardization.
+	+ `'1pt'`: within each session, offset all initial δ13C values so as to
+	minimize the difference between final δ13C_VPDB values and
 	`Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB` is defined).
-	+ `'2pt'`: within each session, apply a affine trasformation to all δ<sup>13</sup>C
-	values so as to minimize the difference between final δ<sup>13</sup>C<sub>VPDB</sub>
+	+ `'2pt'`: within each session, apply a affine trasformation to all δ13C
+	values so as to minimize the difference between final δ13C_VPDB
 	values and `Nominal_d13C_VPDB` (averaged over all analyses for which `Nominal_d13C_VPDB`
 	is defined).
 	'''
 
 	d18O_STANDARDIZATION_METHOD = '2pt'
 	'''
-	Method by which to standardize δ<sup>18</sup>O values:
+	Method by which to standardize δ18O values:
 	
-	+ `none`: do not apply any δ<sup>18</sup>O standardization.
-	+ `'1pt'`: within each session, offset all initial δ<sup>18</sup>O values so as to
-	minimize the difference between final δ<sup>18</sup>O<sub>VPDB</sub> values and
+	+ `none`: do not apply any δ18O standardization.
+	+ `'1pt'`: within each session, offset all initial δ18O values so as to
+	minimize the difference between final δ18O_VPDB values and
 	`Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB` is defined).
-	+ `'2pt'`: within each session, apply a affine trasformation to all δ<sup>18</sup>O
-	values so as to minimize the difference between final δ<sup>18</sup>O<sub>VPDB</sub>
+	+ `'2pt'`: within each session, apply a affine trasformation to all δ18O
+	values so as to minimize the difference between final δ18O_VPDB
 	values and `Nominal_d18O_VPDB` (averaged over all analyses for which `Nominal_d18O_VPDB`
 	is defined).
 	'''
@@ -1233,10 +1235,10 @@ class D4xdata(list):
 
 	def compute_bulk_delta(self, R45, R46, D17O = 0):
 		'''
-		Compute δ<sup>13</sup>C<sub>VPDB</sub> and δ<sup>18</sup>O<sub>VSMOW</sub>,
+		Compute δ13C_VPDB and δ18O_VSMOW,
 		by solving the generalized form of equation (17) from
 		[Brand et al. (2010)](https://doi.org/10.1351/PAC-REP-09-01-05),
-		assuming that δ<sup>18</sup>O<sub>VSMOW</sub> is not too big (0 ± 50 ‰) and
+		assuming that δ18O_VSMOW is not too big (0 ± 50 ‰) and
 		solving the corresponding second-order Taylor polynomial.
 		(Appendix A of [Daëron et al., 2016](https://doi.org/10.1016/j.chemgeo.2016.08.014))
 		'''
@@ -1293,7 +1295,7 @@ class D4xdata(list):
 
 	def standardize_d13C(self):
 		'''
-		Perform δ<sup>13</sup>C standadization within each session `s` according to
+		Perform δ13C standadization within each session `s` according to
 		`self.sessions[s]['d13C_standardization_method']`, which is defined by default
 		by `D47data.refresh_sessions()`as equal to `self.d13C_STANDARDIZATION_METHOD`, but
 		may be redefined abitrarily at a later stage.
@@ -1313,7 +1315,7 @@ class D4xdata(list):
 
 	def standardize_d18O(self):
 		'''
-		Perform δ<sup>18</sup>O standadization within each session `s` according to
+		Perform δ18O standadization within each session `s` according to
 		`self.ALPHA_18O_ACID_REACTION` and `self.sessions[s]['d18O_standardization_method']`,
 		which is defined by default by `D47data.refresh_sessions()`as equal to
 		`self.d18O_STANDARDIZATION_METHOD`, but may be redefined abitrarily at a later stage.
@@ -1335,8 +1337,7 @@ class D4xdata(list):
 
 	def compute_bulk_and_clumping_deltas(self, r):
 		'''
-		Compute δ<sup>13</sup>C<sub>VPDB</sub>, δ<sup>18</sup>O<sub>VSMOW</sub>, and
-		raw Δ<sub>47</sub>, Δ<sub>48</sub>, Δ<sub>49</sub> values for an analysis `r`.
+		Compute δ13C_VPDB, δ18O_VSMOW, and raw Δ47, Δ48, Δ49 values for a single analysis `r`.
 		'''
 
 		# Compute working gas R13, R18, and isobar ratios
@@ -1376,7 +1377,7 @@ class D4xdata(list):
 	def compute_isobar_ratios(self, R13, R18, D17O=0, D47=0, D48=0, D49=0):
 		'''
 		Compute isobar ratios for a sample with isotopic ratios `R13` and `R18`,
-		optionally accounting for non-zero values of Δ<sup>17</sup>O (`D17O`) and clumped isotope
+		optionally accounting for non-zero values of Δ17O (`D17O`) and clumped isotope
 		anomalies (`D47`, `D48`, `D49`), all expressed in permil.
 		'''
 
@@ -1456,7 +1457,7 @@ class D4xdata(list):
 		probably use `D4xdata.combine_samples()` instead to reverse the effects of
 		`D47data.split_samples()` with `grouping='by_uid'`, or `w_avg()` to reverse the
 		effects of `D47data.split_samples()` with `grouping='by_sessions'` (because in
-		that case session-averaged Δ<sub>4x</sub> values are statistically independent).
+		that case session-averaged Δ4x values are statistically independent).
 		'''
 		unknowns_old = sorted({s for s in self.unknowns})
 		CM_old = self.standardization.covar[:,:]
@@ -1533,7 +1534,7 @@ class D4xdata(list):
 
 	def combine_samples(self, sample_groups):
 		'''
-		Combine analyses of different samples to compute weighted average Δ<sub>4x</sub>
+		Combine analyses of different samples to compute weighted average Δ4x
 		and new error (co)variances corresponding to the groups defined by the `sample_groups`
 		dictionary.
 		
@@ -1544,7 +1545,7 @@ class D4xdata(list):
 		Returns a tuplet of:
 		
 		+ the list of group names
-		+ an array of the corresponding Δ<sub>4x</sub> values
+		+ an array of the corresponding Δ4x values
 		+ the corresponding (co)variance matrix
 		
 		**Parameters**
@@ -1580,10 +1581,10 @@ class D4xdata(list):
 		constraints = {},
 		):
 		'''
-		Compute absolute Δ<sub>4x</sub> values for all replicate analyses and for sample averages.
+		Compute absolute Δ4x values for all replicate analyses and for sample averages.
 		If `method` argument is set to `'pooled'`, the standardization processes all sessions
 		in a single step, assuming that all samples (anchors and unknowns alike) are homogeneous,
-		i.e. that their true Δ<sub>4x</sub> value does not change between sessions,
+		i.e. that their true Δ4x value does not change between sessions,
 		([Daëron, 2021](https://doi.org/10.1029/2020GC009592)). If `method` argument is set to
 		`'indep_sessions'`, the standardization processes each session independently, based only
 		on anchors analyses.
@@ -1790,7 +1791,7 @@ class D4xdata(list):
 	def standardization_error(self, session, d4x, D4x, t = 0):
 		'''
 		Compute standardization error for a given session and
-		(δ<sub>47</sub>, Δ<sub>47</sub>) composition.
+		(δ47, Δ47) composition.
 		'''
 		a = self.sessions[session]['a']
 		b = self.sessions[session]['b']
@@ -2078,22 +2079,22 @@ class D4xdata(list):
 
 		For each anchor sample:
 
-		+ `D47` or `D48`: the nominal Δ<sub>4x</sub> value for this anchor, specified by `self.Nominal_D4x`
+		+ `D47` or `D48`: the nominal Δ4x value for this anchor, specified by `self.Nominal_D4x`
 		+ `SE_D47` or `SE_D48`: set to zero by definition
 
 		For each unknown sample:
 
-		+ `D47` or `D48`: the standardized Δ<sub>4x</sub> value for this unknown
-		+ `SE_D47` or `SE_D48`: the standard error of Δ<sub>4x</sub> for this unknown
+		+ `D47` or `D48`: the standardized Δ4x value for this unknown
+		+ `SE_D47` or `SE_D48`: the standard error of Δ4x for this unknown
 
 		For each anchor and unknown:
 
 		+ `N`: the total number of analyses of this sample
 		+ `SD_D47` or `SD_D48`: the “sample” (in the statistical sense) standard deviation for this sample
-		+ `d13C_VPDB`: the average δ<sup>13</sup>C<sub>VPDB</sub> value for this sample
-		+ `d18O_VSMOW`: the average δ<sup>18</sup>O<sub>VSMOW</sub> value for this sample (as CO<sub>2</sub>)
+		+ `d13C_VPDB`: the average δ13C_VPDB value for this sample
+		+ `d18O_VSMOW`: the average δ18O_VSMOW value for this sample (as CO2)
 		+ `p_Levene`: the p-value from a [Levene test](https://en.wikipedia.org/wiki/Levene%27s_test) of equal
-		variance, indicating whether the Δ<sub>4x</sub> repeatability this sample differs significantly from
+		variance, indicating whether the Δ4x repeatability this sample differs significantly from
 		that observed for the reference sample specified by `self.LEVENE_REF_SAMPLE`.
 		'''
 		D4x_ref_pop = [r[f'D{self._4x}'] for r in self.samples[self.LEVENE_REF_SAMPLE]['data']]
@@ -2155,9 +2156,9 @@ class D4xdata(list):
 
 		+ `Na`: Number of anchor analyses in the session
 		+ `Nu`: Number of unknown analyses in the session
-		+ `r_d13C_VPDB`: δ<sup>13</sup>C<sub>VPDB</sub> repeatability of analyses within the session
-		+ `r_d18O_VSMOW`: δ<sup>18</sup>O<sub>VSMOW</sub> repeatability of analyses within the session
-		+ `r_D47` or `r_D48`: Δ<sub>4x</sub> repeatability of analyses within the session
+		+ `r_d13C_VPDB`: δ13C_VPDB repeatability of analyses within the session
+		+ `r_d18O_VSMOW`: δ18O_VSMOW repeatability of analyses within the session
+		+ `r_D47` or `r_D48`: Δ4x repeatability of analyses within the session
 		+ `a`: scrambling factor
 		+ `b`: compositional slope
 		+ `c`: WG offset
@@ -2172,8 +2173,8 @@ class D4xdata(list):
 		+ `c2`: WG offset drift
 		+ `Np`: Number of standardization parameters to fit
 		+ `CM`: model covariance matrix for (`a`, `b`, `c`, `a2`, `b2`, `c2`)
-		+ `d13Cwg_VPDB`: δ<sup>13</sup>C<sub>VPDB</sub> of WG
-		+ `d18Owg_VSMOW`: δ<sup>18</sup>O<sub>VSMOW</sub> of WG
+		+ `d13Cwg_VPDB`: δ13C_VPDB of WG
+		+ `d18Owg_VSMOW`: δ18O_VSMOW of WG
 		'''
 		for session in self.sessions:
 			if 'd13Cwg_VPDB' not in self.sessions[session]:
@@ -2275,9 +2276,8 @@ class D4xdata(list):
 	@make_verbal
 	def repeatabilities(self):
 		'''
-		Compute analytical repeatabilities for δ<sup>13</sup>C<sub>VPDB</sub>,
-		δ<sup>18</sup>O<sub>VSMOW</sub>, Δ<sub>4x</sub> (for all samples, for anchors,
-		and for unknowns).
+		Compute analytical repeatabilities for δ13C_VPDB, δ18O_VSMOW, Δ4x
+		(for all samples, for anchors, and for unknowns).
 		'''
 		self.msg('Computing reproducibilities for all sessions')
 
@@ -2313,9 +2313,9 @@ class D4xdata(list):
 		sessions = 'all sessions',
 		):
 		'''
-		Compute the χ<sup>2</sup>, root mean squared weighted deviation
-		(i.e. reduced χ<sup>2</sup>), and corresponding degrees of freedom of the
-		Δ<sub>4x</sub> values for samples in `samples` and sessions in `sessions`.
+		Compute the χ2, root mean squared weighted deviation
+		(i.e. reduced χ2), and corresponding degrees of freedom of the
+		Δ4x values for samples in `samples` and sessions in `sessions`.
 		
 		Only used in `D4xdata.standardize()` with `method='indep_sessions'`.
 		'''
@@ -2392,9 +2392,9 @@ class D4xdata(list):
 
 	def sample_average(self, samples, weights = 'equal', normalize = True):
 		'''
-		Weighted average Δ<sub>4x</sub> value of a group of samples, accounting for covariance.
+		Weighted average Δ4x value of a group of samples, accounting for covariance.
 
-		Returns the weighed average Δ<sub>4x</sub> value and associated SE
+		Returns the weighed average Δ4x value and associated SE
 		of a group of samples. Weights are equal by default. If `normalize` is
 		true, `weights` will be rescaled so that their sum equals 1.
 
@@ -2404,15 +2404,15 @@ class D4xdata(list):
 		self.sample_average(['X','Y'], [1, 2])
 		```
 
-		returns the value and SE of [Δ<sub>4x</sub>(X) + 2 Δ<sub>4x</sub>(Y)]/3,
-		where Δ<sub>4x</sub>(X) and Δ<sub>4x</sub>(Y) are the average Δ<sub>4x</sub>
+		returns the value and SE of [Δ4x(X) + 2 Δ4x(Y)]/3,
+		where Δ4x(X) and Δ4x(Y) are the average Δ4x
 		values of samples X and Y, respectively.
 
 		```python
 		self.sample_average(['X','Y'], [1, -1], normalize = False)
 		```
 
-		returns the value and SE of the difference Δ<sub>4x</sub>(X) - Δ<sub>4x</sub>(Y).
+		returns the value and SE of the difference Δ4x(X) - Δ4x(Y).
 		'''
 		if weights == 'equal':
 			weights = [1/len(samples)] * len(samples)
@@ -2434,11 +2434,11 @@ class D4xdata(list):
 
 	def sample_D4x_covar(self, sample1, sample2 = None):
 		'''
-		Covariance between Δ<sub>4x</sub> values of samples
+		Covariance between Δ4x values of samples
 
-		Returns the error covariance between the average Δ<sub>4x</sub> values of two
+		Returns the error covariance between the average Δ4x values of two
 		samples. If if only `sample_1` is specified, or if `sample_1 == sample_2`),
-		returns the Δ<sub>4x</sub> variance for that sample.
+		returns the Δ4x variance for that sample.
 		'''
 		if sample2 is None:
 			sample2 = sample1
@@ -2473,7 +2473,7 @@ class D4xdata(list):
 
 	def sample_D4x_correl(self, sample1, sample2 = None):
 		'''
-		Correlation between Δ<sub>4x</sub> errors of samples
+		Correlation between Δ4x errors of samples
 
 		Returns the error correlation between the average Δ4x values of two samples.
 		'''
@@ -2781,7 +2781,7 @@ class D4xdata(list):
 
 class D47data(D4xdata):
 	'''
-	Store and process data for a large set of Δ<sub>47</sub> analyses,
+	Store and process data for a large set of Δ47 analyses,
 	usually comprising more than one analytical session.
 	'''
 
@@ -2795,8 +2795,8 @@ class D47data(D4xdata):
 		'MERCK':   0.5135,
 		} # I-CDES (Bernasconi et al., 2021)
 	'''
-	Nominal Δ<sub>47</sub> values assigned to the Δ<sub>47</sub> anchor samples, used by
-	`D47data.standardize()` to normalize unknown samples to an absolute Δ<sub>47</sub>
+	Nominal Δ47 values assigned to the Δ47 anchor samples, used by
+	`D47data.standardize()` to normalize unknown samples to an absolute Δ47
 	reference frame.
 
 	By default equal to (after [Bernasconi et al. (2021)](https://doi.org/10.1029/2020GC009588)):
@@ -2834,18 +2834,18 @@ class D47data(D4xdata):
 
 	def D47fromTeq(self, fCo2eqD47 = 'petersen', priority = 'new'):
 		'''
-		Find all samples for which `Teq` is specified, compute equilibrium Δ<sub>47</sub>
+		Find all samples for which `Teq` is specified, compute equilibrium Δ47
 		value for that temperature, and add treat these samples as additional anchors.
 
 		**Parameters**
 
-		+ `fCo2eqD47`: Which CO<sub>2</sub> equilibrium law to use
+		+ `fCo2eqD47`: Which CO2 equilibrium law to use
 		(`petersen`: [Petersen et al. (2019)](https://doi.org/10.1029/2018GC008127);
 		`wang`: [Wang et al. (2019)](https://doi.org/10.1016/j.gca.2004.05.039)).
 		+ `priority`: if `replace`: forget old anchors and only use the new ones;
 		if `new`: keep pre-existing anchors but update them in case of conflict
-		between old and new Δ<sub>47</sub> values;
-		if `old`: keep pre-existing anchors but preserve their original Δ<sub>47</sub>
+		between old and new Δ47 values;
+		if `old`: keep pre-existing anchors but preserve their original Δ47
 		values in case of conflict.
 		'''
 		f = {
@@ -2873,7 +2873,7 @@ class D47data(D4xdata):
 
 class D48data(D4xdata):
 	'''
-	Store and process data for a large set of Δ<sub>48</sub> analyses,
+	Store and process data for a large set of Δ48 analyses,
 	usually comprising more than one analytical session.
 	'''
 
@@ -2885,8 +2885,8 @@ class D48data(D4xdata):
 		'GU-1':  -0.419,
 		} # (Fiebig et al., 2019, 2021)
 	'''
-	Nominal Δ<sub>48</sub> values assigned to the Δ<sub>48</sub> anchor samples, used by
-	`D48data.standardize()` to normalize unknown samples to an absolute Δ<sub>48</sub>
+	Nominal Δ48 values assigned to the Δ48 anchor samples, used by
+	`D48data.standardize()` to normalize unknown samples to an absolute Δ48
 	reference frame.
 
 	By default equal to (after [Fiebig et al. (2019)](https://doi.org/10.1016/j.chemgeo.2019.05.019),

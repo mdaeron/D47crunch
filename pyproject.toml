@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "D47crunch"
-version = "2.0.1"
+version = "2.0.2"
 description = "Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotope measurements"
 authors = ["Mathieu Daëron <mathieu@daeron.fr>"]
 homepage = "https://github.com/mdaeron/D47crunch"

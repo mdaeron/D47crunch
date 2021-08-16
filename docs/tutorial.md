@@ -1,5 +1,31 @@
 ## 1. Tutorial
 
+### 1.1 Installation
+
+The easy option is to use `pip`; open a shell terminal and simply type:
+
+```
+python -m pip install D47crunch
+```
+
+For those wishing to experiment with the bleeding-edge development version, this can be done through the following steps:
+
+1. Download the `dev` branch source code [here](https://raw.githubusercontent.com/mdaeron/D47crunch/dev/D47crunch/__init__.py) and rename it to `D47crunch.py`.
+2. Do any of the following:
+    * copy `D47crunch.py` to somewhere in your Python path
+    * copy `D47crunch.py` to a working directory (`import D47crunch` will only work if called within that directory)
+    * copy `D47crunch.py` to any other location (e.g., `/foo/bar`) and then use the following code snippet in your own code to import `D47crunch`:
+
+```py
+import sys
+sys.path.append('/foo/bar')
+import D47crunch
+```
+
+Documentation for the development version can be downloaded [here](https://github.com/mdaeron/D47crunch/raw/dev/docs/index.html) (save html file and open it locally).
+
+### 1.2 Usage
+
 Start by creating a file named `rawdata.csv` with the following contents:
 
 ```html
@@ -32,9 +58,16 @@ To load the analyses saved in `rawdata.csv` into our `D47data` object and proces
 
 ```py
 mydata.read('rawdata.csv')
-mydata.wg()          # compute δ13C, δ18O of working gas
-mydata.crunch()      # compute all δ13C, δ18O and raw Δ47 values
-mydata.standardize() # compute absolute Δ47 values
+
+# compute δ13C, δ18O of working gas:
+mydata.wg()
+
+# compute δ13C, δ18O, raw Δ47 values for each analysis:
+mydata.crunch()
+
+# compute absolute Δ47 values for each analysis
+# as well as average Δ47 values for each sample:
+mydata.standardize()
 ```
 
 We can now print a summary of the data processing:
@@ -56,7 +89,7 @@ Standardization method              pooled
 –––––––––––––––––––––––––––––––  –––––––––
 ```
 
-This tells us that our data set contains 5 different samples: 3 anchors (ETH-1, ETH-2, ETH-3) and 2 unknowns (MYSAMPLE-1, MYSAMPLE-2). The total number of analyses is 8, with 5 anchor analyses and 3 unknown analyses. We get an estimate of the analytical repeatability (i.e. the overall, pooled standard deviation) for δ<sup>13</sup>C, δ<sup>18</sup>O and Δ<sub>47</sub>, as well as the number of degrees of freedom (here, 3) that these estimated standard deviations are based on, along with the corresponding Student's t-factor (here, 3.18) for 95&nbsp;% confidence limits. Finally, the summary indicates that we used a “pooled” standardization approach (see [Daëron, 2021]).
+This tells us that our data set contains 5 different samples: 3 anchors (ETH-1, ETH-2, ETH-3) and 2 unknowns (MYSAMPLE-1, MYSAMPLE-2). The total number of analyses is 8, with 5 anchor analyses and 3 unknown analyses. We get an estimate of the analytical repeatability (i.e. the overall, pooled standard deviation) for δ13C, δ18O and Δ47, as well as the number of degrees of freedom (here, 3) that these estimated standard deviations are based on, along with the corresponding Student's t-factor (here, 3.18) for 95&nbsp;% confidence limits. Finally, the summary indicates that we used a “pooled” standardization approach (see [Daëron, 2021]).
 
 To see the actual results:
 
@@ -74,9 +107,9 @@ MYSAMPLE-2  2      -8.17       30.05  0.6600  0.0115  ± 0.0366  0.0025
 ––––––––––  –  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
 ```
 
-This table lists, for each sample, the number of analytical replicates, average δ<sup>13</sup>C and δ<sup>18</sup>O values (for the analyte CO<sub>2</sub> , _not_ for the carbonate itself), the average Δ<sub>47</sub> value and the SD of Δ<sub>47</sub> for all replicates of this sample. For unknown samples, the SE and 95 % confidence limits for mean Δ<sub>47</sub> are also listed These 95 % CL take into account the number of degrees of freedom of the regression model, so that in large datasets the 95 % CL will tend to 1.96 times the SE, but in this case the applicable t-factor is much larger.
+This table lists, for each sample, the number of analytical replicates, average δ13C and δ18O values (for the analyte CO2 , *not* for the carbonate itself), the average Δ47 value and the SD of Δ47 for all replicates of this sample. For unknown samples, the SE and 95 % confidence limits for mean Δ47 are also listed These 95 % CL take into account the number of degrees of freedom of the regression model, so that in large datasets the 95 % CL will tend to 1.96 times the SE, but in this case the applicable t-factor is much larger.
 
-We can also generate a table of all analyses in the data set (again, note that `d18O_VSMOW` is the composition of the CO<sub>2</sub> analyte):
+We can also generate a table of all analyses in the data set (again, note that `d18O_VSMOW` is the composition of the CO2 analyte):
 
 ```html
 >>> mydata.table_of_analyses(verbose = True, save_to_file = False)

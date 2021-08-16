@@ -1,0 +1,6 @@
+{% extends "default/module.html.jinja2" %}
+{% macro docstring(var) %}
+    {% if var.docstring %}
+        <div class="docstring">{{ var.docstring | to_markdown | myfilter | to_html | linkify(namespace=var.qualname) }}</div>
+    {% endif %}
+{% endmacro %}
