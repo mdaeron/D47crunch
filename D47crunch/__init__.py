@@ -24,7 +24,7 @@ __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Cl
 __date__      = '2021-08-16'
 __version__   = '2.0.2-dev'
 
-import os
+import os, hashlib
 import numpy as np
 from statistics import stdev
 from scipy.stats import t as tstudent
@@ -124,12 +124,17 @@ def make_csv(x, hsep = ',', vsep = '\n'):
 	'''
 	return vsep.join([hsep.join(l) for l in x])
 
-
-def pf(txt):
+def pf(txt, hashlen = 6):
 	'''
 	Modify string `txt` to follow `lmfit.Parameter()` naming rules.
 	'''
-	return txt.replace('-','_').replace('.','_').replace(' ','_')
+	# generate hexadecimal hash of hashlen digits
+	out = hashlib.md5(txt.encode()).hexdigest()[:hashlen]
+	out += '_'
+	charlist = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789'
+	for x in txt:
+		out += x if x in charlist else '_'	
+	return out
 
 
 def smart_type(x):

@@ -27,7 +27,9 @@ def test_make_csv():
 
 
 def test_pf():
-	assert(D47crunch.pf('a.b-c d') == 'a_b_c_d')
+	assert(D47crunch.pf('a.b-c d')         == 'b8170c_a_b_c_d')
+	assert(D47crunch.pf('ETH 3')           == 'c07be8_ETH_3')
+	assert(D47crunch.pf('agshtF F-63(2σ)') == '182fda_agshtF_F_63_2__')
 
 
 def test_smart_type():
