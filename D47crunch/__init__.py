@@ -22,7 +22,7 @@ __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2021 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __date__      = '2021-08-16'
-__version__   = '2.0.3-dev0'
+__version__   = '2.0.3-dev1'
 
 import os
 import numpy as np
@@ -1993,6 +1993,56 @@ class D4xdata(list):
 			self.msg('\n' + pretty_table(out))
 		return out
 
+	@make_verbal
+	def covar_table(
+		self,
+		correl = False,
+		dir = 'output',
+		filename = None,
+		save_to_file = True,
+		print_out = True,
+		output = None,
+		):
+		'''
+		Print out, save to disk and/or return the variance-covariance matrix of D4x
+		for all unknown samples.
+
+		**Parameters**
+
+		+ `dir`: the directory in which to save the csv
+		+ `filename`: the name of the csv file to write to
+		+ `save_to_file`: whether to save the csv
+		+ `print_out`: whether to print out the matrix
+		+ `output`: if set to `'pretty'`: return a pretty text matrix (see `pretty_table()`);
+		    if set to `'raw'`: return a list of list of strings
+		    (e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
+		'''
+		samples = sorted([u for u in self.unknowns])
+		out = [[''] + samples]
+		for s1 in samples:
+			out.append([s1])
+			for s2 in samples:
+				if correl:
+					out[-1].append(f'{self.sample_D4x_correl(s1, s2):.6f}')
+				else:
+					out[-1].append(f'{self.sample_D4x_covar(s1, s2):.8e}')
+
+		if save_to_file:
+			if not os.path.exists(dir):
+				os.makedirs(dir)
+			if filename is None:
+				if correl:
+					filename = f'D{self._4x}_correl.csv'
+				else:
+					filename = f'D{self._4x}_covar.csv'
+			with open(f'{dir}/{filename}', 'w') as fid:
+				fid.write(make_csv(out))
+		if print_out:
+			self.msg('\n'+pretty_table(out))
+		if output == 'raw':
+			return out
+		elif output == 'pretty':
+			return pretty_table(out)
 
 	@make_verbal
 	def table_of_samples(
@@ -2008,9 +2058,9 @@ class D4xdata(list):
 
 		**Parameters**
 
-		+ `dir`: the directory in which to save the table
-		+ `filename`: the name to the csv file to write to
-		+ `save_to_file`: whether to save the table to disk
+		+ `dir`: the directory in which to save the csv
+		+ `filename`: the name of the csv file to write to
+		+ `save_to_file`: whether to save the csv
 		+ `print_out`: whether to print out the table
 		+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
 		    if set to `'raw'`: return a list of list of strings
