@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.0.3
+*Released on 2022-02-27*
+
+### New feature
+* `D4xdata.covar_table()` allows exporting the variance-covariance matrix or the correlation matrix for the Δ<sub>4x</sub> values of unknwon samples.
+
+### Changes
+* New `hist` keyword to `D4xdata.plot_residuals()`, which adds a histogram of residuals to the side of the plot.
+
+## v2.0.2
+*Released on 2021-08-16*
+
+### Internals
+* Remove HTML tags in all docstrings
+
 ## v2.0.1
 *Released on 2021-08-08*
 
