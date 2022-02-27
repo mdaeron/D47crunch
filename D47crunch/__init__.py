@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 '''
 Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotope measurements
 
@@ -19,10 +18,10 @@ The **how-to** section provides instructions applicable to various specific task
 __docformat__ = "restructuredtext"
 __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
-__copyright__ = 'Copyright (c) 2021 Mathieu Daëron'
+__copyright__ = 'Copyright (c) 2022 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2021-08-16'
-__version__   = '2.0.2'
+__date__      = '2022-02-27'
+__version__   = '2.0.3'
 
 import os
 import numpy as np
@@ -1993,6 +1992,56 @@ class D4xdata(list):
 			self.msg('\n' + pretty_table(out))
 		return out
 
+	@make_verbal
+	def covar_table(
+		self,
+		correl = False,
+		dir = 'output',
+		filename = None,
+		save_to_file = True,
+		print_out = True,
+		output = None,
+		):
+		'''
+		Print out, save to disk and/or return the variance-covariance matrix of D4x
+		for all unknown samples.
+
+		**Parameters**
+
+		+ `dir`: the directory in which to save the csv
+		+ `filename`: the name of the csv file to write to
+		+ `save_to_file`: whether to save the csv
+		+ `print_out`: whether to print out the matrix
+		+ `output`: if set to `'pretty'`: return a pretty text matrix (see `pretty_table()`);
+		    if set to `'raw'`: return a list of list of strings
+		    (e.g., `[['header1', 'header2'], ['0.1', '0.2']]`)
+		'''
+		samples = sorted([u for u in self.unknowns])
+		out = [[''] + samples]
+		for s1 in samples:
+			out.append([s1])
+			for s2 in samples:
+				if correl:
+					out[-1].append(f'{self.sample_D4x_correl(s1, s2):.6f}')
+				else:
+					out[-1].append(f'{self.sample_D4x_covar(s1, s2):.8e}')
+
+		if save_to_file:
+			if not os.path.exists(dir):
+				os.makedirs(dir)
+			if filename is None:
+				if correl:
+					filename = f'D{self._4x}_correl.csv'
+				else:
+					filename = f'D{self._4x}_covar.csv'
+			with open(f'{dir}/{filename}', 'w') as fid:
+				fid.write(make_csv(out))
+		if print_out:
+			self.msg('\n'+pretty_table(out))
+		if output == 'raw':
+			return out
+		elif output == 'pretty':
+			return pretty_table(out)
 
 	@make_verbal
 	def table_of_samples(
@@ -2008,9 +2057,9 @@ class D4xdata(list):
 
 		**Parameters**
 
-		+ `dir`: the directory in which to save the table
-		+ `filename`: the name to the csv file to write to
-		+ `save_to_file`: whether to save the table to disk
+		+ `dir`: the directory in which to save the csv
+		+ `filename`: the name of the csv file to write to
+		+ `save_to_file`: whether to save the csv
 		+ `print_out`: whether to print out the table
 		+ `output`: if set to `'pretty'`: return a pretty text table (see `pretty_table()`);
 		    if set to `'raw'`: return a list of list of strings
@@ -2584,17 +2633,37 @@ class D4xdata(list):
 
 		return out
 
-	def plot_residuals(self, dir = 'output', filename = None, highlight = [], colors = None):
+	def plot_residuals(
+		self,
+		hist = False,
+		binwidth = 2/3,
+		dir = 'output',
+		filename = None,
+		highlight = [],
+		colors = None,
+		figsize = None,
+		):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
 		the order of analyses in the `D4xdata` object)
 
+		+ `hist`: whether to add a histogram of residuals
+		+ `histbins`: specify bin edges for the histogram
 		+ `dir`: the directory in which to save the plot
 		+ `highlight`: a list of samples to highlight
 		+ `colors`: a dict of `{<sample>: <color>}` for all samples
+		+ `figsize`: (width, height) of figure
 		'''
-		fig = ppl.figure(figsize = (8,4))
-		ppl.subplots_adjust(.1,.05,.78,.8)
+		# Layout
+		fig = ppl.figure(figsize = (8,4) if figsize is None else figsize)
+		if hist:
+			ppl.subplots_adjust(left = .08, bottom = .05, right = .98, top = .8, wspace = -0.72)
+			ax1, ax2 = ppl.subplot(121), ppl.subplot(1,15,15)
+		else:
+			ppl.subplots_adjust(.08,.05,.78,.8)
+			ax1 = ppl.subplot(111)
+		
+		# Colors
 		N = len(self.anchors)
 		if colors is None:
 			if len(highlight) > 0:
@@ -2614,6 +2683,11 @@ class D4xdata(list):
 					colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
 				else:
 					colors = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+
+		ppl.sca(ax1)
+		
+		ppl.axhline(0, color = 'k', alpha = .25, lw = 0.75)
+
 		session = self[0]['Session']
 		x1 = 0
 # 		ymax = np.max([1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self])
@@ -2648,11 +2722,12 @@ class D4xdata(list):
 		x_sessions[session] = (x1+x2)/2
 
 		ppl.axhspan(-self.repeatability['r_D47']*1000, self.repeatability['r_D47']*1000, color = 'k', alpha = .05, lw = 1)
-		ppl.text(len(self), self.repeatability['r_D47']*1000, f"   SD = {self.repeatability['r_D47']*1000:.1f} ppm", size = 9, alpha = .75, va = 'center')
 		ppl.axhspan(-self.repeatability['r_D47']*1000*self.t95, self.repeatability['r_D47']*1000*self.t95, color = 'k', alpha = .05, lw = 1)
-		ppl.text(len(self), self.repeatability['r_D47']*1000*self.t95, f"   95% CL: ± {self.repeatability['r_D47']*1000*self.t95:.1f} ppm", size = 9, alpha = .75, va = 'center')
+		if not hist:
+			ppl.text(len(self), self.repeatability['r_D47']*1000, f"   SD = {self.repeatability['r_D47']*1000:.1f} ppm", size = 9, alpha = 1, va = 'center')
+			ppl.text(len(self), self.repeatability['r_D47']*1000*self.t95, f"   95% CL = ± {self.repeatability['r_D47']*1000*self.t95:.1f} ppm", size = 9, alpha = 1, va = 'center')
 
-		ymax = ppl.axis()[3]
+		xmin, xmax, ymin, ymax = ppl.axis()
 		for s in x_sessions:
 			ppl.text(
 				x_sessions[s],
@@ -2665,6 +2740,9 @@ class D4xdata(list):
 					else dict(ha = 'left', rotation = 45)
 					)
 				)
+
+		if hist:
+			ppl.sca(ax2)
 
 		for s in colors:
 			kw['marker'] = '+'
@@ -2690,10 +2768,46 @@ class D4xdata(list):
 			kw['label'] = 'other (N$\\,$>$\\,$1)' if one_or_more_singlets else 'other'
 			ppl.plot([], [], **kw)
 
-		ppl.legend(loc = 'lower left', bbox_to_anchor = (1.03, 0), borderaxespad = 0)
-		ppl.xticks([])
+		if hist:
+			leg = ppl.legend(loc = 'upper right', bbox_to_anchor = (1, 1), bbox_transform=fig.transFigure, borderaxespad = 1.5, fontsize = 9)
+		else:
+			leg = ppl.legend(loc = 'lower right', bbox_to_anchor = (1, 0), bbox_transform=fig.transFigure, borderaxespad = 1.5)
+		leg.set_zorder(-1000)
+
+		ppl.sca(ax1)
+
 		ppl.ylabel('Δ$_{47}$ residuals (ppm)')
+		ppl.xticks([])
 		ppl.axis([-1, len(self), None, None])
+
+		if hist:
+			ppl.sca(ax2)
+			X = [1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self]
+			ppl.hist(
+				X,
+				orientation = 'horizontal',
+				histtype = 'stepfilled',
+				ec = [.4]*3,
+				fc = [.25]*3,
+				alpha = .25,
+				bins = np.linspace(-9e3*self.repeatability['r_D47'], 9e3*self.repeatability['r_D47'], int(18/binwidth+1)),
+				)
+			ppl.axis([None, None, ymin, ymax])
+			ppl.text(0, 0,
+				f"   SD = {self.repeatability['r_D47']*1000:.1f} ppm\n   95% CL = ± {self.repeatability['r_D47']*1000*self.t95:.1f} ppm",
+				size = 8,
+				alpha = 1,
+				va = 'center',
+				ha = 'left',
+				)
+
+			ppl.xticks([])
+			ppl.yticks([])
+# 			ax2.spines['left'].set_visible(False)
+			ax2.spines['right'].set_visible(False)
+			ax2.spines['top'].set_visible(False)
+			ax2.spines['bottom'].set_visible(False)
+
 
 		if not os.path.exists(dir):
 			os.makedirs(dir)

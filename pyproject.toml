@@ -1,35 +1,27 @@
-[tool.poetry]
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
 name = "D47crunch"
-version = "2.0.2"
-description = "Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotope measurements"
-authors = ["Mathieu Daëron <mathieu@daeron.fr>"]
-homepage = "https://github.com/mdaeron/D47crunch"
-documentation = "https://mdaeron.github.io/D47crunch"
+authors = [{name = "Mathieu Daëron", email = "mathieu@daeron.fr"}]
 readme = "readme.md"
-license = "BSD-3-Clause"
+dynamic = ["version", "description"]
+license = {text = "BSD-3-Clause"}
 classifiers = [
 	"Programming Language :: Python :: 3",
 	"License :: OSI Approved :: BSD License",
 	"Operating System :: OS Independent",
 ]
-
-[tool.poetry.dependencies]
-python = ">=3.8,<3.10"
-numpy = "^1.21.1"
-scipy = "^1.7.0"
-matplotlib = "^3.4.2"
-lmfit = "^1.0.2"
-
-[tool.poetry.dev-dependencies]
-pytest = "^6.2.4"
-pdoc = "^7.2.0"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.pytest.ini_options]
-filterwarnings = [
-    "error",
-    "ignore::DeprecationWarning",
+requires-python = ">=3.8"
+dependencies = [
+    "numpy >=1.21",
+    "scipy >=1.7.0",
+    "matplotlib >=3.4.2",
+    "lmfit >=1.0.2",
 ]
+
+[project.urls]
+Home = "https://github.com/mdaeron/D47crunch"
+Documentation = "https://mdaeron.github.io/D47crunch"
+
