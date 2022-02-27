@@ -1,6 +1,6 @@
-## 2. How-to
+# 2. How-to
 
-### 2.1 Simulate a virtual data set to play with
+## 2.1 Simulate a virtual data set to play with
 
 It is sometimes convenient to quickly build a virtual data set of analyses, for instance to assess the final analytical precision achievable for a given combination of anchor and unknown analyses (see also Fig. 6 of [Daëron, 2021](https://doi.org/10.1029/2020GC009592)).
 
@@ -42,7 +42,7 @@ D.table_of_samples(verbose = True, save_to_file = False)
 D.table_of_analyses(verbose = True, save_to_file = False)
 ```
 
-### 2.2 Control data quality
+## 2.2 Control data quality
 
 `D47crunch` offers several tools to visualize processed data. The examples below use the same virtual data set, generated with:
 
@@ -81,7 +81,7 @@ data47.crunch()
 data47.standardize()
 ```
 
-#### 2.1.1 Plotting the distribution of analyses through time
+### 2.2.1 Plotting the distribution of analyses through time
 
 ```py
 data47.plot_distribution_of_analyses(filename = 'time_distribution.pdf')
@@ -91,7 +91,7 @@ data47.plot_distribution_of_analyses(filename = 'time_distribution.pdf')
 
 The plot above shows the succession of analyses as if they were all distributed at regular time intervals. See `D4xdata.plot_distribution_of_analyses()` for how to plot analyses as a function of “true” time (based on the `TimeTag` for each analysis).
 
-#### 2.1.2 Generating session plots
+### 2.2.2 Generating session plots
 
 ```py
 data47.plot_sessions()
@@ -101,7 +101,7 @@ Below is one of the resulting sessions plots. Each cross marker is an analysis. 
 
 ![D47_plot_Session_03.png](D47_plot_Session_03.png)
 
-#### 2.1.3 Plotting Δ47 or Δ48 residuals
+### 2.2.3 Plotting Δ47 or Δ48 residuals
 
 ```py
 data47.plot_residuals(filename = 'residuals.pdf')
@@ -111,7 +111,7 @@ data47.plot_residuals(filename = 'residuals.pdf')
 
 Again, note that this plot only shows the succession of analyses as if they were all distributed at regular time intervals.
 
-### 2.3 Use a different set of anchors, change anchor nominal values, and/or change 17O correction parameters
+## 2.3 Use a different set of anchors, change anchor nominal values, and/or change oxygen-17 correction parameters
 
 Nominal values for various carbonate standards are defined in four places:
 
@@ -230,7 +230,7 @@ foo.table_of_samples(verbose = True, save_to_file = False)
 bar.table_of_samples(verbose = True, save_to_file = False)
 ```
 
-### 2.4 Process paired Δ47 and Δ48 values
+## 2.4 Process paired Δ47 and Δ48 values
 
 Purely in terms of data processing, it is not obvious why Δ47 and Δ48 data should not be handled separately. For now, `D47crunch` uses two independent classes — `D47data` and `D48data` — which crunch numbers and deal with standardization in very similar ways. The following example demonstrates how to print out combined outputs for `D47data` and `D48data`.
 
