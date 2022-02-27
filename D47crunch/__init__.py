@@ -11,8 +11,6 @@ The **how-to** section provides instructions applicable to various specific task
 
 .. include:: ../docs/tutorial.md
 .. include:: ../docs/howto.md
-
-## D47crunch API
 '''
 
 __docformat__ = "restructuredtext"
