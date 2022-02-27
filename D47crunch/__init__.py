@@ -2634,17 +2634,37 @@ class D4xdata(list):
 
 		return out
 
-	def plot_residuals(self, dir = 'output', filename = None, highlight = [], colors = None):
+	def plot_residuals(
+		self,
+		hist = False,
+		binwidth = 2/3,
+		dir = 'output',
+		filename = None,
+		highlight = [],
+		colors = None,
+		figsize = None,
+		):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
 		the order of analyses in the `D4xdata` object)
 
+		+ `hist`: whether to add a histogram of residuals
+		+ `histbins`: specify bin edges for the histogram
 		+ `dir`: the directory in which to save the plot
 		+ `highlight`: a list of samples to highlight
 		+ `colors`: a dict of `{<sample>: <color>}` for all samples
+		+ `figsize`: (width, height) of figure
 		'''
-		fig = ppl.figure(figsize = (8,4))
-		ppl.subplots_adjust(.1,.05,.78,.8)
+		# Layout
+		fig = ppl.figure(figsize = (8,4) if figsize is None else figsize)
+		if hist:
+			ppl.subplots_adjust(left = .08, bottom = .05, right = .98, top = .8, wspace = -0.72)
+			ax1, ax2 = ppl.subplot(121), ppl.subplot(1,15,15)
+		else:
+			ppl.subplots_adjust(.08,.05,.78,.8)
+			ax1 = ppl.subplot(111)
+		
+		# Colors
 		N = len(self.anchors)
 		if colors is None:
 			if len(highlight) > 0:
@@ -2664,6 +2684,11 @@ class D4xdata(list):
 					colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
 				else:
 					colors = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+
+		ppl.sca(ax1)
+		
+		ppl.axhline(0, color = 'k', alpha = .25, lw = 0.75)
+
 		session = self[0]['Session']
 		x1 = 0
 # 		ymax = np.max([1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self])
@@ -2698,11 +2723,12 @@ class D4xdata(list):
 		x_sessions[session] = (x1+x2)/2
 
 		ppl.axhspan(-self.repeatability['r_D47']*1000, self.repeatability['r_D47']*1000, color = 'k', alpha = .05, lw = 1)
-		ppl.text(len(self), self.repeatability['r_D47']*1000, f"   SD = {self.repeatability['r_D47']*1000:.1f} ppm", size = 9, alpha = .75, va = 'center')
 		ppl.axhspan(-self.repeatability['r_D47']*1000*self.t95, self.repeatability['r_D47']*1000*self.t95, color = 'k', alpha = .05, lw = 1)
-		ppl.text(len(self), self.repeatability['r_D47']*1000*self.t95, f"   95% CL: ± {self.repeatability['r_D47']*1000*self.t95:.1f} ppm", size = 9, alpha = .75, va = 'center')
+		if not hist:
+			ppl.text(len(self), self.repeatability['r_D47']*1000, f"   SD = {self.repeatability['r_D47']*1000:.1f} ppm", size = 9, alpha = 1, va = 'center')
+			ppl.text(len(self), self.repeatability['r_D47']*1000*self.t95, f"   95% CL = ± {self.repeatability['r_D47']*1000*self.t95:.1f} ppm", size = 9, alpha = 1, va = 'center')
 
-		ymax = ppl.axis()[3]
+		xmin, xmax, ymin, ymax = ppl.axis()
 		for s in x_sessions:
 			ppl.text(
 				x_sessions[s],
@@ -2715,6 +2741,9 @@ class D4xdata(list):
 					else dict(ha = 'left', rotation = 45)
 					)
 				)
+
+		if hist:
+			ppl.sca(ax2)
 
 		for s in colors:
 			kw['marker'] = '+'
@@ -2740,10 +2769,46 @@ class D4xdata(list):
 			kw['label'] = 'other (N$\\,$>$\\,$1)' if one_or_more_singlets else 'other'
 			ppl.plot([], [], **kw)
 
-		ppl.legend(loc = 'lower left', bbox_to_anchor = (1.03, 0), borderaxespad = 0)
-		ppl.xticks([])
+		if hist:
+			leg = ppl.legend(loc = 'upper right', bbox_to_anchor = (1, 1), bbox_transform=fig.transFigure, borderaxespad = 1.5, fontsize = 9)
+		else:
+			leg = ppl.legend(loc = 'lower right', bbox_to_anchor = (1, 0), bbox_transform=fig.transFigure, borderaxespad = 1.5)
+		leg.set_zorder(-1000)
+
+		ppl.sca(ax1)
+
 		ppl.ylabel('Δ$_{47}$ residuals (ppm)')
+		ppl.xticks([])
 		ppl.axis([-1, len(self), None, None])
+
+		if hist:
+			ppl.sca(ax2)
+			X = [1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self]
+			ppl.hist(
+				X,
+				orientation = 'horizontal',
+				histtype = 'stepfilled',
+				ec = [.4]*3,
+				fc = [.25]*3,
+				alpha = .25,
+				bins = np.linspace(-9e3*self.repeatability['r_D47'], 9e3*self.repeatability['r_D47'], int(18/binwidth+1)),
+				)
+			ppl.axis([None, None, ymin, ymax])
+			ppl.text(0, 0,
+				f"   SD = {self.repeatability['r_D47']*1000:.1f} ppm\n   95% CL = ± {self.repeatability['r_D47']*1000*self.t95:.1f} ppm",
+				size = 8,
+				alpha = 1,
+				va = 'center',
+				ha = 'left',
+				)
+
+			ppl.xticks([])
+			ppl.yticks([])
+# 			ax2.spines['left'].set_visible(False)
+			ax2.spines['right'].set_visible(False)
+			ax2.spines['top'].set_visible(False)
+			ax2.spines['bottom'].set_visible(False)
+
 
 		if not os.path.exists(dir):
 			os.makedirs(dir)
