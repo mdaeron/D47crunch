@@ -21,7 +21,7 @@ __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2022 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __date__      = '2022-02-27'
-__version__   = '2.0.3'
+__version__   = '2.0.4-dev0'
 
 import os
 import numpy as np
