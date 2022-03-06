@@ -972,6 +972,7 @@ class D4xdata(list):
 
 		+ `l`: a list of dictionaries, with each dictionary including at least the keys
 		`Sample`, `d45`, `d46`, and `d47` or `d48`.
+		+ `mass`: `'47'` or `'48'`
 		+ `logfile`: if specified, write detailed logs to this file path when calling `D4xdata` methods.
 		+ `session`: define session name for analyses without a `Session` key
 		+ `verbose`: if `True`, print out detailed logs when calling `D4xdata` methods.
@@ -1593,7 +1594,10 @@ class D4xdata(list):
 		if method == 'pooled':
 			if weighted_sessions:
 				for session_group in weighted_sessions:
-					X = D4xdata([r for r in self if r['Session'] in session_group], mass = self._4x)
+					if self._4x == '47':
+						X = D47data([r for r in self if r['Session'] in session_group])
+					elif self._4x == '48':
+						X = D48data([r for r in self if r['Session'] in session_group])
 					X.Nominal_D4x = self.Nominal_D4x.copy()
 					X.refresh()
 					result = X.standardize(method = 'pooled', weighted_sessions = [], consolidate = False)
