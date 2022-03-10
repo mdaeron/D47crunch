@@ -2833,7 +2833,7 @@ class D4xdata(list):
 		filename = None,
 		vs_time = False,
 		figsize = (6,4),
-		subplots_adjust = (0.02, 0.03, 0.85, 0.8),
+		subplots_adjust = (0.02, 0.13, 0.85, 0.8),
 		output = None,
 		):
 		'''
@@ -2863,6 +2863,13 @@ class D4xdata(list):
 			ppl.axhline(-k, color = 'b' if s in usamples else 'r', lw = .5, alpha = .25)
 			ppl.text(Xmax, -k, f'   {s}', va = 'center', ha = 'left', size = 7, color = 'b' if s in usamples else 'r')
 		ppl.axis([Xmin, Xmax, -k-1, 1])
+		ppl.xlabel('\ntime')
+		ppl.gca().annotate('',
+			xy = (0.6, -0.05),
+			xycoords = 'axes fraction',
+			xytext = (.4, -0.05), 
+            arrowprops = dict(arrowstyle = "->", color = 'k'),
+            )
 			
 
 		x2 = -1
