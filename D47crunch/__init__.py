@@ -2827,7 +2827,15 @@ class D4xdata(list):
 		'''
 		raise DeprecationWarning('D4xdata.simulate is deprecated and has been replaced by virtual_data()')
 
-	def plot_distribution_of_analyses(self, dir = 'output', filename = None, vs_time = False, output = None):
+	def plot_distribution_of_analyses(
+		self,
+		dir = 'output',
+		filename = None,
+		vs_time = False,
+		figsize = (6,4),
+		subplots_adjust = (0.02, 0.03, 0.85, 0.8),
+		output = None,
+		):
 		'''
 		Plot temporal distribution of all analyses in the data set.
 		
@@ -2839,45 +2847,39 @@ class D4xdata(list):
 		asamples = [s for s in self.anchors]
 		usamples = [s for s in self.unknowns]
 		if output is None or output == 'fig':
-			fig = ppl.figure(figsize = (6,4))
-			ppl.subplots_adjust(0.02, 0.03, 0.9, 0.8)
+			fig = ppl.figure(figsize = figsize)
+			ppl.subplots_adjust(*subplots_adjust)
+		Xmin = min([r['TimeTag'] if vs_time else j for j,r in enumerate(self)])
 		Xmax = max([r['TimeTag'] if vs_time else j for j,r in enumerate(self)])
+		Xmax += (Xmax-Xmin)/40
+		Xmin -= (Xmax-Xmin)/41
 		for k, s in enumerate(asamples + usamples):
 			if vs_time:
 				X = [r['TimeTag'] for r in self if r['Sample'] == s]
 			else:
 				X = [x for x,r in enumerate(self) if r['Sample'] == s]
-			Y = [k for x in X]
-			ppl.plot(X, Y, 'o', mec = None, mew = 0, mfc = 'b' if s in usamples else 'r', ms = 3, alpha = .5)
-			ppl.axhline(k, color = 'b' if s in usamples else 'r', lw = .5, alpha = .25)
-			ppl.text(Xmax, k, f'  {s}', va = 'center', ha = 'left', size = 7)
-		if vs_time:
-			t = [r['TimeTag'] for r in self]
-			t1, t2 = min(t), max(t)
-			tspan = t2 - t1
-			t1 -= tspan / len(self)
-			t2 += tspan / len(self)
-			ppl.axis([t1, t2, -1, k+1])
-		else:
-			ppl.axis([-1, len(self), -1, k+1])
+			Y = [-k for x in X]
+			ppl.plot(X, Y, 'o', mec = None, mew = 0, mfc = 'b' if s in usamples else 'r', ms = 3, alpha = .75)
+			ppl.axhline(-k, color = 'b' if s in usamples else 'r', lw = .5, alpha = .25)
+			ppl.text(Xmax, -k, f'   {s}', va = 'center', ha = 'left', size = 7, color = 'b' if s in usamples else 'r')
+		ppl.axis([Xmin, Xmax, -k-1, 1])
 			
 
-		x2 = 0
+		x2 = -1
 		for session in self.sessions:
 			x1 = min([r['TimeTag'] if vs_time else j for j,r in enumerate(self) if r['Session'] == session])
 			if vs_time:
 				ppl.axvline(x1, color = 'k', lw = .75)
 			if k:
-				if vs_time:
-					ppl.axvspan(x1,x2,color = 'k', zorder = -100, alpha = .2)
-				else:
+				if not vs_time:
 					ppl.axvline((x1+x2)/2, color = 'k', lw = .75)
 			x2 = max([r['TimeTag'] if vs_time else j for j,r in enumerate(self) if r['Session'] == session])
 # 			from xlrd import xldate_as_datetime
 # 			print(session, xldate_as_datetime(x1, 0), xldate_as_datetime(x2, 0))
 			if vs_time:
 				ppl.axvline(x2, color = 'k', lw = .75)
-			ppl.text((2*x1+x2)/3, k+1, session, ha = 'left', va = 'bottom', rotation = 45, size = 8)
+				ppl.axvspan(x1,x2,color = 'k', zorder = -100, alpha = .15)
+			ppl.text((x1+x2)/2, 1, f' {session}', ha = 'center', va = 'bottom', rotation = 45, size = 8)
 
 		ppl.xticks([])
 		ppl.yticks([])
