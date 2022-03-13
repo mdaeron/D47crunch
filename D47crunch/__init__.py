@@ -2696,6 +2696,7 @@ class D4xdata(list):
 		x_sessions = {}
 		one_or_more_singlets = False
 		one_or_more_multiplets = False
+		multiplets = set()
 		for k,r in enumerate(self):
 			if r['Session'] != session:
 				x2 = k-1
@@ -2704,6 +2705,8 @@ class D4xdata(list):
 				session = r['Session']
 				x1 = k
 			singlet = len(self.samples[r['Sample']]['data']) == 1
+			if not singlet:
+				multiplets.add(r['Sample'])
 			if r['Sample'] in self.unknowns:
 				if singlet:
 					one_or_more_singlets = True
@@ -2784,7 +2787,7 @@ class D4xdata(list):
 
 		if hist:
 			ppl.sca(ax2)
-			X = [1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self]
+			X = [1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self if r['Sample'] in multiplets]
 			ppl.hist(
 				X,
 				orientation = 'horizontal',
