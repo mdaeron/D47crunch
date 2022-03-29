@@ -2868,9 +2868,9 @@ class D4xdata(list):
 		ppl.axis([Xmin, Xmax, -k-1, 1])
 		ppl.xlabel('\ntime')
 		ppl.gca().annotate('',
-			xy = (0.6, -0.05),
+			xy = (0.6, -0.02),
 			xycoords = 'axes fraction',
-			xytext = (.4, -0.05), 
+			xytext = (.4, -0.02), 
             arrowprops = dict(arrowstyle = "->", color = 'k'),
             )
 			
@@ -2880,16 +2880,16 @@ class D4xdata(list):
 			x1 = min([r['TimeTag'] if vs_time else j for j,r in enumerate(self) if r['Session'] == session])
 			if vs_time:
 				ppl.axvline(x1, color = 'k', lw = .75)
-			if k:
+			if x2 > -1:
 				if not vs_time:
-					ppl.axvline((x1+x2)/2, color = 'k', lw = .75)
+					ppl.axvline((x1+x2)/2, color = 'k', lw = .75, alpha = .5)
 			x2 = max([r['TimeTag'] if vs_time else j for j,r in enumerate(self) if r['Session'] == session])
 # 			from xlrd import xldate_as_datetime
 # 			print(session, xldate_as_datetime(x1, 0), xldate_as_datetime(x2, 0))
 			if vs_time:
 				ppl.axvline(x2, color = 'k', lw = .75)
 				ppl.axvspan(x1,x2,color = 'k', zorder = -100, alpha = .15)
-			ppl.text((x1+x2)/2, 1, f' {session}', ha = 'center', va = 'bottom', rotation = 45, size = 8)
+			ppl.text((x1+x2)/2, 1, f' {session}', ha = 'left', va = 'bottom', rotation = 45, size = 8)
 
 		ppl.xticks([])
 		ppl.yticks([])
