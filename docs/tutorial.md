@@ -1,6 +1,6 @@
-## 1. Tutorial
+# 1. Tutorial
 
-### 1.1 Installation
+## 1.1 Installation
 
 The easy option is to use `pip`; open a shell terminal and simply type:
 
@@ -24,7 +24,7 @@ import D47crunch
 
 Documentation for the development version can be downloaded [here](https://github.com/mdaeron/D47crunch/raw/dev/docs/index.html) (save html file and open it locally).
 
-### 1.2 Usage
+## 1.2 Usage
 
 Start by creating a file named `rawdata.csv` with the following contents:
 
