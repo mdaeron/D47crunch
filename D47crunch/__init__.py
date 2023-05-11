@@ -846,6 +846,56 @@ def table_of_analyses(
 				return pretty_table(out)
 
 
+def _fullcovar(minresult, epsilon = 0.01, named = False):
+	'''
+	Construct full covariance matrix in the case of constrained parameters
+	'''
+	
+	import asteval
+	
+	def f(values):
+		interp = asteval.Interpreter()
+		print(minresult.var_names, values)
+		for n,v in zip(minresult.var_names, values):
+			interp(f'{n} = {v}')
+			print(f'{n} = {v}')
+		for q in minresult.params:
+			print(q, minresult.params[q].expr)
+			if minresult.params[q].expr:
+				interp(f'{q} = {minresult.params[q].expr}')
+				print(f'{q} = {minresult.params[q].expr}')
+			print()
+		return np.array([interp.symtable[q] for q in minresult.params])
+
+	# construct Jacobian
+	J = np.zeros((minresult.nvarys, len(minresult.params)))
+	X = np.array([minresult.params[p].value for p in minresult.var_names])
+	sX = np.array([minresult.params[p].stderr for p in minresult.var_names])
+
+	for j in range(minresult.nvarys):
+		x1 = [_ for _ in X]
+		x1[j] += epsilon * sX[j]
+		x2 = [_ for _ in X]
+		x2[j] -= epsilon * sX[j]
+		J[j,:] = (f(x1) - f(x2)) / (2 * epsilon * sX[j])
+
+	_names = [q for q in minresult.params]
+	_covar = J.T @ minresult.covar @ J
+	_se = np.diag(_covar)**.5
+	_correl = _covar.copy()
+	for k,s in enumerate(_se):
+		if s:
+			_correl[k,:] /= s
+			_correl[:,k] /= s
+
+	if named:
+		_covar = {i: {j:_covar[i,j] for j in minresult.params} for i in minresult.params}
+		_se = {i: _se[i] for i in minresult.params}
+		_correl = {i: {j:_correl[i,j] for j in minresult.params} for i in minresult.params}
+
+	return _names, _covar, _se, _correl
+
+
 class D4xdata(list):
 	'''
 	Store and process data for a large set of Δ47 and/or Δ48
@@ -1621,9 +1671,22 @@ class D4xdata(list):
 				params.add(f'a_{s}', value = 0.9)
 				params.add(f'b_{s}', value = 0.)
 				params.add(f'c_{s}', value = -0.9)
-				params.add(f'a2_{s}', value = 0., vary = self.sessions[session]['scrambling_drift'])
-				params.add(f'b2_{s}', value = 0., vary = self.sessions[session]['slope_drift'])
-				params.add(f'c2_{s}', value = 0., vary = self.sessions[session]['wg_drift'])
+				params.add(f'a2_{s}', value = 0.,
+# 					vary = self.sessions[session]['scrambling_drift'],
+					)
+				params.add(f'b2_{s}', value = 0.,
+# 					vary = self.sessions[session]['slope_drift'],
+					)
+				params.add(f'c2_{s}', value = 0.,
+# 					vary = self.sessions[session]['wg_drift'],
+					)
+				if not self.sessions[session]['scrambling_drift']:
+					params[f'a2_{s}'].expr = '0'
+				if not self.sessions[session]['slope_drift']:
+					params[f'b2_{s}'].expr = '0'
+				if not self.sessions[session]['wg_drift']:
+					params[f'c2_{s}'].expr = '0'
+
 			for sample in self.unknowns:
 				params.add(f'D{self._4x}_{pf(sample)}', value = 0.5)
 
@@ -1667,8 +1730,9 @@ class D4xdata(list):
 			result = M.least_squares()
 			self.Nf = result.nfree
 			self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
-# 			if self.verbose:
-# 				report_fit(result)
+			new_names, new_covar, new_se = _fullcovar(result)[:3]
+			result.var_names = new_names
+			result.covar = new_covar
 
 			for r in self:
 				s = pf(r["Session"])

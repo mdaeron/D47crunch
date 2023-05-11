@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.5.dev0
+*Unreleased*
+
+### Changes
+* Under the hood: constrained parameters in pooled standardization now get fully propagated variance and covariance, allowing for truly arbitrary constraints without having book-keeping problems further down the line.
+
 ## v2.0.4
 *Released on 2023-05-11*
 
