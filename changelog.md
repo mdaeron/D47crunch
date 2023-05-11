@@ -4,7 +4,7 @@
 *Released on 2023-05-11*
 
 ### Changes
-* Graphiocally improved `D4xdata.plot_distribution_of_analyses()`
+* Graphically improved `D4xdata.plot_distribution_of_analyses()`
 
 ### Bugfix
 * Fix `D4xdata.standardize()` when using weighted sessions
