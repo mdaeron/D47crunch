@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.0.5
+*Released on 2023-05-11*
+
+### Changes
+* Under the hood: constrained parameters in pooled standardization now get fully propagated variance and covariance, allowing for truly arbitrary constraints without having book-keeping problems further down the line.
+
+## v2.0.4
+*Released on 2023-05-11*
+
+### Changes
+* Graphically improved `D4xdata.plot_distribution_of_analyses()`
+
+### Bugfix
+* Fix `D4xdata.standardize()` when using weighted sessions
+
 ## v2.0.3
 *Released on 2022-02-27*
 

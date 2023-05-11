@@ -11,15 +11,17 @@ The **how-to** section provides instructions applicable to various specific task
 
 .. include:: ../docs/tutorial.md
 .. include:: ../docs/howto.md
+
+## API Documentation
 '''
 
 __docformat__ = "restructuredtext"
 __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
-__copyright__ = 'Copyright (c) 2022 Mathieu Daëron'
+__copyright__ = 'Copyright (c) 2023 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2022-02-27'
-__version__   = '2.0.3'
+__date__      = '2023-05-11'
+__version__   = '2.0.5'
 
 import os
 import numpy as np
@@ -844,6 +846,56 @@ def table_of_analyses(
 				return pretty_table(out)
 
 
+def _fullcovar(minresult, epsilon = 0.01, named = False):
+	'''
+	Construct full covariance matrix in the case of constrained parameters
+	'''
+	
+	import asteval
+	
+	def f(values):
+		interp = asteval.Interpreter()
+		print(minresult.var_names, values)
+		for n,v in zip(minresult.var_names, values):
+			interp(f'{n} = {v}')
+			print(f'{n} = {v}')
+		for q in minresult.params:
+			print(q, minresult.params[q].expr)
+			if minresult.params[q].expr:
+				interp(f'{q} = {minresult.params[q].expr}')
+				print(f'{q} = {minresult.params[q].expr}')
+			print()
+		return np.array([interp.symtable[q] for q in minresult.params])
+
+	# construct Jacobian
+	J = np.zeros((minresult.nvarys, len(minresult.params)))
+	X = np.array([minresult.params[p].value for p in minresult.var_names])
+	sX = np.array([minresult.params[p].stderr for p in minresult.var_names])
+
+	for j in range(minresult.nvarys):
+		x1 = [_ for _ in X]
+		x1[j] += epsilon * sX[j]
+		x2 = [_ for _ in X]
+		x2[j] -= epsilon * sX[j]
+		J[j,:] = (f(x1) - f(x2)) / (2 * epsilon * sX[j])
+
+	_names = [q for q in minresult.params]
+	_covar = J.T @ minresult.covar @ J
+	_se = np.diag(_covar)**.5
+	_correl = _covar.copy()
+	for k,s in enumerate(_se):
+		if s:
+			_correl[k,:] /= s
+			_correl[:,k] /= s
+
+	if named:
+		_covar = {i: {j:_covar[i,j] for j in minresult.params} for i in minresult.params}
+		_se = {i: _se[i] for i in minresult.params}
+		_correl = {i: {j:_correl[i,j] for j in minresult.params} for i in minresult.params}
+
+	return _names, _covar, _se, _correl
+
+
 class D4xdata(list):
 	'''
 	Store and process data for a large set of Δ47 and/or Δ48
@@ -972,6 +1024,7 @@ class D4xdata(list):
 
 		+ `l`: a list of dictionaries, with each dictionary including at least the keys
 		`Sample`, `d45`, `d46`, and `d47` or `d48`.
+		+ `mass`: `'47'` or `'48'`
 		+ `logfile`: if specified, write detailed logs to this file path when calling `D4xdata` methods.
 		+ `session`: define session name for analyses without a `Session` key
 		+ `verbose`: if `True`, print out detailed logs when calling `D4xdata` methods.
@@ -1593,7 +1646,10 @@ class D4xdata(list):
 		if method == 'pooled':
 			if weighted_sessions:
 				for session_group in weighted_sessions:
-					X = D4xdata([r for r in self if r['Session'] in session_group], mass = self._4x)
+					if self._4x == '47':
+						X = D47data([r for r in self if r['Session'] in session_group])
+					elif self._4x == '48':
+						X = D48data([r for r in self if r['Session'] in session_group])
 					X.Nominal_D4x = self.Nominal_D4x.copy()
 					X.refresh()
 					result = X.standardize(method = 'pooled', weighted_sessions = [], consolidate = False)
@@ -1615,9 +1671,22 @@ class D4xdata(list):
 				params.add(f'a_{s}', value = 0.9)
 				params.add(f'b_{s}', value = 0.)
 				params.add(f'c_{s}', value = -0.9)
-				params.add(f'a2_{s}', value = 0., vary = self.sessions[session]['scrambling_drift'])
-				params.add(f'b2_{s}', value = 0., vary = self.sessions[session]['slope_drift'])
-				params.add(f'c2_{s}', value = 0., vary = self.sessions[session]['wg_drift'])
+				params.add(f'a2_{s}', value = 0.,
+# 					vary = self.sessions[session]['scrambling_drift'],
+					)
+				params.add(f'b2_{s}', value = 0.,
+# 					vary = self.sessions[session]['slope_drift'],
+					)
+				params.add(f'c2_{s}', value = 0.,
+# 					vary = self.sessions[session]['wg_drift'],
+					)
+				if not self.sessions[session]['scrambling_drift']:
+					params[f'a2_{s}'].expr = '0'
+				if not self.sessions[session]['slope_drift']:
+					params[f'b2_{s}'].expr = '0'
+				if not self.sessions[session]['wg_drift']:
+					params[f'c2_{s}'].expr = '0'
+
 			for sample in self.unknowns:
 				params.add(f'D{self._4x}_{pf(sample)}', value = 0.5)
 
@@ -1661,8 +1730,9 @@ class D4xdata(list):
 			result = M.least_squares()
 			self.Nf = result.nfree
 			self.t95 = tstudent.ppf(1 - 0.05/2, self.Nf)
-# 			if self.verbose:
-# 				report_fit(result)
+			new_names, new_covar, new_se = _fullcovar(result)[:3]
+			result.var_names = new_names
+			result.covar = new_covar
 
 			for r in self:
 				s = pf(r["Session"])
@@ -2692,6 +2762,7 @@ class D4xdata(list):
 		x_sessions = {}
 		one_or_more_singlets = False
 		one_or_more_multiplets = False
+		multiplets = set()
 		for k,r in enumerate(self):
 			if r['Session'] != session:
 				x2 = k-1
@@ -2700,6 +2771,8 @@ class D4xdata(list):
 				session = r['Session']
 				x1 = k
 			singlet = len(self.samples[r['Sample']]['data']) == 1
+			if not singlet:
+				multiplets.add(r['Sample'])
 			if r['Sample'] in self.unknowns:
 				if singlet:
 					one_or_more_singlets = True
@@ -2780,7 +2853,7 @@ class D4xdata(list):
 
 		if hist:
 			ppl.sca(ax2)
-			X = [1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self]
+			X = [1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self if r['Sample'] in multiplets]
 			ppl.hist(
 				X,
 				orientation = 'horizontal',
@@ -2823,7 +2896,15 @@ class D4xdata(list):
 		'''
 		raise DeprecationWarning('D4xdata.simulate is deprecated and has been replaced by virtual_data()')
 
-	def plot_distribution_of_analyses(self, dir = 'output', filename = None, vs_time = False, output = None):
+	def plot_distribution_of_analyses(
+		self,
+		dir = 'output',
+		filename = None,
+		vs_time = False,
+		figsize = (6,4),
+		subplots_adjust = (0.02, 0.13, 0.85, 0.8),
+		output = None,
+		):
 		'''
 		Plot temporal distribution of all analyses in the data set.
 		
@@ -2835,45 +2916,46 @@ class D4xdata(list):
 		asamples = [s for s in self.anchors]
 		usamples = [s for s in self.unknowns]
 		if output is None or output == 'fig':
-			fig = ppl.figure(figsize = (6,4))
-			ppl.subplots_adjust(0.02, 0.03, 0.9, 0.8)
+			fig = ppl.figure(figsize = figsize)
+			ppl.subplots_adjust(*subplots_adjust)
+		Xmin = min([r['TimeTag'] if vs_time else j for j,r in enumerate(self)])
 		Xmax = max([r['TimeTag'] if vs_time else j for j,r in enumerate(self)])
+		Xmax += (Xmax-Xmin)/40
+		Xmin -= (Xmax-Xmin)/41
 		for k, s in enumerate(asamples + usamples):
 			if vs_time:
 				X = [r['TimeTag'] for r in self if r['Sample'] == s]
 			else:
 				X = [x for x,r in enumerate(self) if r['Sample'] == s]
-			Y = [k for x in X]
-			ppl.plot(X, Y, 'o', mec = None, mew = 0, mfc = 'b' if s in usamples else 'r', ms = 3, alpha = .5)
-			ppl.axhline(k, color = 'b' if s in usamples else 'r', lw = .5, alpha = .25)
-			ppl.text(Xmax, k, f'  {s}', va = 'center', ha = 'left', size = 7)
-		if vs_time:
-			t = [r['TimeTag'] for r in self]
-			t1, t2 = min(t), max(t)
-			tspan = t2 - t1
-			t1 -= tspan / len(self)
-			t2 += tspan / len(self)
-			ppl.axis([t1, t2, -1, k+1])
-		else:
-			ppl.axis([-1, len(self), -1, k+1])
+			Y = [-k for x in X]
+			ppl.plot(X, Y, 'o', mec = None, mew = 0, mfc = 'b' if s in usamples else 'r', ms = 3, alpha = .75)
+			ppl.axhline(-k, color = 'b' if s in usamples else 'r', lw = .5, alpha = .25)
+			ppl.text(Xmax, -k, f'   {s}', va = 'center', ha = 'left', size = 7, color = 'b' if s in usamples else 'r')
+		ppl.axis([Xmin, Xmax, -k-1, 1])
+		ppl.xlabel('\ntime')
+		ppl.gca().annotate('',
+			xy = (0.6, -0.02),
+			xycoords = 'axes fraction',
+			xytext = (.4, -0.02), 
+            arrowprops = dict(arrowstyle = "->", color = 'k'),
+            )
 			
 
-		x2 = 0
+		x2 = -1
 		for session in self.sessions:
 			x1 = min([r['TimeTag'] if vs_time else j for j,r in enumerate(self) if r['Session'] == session])
 			if vs_time:
 				ppl.axvline(x1, color = 'k', lw = .75)
-			if k:
-				if vs_time:
-					ppl.axvspan(x1,x2,color = 'k', zorder = -100, alpha = .2)
-				else:
-					ppl.axvline((x1+x2)/2, color = 'k', lw = .75)
+			if x2 > -1:
+				if not vs_time:
+					ppl.axvline((x1+x2)/2, color = 'k', lw = .75, alpha = .5)
 			x2 = max([r['TimeTag'] if vs_time else j for j,r in enumerate(self) if r['Session'] == session])
 # 			from xlrd import xldate_as_datetime
 # 			print(session, xldate_as_datetime(x1, 0), xldate_as_datetime(x2, 0))
 			if vs_time:
 				ppl.axvline(x2, color = 'k', lw = .75)
-			ppl.text((2*x1+x2)/3, k+1, session, ha = 'left', va = 'bottom', rotation = 45, size = 8)
+				ppl.axvspan(x1,x2,color = 'k', zorder = -100, alpha = .15)
+			ppl.text((x1+x2)/2, 1, f' {session}', ha = 'left', va = 'bottom', rotation = 45, size = 8)
 
 		ppl.xticks([])
 		ppl.yticks([])
