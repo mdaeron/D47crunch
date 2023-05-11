@@ -11,6 +11,8 @@ The **how-to** section provides instructions applicable to various specific task
 
 .. include:: ../docs/tutorial.md
 .. include:: ../docs/howto.md
+
+## API Documentation
 '''
 
 __docformat__ = "restructuredtext"
