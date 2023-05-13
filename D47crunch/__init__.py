@@ -855,16 +855,11 @@ def _fullcovar(minresult, epsilon = 0.01, named = False):
 	
 	def f(values):
 		interp = asteval.Interpreter()
-		print(minresult.var_names, values)
 		for n,v in zip(minresult.var_names, values):
 			interp(f'{n} = {v}')
-			print(f'{n} = {v}')
 		for q in minresult.params:
-			print(q, minresult.params[q].expr)
 			if minresult.params[q].expr:
 				interp(f'{q} = {minresult.params[q].expr}')
-				print(f'{q} = {minresult.params[q].expr}')
-			print()
 		return np.array([interp.symtable[q] for q in minresult.params])
 
 	# construct Jacobian
