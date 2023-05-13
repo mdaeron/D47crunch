@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.6
+*Released on 2023-05-13*
+
+### Bugfix
+* Eliminate some spurious debugging messages in `_fullcovar()`
+
 ## v2.0.5
 *Released on 2023-05-11*
 
