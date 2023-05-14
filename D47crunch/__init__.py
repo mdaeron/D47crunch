@@ -412,6 +412,7 @@ def virtual_data(
 	samples = [],
 	a47 = 1., b47 = 0., c47 = -0.9,
 	a48 = 1., b48 = 0., c48 = -0.45,
+	rd45 = 0.020, rd46 = 0.060,
 	rD47 = 0.015, rD48 = 0.045,
 	d13Cwg_VPDB = None, d18Owg_VSMOW = None,
 	session = None,
@@ -441,6 +442,8 @@ def virtual_data(
 	+ `a48`: scrambling factor for Δ48
 	+ `b48`: compositional nonlinearity for Δ48
 	+ `c48`: working gas offset for Δ48
+	+ `rd45`: analytical repeatability of δ45
+	+ `rd46`: analytical repeatability of δ46
 	+ `rD47`: analytical repeatability of Δ47
 	+ `rD48`: analytical repeatability of Δ48
 	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
@@ -595,6 +598,10 @@ def virtual_data(
 		rng = nprandom.default_rng()
 	
 	N = sum([s['N'] for s in samples])
+	errors45 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+	errors45 *= rd45 / stdev(errors45) # scale errors to rd45
+	errors46 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+	errors46 *= rd46 / stdev(errors46) # scale errors to rd46
 	errors47 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
 	errors47 *= rD47 / stdev(errors47) # scale errors to rD47
 	errors48 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
@@ -623,8 +630,10 @@ def virtual_data(
 		sN = s['N']
 		while sN:
 			out.append(simulate_single_analysis(**kw))
-			out[-1]['d47'] += errors47[k] * a47
-			out[-1]['d48'] += errors48[k] * a48
+			out[-1]['d45'] += errors45[k]
+			out[-1]['d46'] += errors46[k]
+			out[-1]['d47'] += (errors45[k] + errors46[k] + errors47[k]) * a47
+			out[-1]['d48'] += (2*errors46[k] + errors48[k]) * a48
 			sN -= 1
 			k += 1
 
@@ -2966,6 +2975,156 @@ class D4xdata(list):
 			return ppl.gca()
 		elif output == 'fig':
 			return fig
+
+
+	def plot_bulk_compositions(
+		self,
+		samples = None,
+		dir = 'output/bulk_compositions',
+		figsize = (6,6),
+		subplots_adjust = (0.15, 0.12, 0.95, 0.92),
+		show = False,
+		sample_color = (0,.5,1),
+		analysis_color = (.7,.7,.7),
+		labeldist = 0.3,
+		radius = 0.05,
+		):
+		'''
+		Plot δ13C_VBDP vs δ18O_VSMOW (of CO2) for all analyses.
+		
+		By default, creates a directory `./output/bulk_compositions` where plots for
+		each sample are saved. Another plot named `__all__.pdf` shows all analyses together.
+		
+		
+		**Parameters**
+
+		+ `samples`: Only these samples are processed (by default: all samples).
+		+ `dir`: where to save the plots
+		+ `figsize`: (width, height) of figure
+		+ `subplots_adjust`: passed to `subplots_adjust()`
+		+ `show`: whether to call `matplotlib.pyplot.show()` on the plot with all samples,
+		allowing for interactive visualization/exploration in (δ13C, δ18O) space.
+		+ `sample_color`: color used for replicate markers/labels
+		+ `analysis_color`: color used for sample markers/labels
+		+ `labeldist`: distance (in inches) from replicate markers to replicate labels
+		+ `radius`: radius of the dashed circle providing scale. No circle if `radius = 0`.
+		'''
+
+		from matplotlib.patches import Ellipse
+
+		if samples is None:
+			samples = [_ for _ in self.samples]
+
+		saved = {}
+
+		for s in samples:
+
+			fig = ppl.figure(figsize = figsize)
+			fig.subplots_adjust(*subplots_adjust)
+			ax = ppl.subplot(111)
+			ppl.xlabel('$δ^{18}O_{VSMOW}$ of $CO_2$ (‰)')
+			ppl.ylabel('$δ^{13}C_{VPDB}$ (‰)')
+			ppl.title(s)
+
+
+			XY = np.array([[_['d18O_VSMOW'], _['d13C_VPDB']] for _ in self.samples[s]['data']])
+			UID = [_['UID'] for _ in self.samples[s]['data']]
+			XY0 = XY.mean(0)
+
+			for xy in XY:
+				ppl.plot([xy[0], XY0[0]], [xy[1], XY0[1]], '-', lw = 1, color = analysis_color)
+				
+			ppl.plot(*XY.T, 'wo', mew = 1, mec = analysis_color)
+			ppl.plot(*XY0, 'wo', mew = 2, mec = sample_color)
+			ppl.text(*XY0, f'  {s}', va = 'center', ha = 'left', color = sample_color, weight = 'bold')
+			saved[s] = [XY, XY0]
+			
+			x1, x2, y1, y2 = ppl.axis()
+			x0, dx = (x1+x2)/2, (x2-x1)/2
+			y0, dy = (y1+y2)/2, (y2-y1)/2
+			dx, dy = [max(max(dx, dy), radius)]*2
+
+			ppl.axis([
+				x0 - 1.2*dx,
+				x0 + 1.2*dx,
+				y0 - 1.2*dy,
+				y0 + 1.2*dy,
+				])			
+
+			XY0_in_display_space = fig.dpi_scale_trans.inverted().transform(ax.transData.transform(XY0))
+
+			for xy, uid in zip(XY, UID):
+
+				xy_in_display_space = fig.dpi_scale_trans.inverted().transform(ax.transData.transform(xy))
+				vector_in_display_space = xy_in_display_space - XY0_in_display_space
+
+				if (vector_in_display_space**2).sum() > 0:
+
+					unit_vector_in_display_space = vector_in_display_space / ((vector_in_display_space**2).sum())**0.5
+					label_vector_in_display_space = vector_in_display_space + unit_vector_in_display_space * labeldist
+					label_xy_in_display_space = XY0_in_display_space + label_vector_in_display_space
+					label_xy_in_data_space = ax.transData.inverted().transform(fig.dpi_scale_trans.transform(label_xy_in_display_space))
+
+					ppl.text(*label_xy_in_data_space, uid, va = 'center', ha = 'center', color = analysis_color)
+
+				else:
+
+					ppl.text(*xy, f'{uid}  ', va = 'center', ha = 'right', color = analysis_color)
+
+			if radius:
+				ax.add_artist(Ellipse(
+					xy = XY0,
+					width = radius*2,
+					height = radius*2,
+					ls = (0, (2,2)),
+					lw = .7,
+					ec = analysis_color,
+					fc = 'None',
+					))
+				ppl.text(
+					XY0[0],
+					XY0[1]-radius,
+					f'\n± {radius*1e3:.0f} ppm',
+					color = analysis_color,
+					va = 'top',
+					ha = 'center',
+					linespacing = 0.4,
+					size = 8,
+					)
+
+			if not os.path.exists(dir):
+				os.makedirs(dir)
+			fig.savefig(f'{dir}/{s}.pdf')
+			ppl.close(fig)
+
+		fig = ppl.figure(figsize = figsize)
+		fig.subplots_adjust(*subplots_adjust)
+		ppl.xlabel('$δ^{18}O_{VSMOW}$ of $CO_2$ (‰)')
+		ppl.ylabel('$δ^{13}C_{VPDB}$ (‰)')
+
+		for s in saved:
+			for xy in saved[s][0]:
+				ppl.plot([xy[0], saved[s][1][0]], [xy[1], saved[s][1][1]], '-', lw = 1, color = analysis_color)
+			ppl.plot(*saved[s][0].T, 'wo', mew = 1, mec = analysis_color)
+			ppl.plot(*saved[s][1], 'wo', mew = 1.5, mec = sample_color)
+			ppl.text(*saved[s][1], f'  {s}', va = 'center', ha = 'left', color = sample_color, weight = 'bold')
+
+		x1, x2, y1, y2 = ppl.axis()
+		ppl.axis([
+			x1 - (x2-x1)/10,
+			x2 + (x2-x1)/10,
+			y1 - (y2-y1)/10,
+			y2 + (y2-y1)/10,
+			])			
+
+
+		if not os.path.exists(dir):
+			os.makedirs(dir)
+		fig.savefig(f'{dir}/__all__.pdf')
+		if show:
+			ppl.show()
+		ppl.close(fig)
+		
 
 
 class D47data(D4xdata):

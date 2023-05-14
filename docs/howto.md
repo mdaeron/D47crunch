@@ -111,6 +111,29 @@ data47.plot_residuals(filename = 'residuals.pdf')
 
 Again, note that this plot only shows the succession of analyses as if they were all distributed at regular time intervals.
 
+### 2.2.4 Checking δ13C and δ18O dispersion
+
+```py
+mydata = D47data(virtual_data(
+	session = 'mysession',
+	samples = [
+		dict(Sample = 'ETH-1', N = 4),
+		dict(Sample = 'ETH-2', N = 4),
+		dict(Sample = 'ETH-3', N = 4),
+		dict(Sample = 'MYSAMPLE', N = 8, D47 = 0.6, D48 = 0.1, d13C_VPDB = -4.0, d18O_VPDB = -12.0),
+	], seed = 123))
+
+mydata.refresh()
+mydata.wg()
+mydata.crunch()
+mydata.plot_bulk_compositions()
+```
+
+`D4xdata.plot_bulk_compositions()` produces a series of plots, one for each sample, and an additional plot with all samples together. For example, here is the plot for sample `MYSAMPLE`:
+
+![bulk_compositions.png](bulk_compositions.png)
+
+
 ## 2.3 Use a different set of anchors, change anchor nominal values, and/or change oxygen-17 correction parameters
 
 Nominal values for various carbonate standards are defined in four places:
