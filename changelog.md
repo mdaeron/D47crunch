@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.1.0
+*Released on 2023-05-14*
+
+### New feature
+* `D4xdata.plot_bulk_compositions()` plots the dispersion of δ13C and δ18O values for each sample.
+
 ## v2.0.6
 *Released on 2023-05-13*
 
