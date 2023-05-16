@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.1.1
+*Released on 2023-05-16*
+
 ### Bugfix
 * `D4xdata.compute_r()` uses an improved computation for degrees of freedom for arbitrary subsets of sessions and/or samples, yielding more estimates of analytical repeatabilities for Δ47 and Δ48.
 
