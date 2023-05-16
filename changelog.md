@@ -1,5 +1,14 @@
 # Changelog
 
+### Bugfix
+* `D4xdata.compute_r()` uses an improved computation for degrees of freedom for arbitrary subsets of sessions and/or samples, yielding more estimates of analytical repeatabilities for Δ47 and Δ48.
+
+### New feature
+* Added `kde` option to `D4xdata.plot_residuals()`
+
+### Other changes
+* Minor improvement to y axis tick labels) in `D4xdata.plot_residuals()`.
+
 ## v2.1.0
 *Released on 2023-05-14*
 

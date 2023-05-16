@@ -1747,6 +1747,7 @@ class D4xdata(list):
 				b2 = result.params.valuesdict()[f'b2_{s}']
 				c2 = result.params.valuesdict()[f'c2_{s}']
 				r[f'D{self._4x}'] = (r[f'D{self._4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
+				
 
 			self.standardization = result
 
@@ -2230,7 +2231,7 @@ class D4xdata(list):
 			D4x_pop = [r[f'D{self._4x}'] for r in self.samples[sample]['data']]
 			if len(D4x_pop) > 2:
 				self.samples[sample]['p_Levene'] = levene(D4x_ref_pop, D4x_pop, center = 'median')[1]
-
+			
 		if self.standardization_method == 'pooled':
 			for sample in self.anchors:
 				self.samples[sample][f'D{self._4x}'] = self.Nominal_D4x[sample]
@@ -2269,6 +2270,10 @@ class D4xdata(list):
 				wsum = sum([weights[s] for s in weights])
 				for s in weights:
 					self.unknowns[sample][f'session_D{self._4x}'][s] += [self.unknowns[sample][f'session_D{self._4x}'][s][1]**-2 / wsum]
+
+		for r in self:
+			r[f'D{self._4x}_residual'] = r[f'D{self._4x}'] - self.samples[r['Sample']][f'D{self._4x}']
+
 
 
 	def consolidate_sessions(self):
@@ -2469,9 +2474,6 @@ class D4xdata(list):
 		'''
 		Compute the repeatability of `[r[key] for r in self]`
 		'''
-		# NB: it's debatable whether rD47 should be computed
-		# with Nf = len(self)-len(self.samples) instead of
-		# Nf = len(self) - len(self.unknwons) - 3*len(self.sessions)
 
 		if samples == 'all samples':
 			mysamples = [k for k in self.samples]
@@ -2486,17 +2488,43 @@ class D4xdata(list):
 			sessions = [k for k in self.sessions]
 
 		if key in ['D47', 'D48']:
-			chisq, Nf = 0, 0
-			for sample in mysamples :
-				X = [ r[key] for r in self if r['Sample'] == sample and r['Session'] in sessions ]
-				if len(X) > 1 :
-					chisq += np.sum([ (x-self.samples[sample][key])**2 for x in X ])
-					if sample in self.unknowns:
-						Nf += len(X) - 1
-					else:
-						Nf += len(X)
-			if samples in ['anchors', 'all samples']:
-				Nf -= sum([self.sessions[s]['Np'] for s in sessions])
+			# Full disclosure: the definition of Nf is tricky/debatable
+			G = [r for r in self if r['Sample'] in mysamples and r['Session'] in sessions]
+			chisq = (np.array([r[f'{key}_residual'] for r in G])**2).sum()
+			Nf = len(G)
+# 			print(f'len(G) = {Nf}')
+			Nf -= len([s for s in mysamples if s in self.unknowns])
+# 			print(f'{len([s for s in mysamples if s in self.unknowns])} unknown samples to consider')
+			for session in sessions:
+				Np = len([
+					_ for _ in self.standardization.params
+					if (
+						self.standardization.params[_].expr is not None
+						and (
+							(_[0] in 'abc' and _[1] == '_' and _[2:] == pf(session))
+							or (_[0] in 'abc' and _[1:3] == '2_' and _[3:] == pf(session))
+							)
+						)
+					])
+# 				print(f'session {session}: {Np} parameters to consider')
+				Na = len({
+					r['Sample'] for r in self.sessions[session]['data']
+					if r['Sample'] in self.anchors and r['Sample'] in mysamples
+					})
+# 				print(f'session {session}: {Na} different anchors in that session')
+				Nf -= min(Np, Na)
+# 			print(f'Nf = {Nf}')
+
+# 			for sample in mysamples :
+# 				X = [ r[key] for r in self if r['Sample'] == sample and r['Session'] in sessions ]
+# 				if len(X) > 1 :
+# 					chisq += np.sum([ (x-self.samples[sample][key])**2 for x in X ])
+# 					if sample in self.unknowns:
+# 						Nf += len(X) - 1
+# 					else:
+# 						Nf += len(X)
+# 			if samples in ['anchors', 'all samples']:
+# 				Nf -= sum([self.sessions[s]['Np'] for s in sessions])
 			r = (chisq / Nf)**.5 if Nf > 0 else 0
 
 		else: # if key not in ['D47', 'D48']
@@ -2707,6 +2735,7 @@ class D4xdata(list):
 
 	def plot_residuals(
 		self,
+		kde = False,
 		hist = False,
 		binwidth = 2/3,
 		dir = 'output',
@@ -2719,16 +2748,20 @@ class D4xdata(list):
 		Plot residuals of each analysis as a function of time (actually, as a function of
 		the order of analyses in the `D4xdata` object)
 
-		+ `hist`: whether to add a histogram of residuals
+		+ `kde`: whether to add a kernel density estimate of residuals
+		+ `hist`: whether to add a histogram of residuals (incompatible with `kde`)
 		+ `histbins`: specify bin edges for the histogram
 		+ `dir`: the directory in which to save the plot
 		+ `highlight`: a list of samples to highlight
 		+ `colors`: a dict of `{<sample>: <color>}` for all samples
 		+ `figsize`: (width, height) of figure
 		'''
+		
+		from matplotlib import ticker
+		
 		# Layout
 		fig = ppl.figure(figsize = (8,4) if figsize is None else figsize)
-		if hist:
+		if hist or kde:
 			ppl.subplots_adjust(left = .08, bottom = .05, right = .98, top = .8, wspace = -0.72)
 			ax1, ax2 = ppl.subplot(121), ppl.subplot(1,15,15)
 		else:
@@ -2759,6 +2792,8 @@ class D4xdata(list):
 		ppl.sca(ax1)
 		
 		ppl.axhline(0, color = 'k', alpha = .25, lw = 0.75)
+
+		ax1.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'${x:+.0f}$' if x else '$0$'))
 
 		session = self[0]['Session']
 		x1 = 0
@@ -2792,15 +2827,15 @@ class D4xdata(list):
 				)
 			if highlight and r['Sample'] not in highlight:
 				kw['alpha'] = 0.2
-			ppl.plot(k, 1e3 * (r['D47'] - self.samples[r['Sample']]['D47']), **kw)
+			ppl.plot(k, 1e3 * r[f'D{self._4x}_residual'], **kw)
 		x2 = k
 		x_sessions[session] = (x1+x2)/2
 
-		ppl.axhspan(-self.repeatability['r_D47']*1000, self.repeatability['r_D47']*1000, color = 'k', alpha = .05, lw = 1)
-		ppl.axhspan(-self.repeatability['r_D47']*1000*self.t95, self.repeatability['r_D47']*1000*self.t95, color = 'k', alpha = .05, lw = 1)
-		if not hist:
-			ppl.text(len(self), self.repeatability['r_D47']*1000, f"   SD = {self.repeatability['r_D47']*1000:.1f} ppm", size = 9, alpha = 1, va = 'center')
-			ppl.text(len(self), self.repeatability['r_D47']*1000*self.t95, f"   95% CL = ± {self.repeatability['r_D47']*1000*self.t95:.1f} ppm", size = 9, alpha = 1, va = 'center')
+		ppl.axhspan(-self.repeatability[f'r_D{self._4x}']*1000, self.repeatability[f'r_D{self._4x}']*1000, color = 'k', alpha = .05, lw = 1)
+		ppl.axhspan(-self.repeatability[f'r_D{self._4x}']*1000*self.t95, self.repeatability[f'r_D{self._4x}']*1000*self.t95, color = 'k', alpha = .05, lw = 1)
+		if not (hist or kde):
+			ppl.text(len(self), self.repeatability[f'r_D{self._4x}']*1000, f"   SD = {self.repeatability['r_D{self._4x}']*1000:.1f} ppm", size = 9, alpha = 1, va = 'center')
+			ppl.text(len(self), self.repeatability[f'r_D{self._4x}']*1000*self.t95, f"   95% CL = ± {self.repeatability['r_D{self._4x}']*1000*self.t95:.1f} ppm", size = 9, alpha = 1, va = 'center')
 
 		xmin, xmax, ymin, ymax = ppl.axis()
 		for s in x_sessions:
@@ -2816,7 +2851,7 @@ class D4xdata(list):
 					)
 				)
 
-		if hist:
+		if hist or kde:
 			ppl.sca(ax2)
 
 		for s in colors:
@@ -2843,7 +2878,7 @@ class D4xdata(list):
 			kw['label'] = 'other (N$\\,$>$\\,$1)' if one_or_more_singlets else 'other'
 			ppl.plot([], [], **kw)
 
-		if hist:
+		if hist or kde:
 			leg = ppl.legend(loc = 'upper right', bbox_to_anchor = (1, 1), bbox_transform=fig.transFigure, borderaxespad = 1.5, fontsize = 9)
 		else:
 			leg = ppl.legend(loc = 'lower right', bbox_to_anchor = (1, 0), bbox_transform=fig.transFigure, borderaxespad = 1.5)
@@ -2851,26 +2886,35 @@ class D4xdata(list):
 
 		ppl.sca(ax1)
 
-		ppl.ylabel('Δ$_{47}$ residuals (ppm)')
+		ppl.ylabel(f'Δ$_{{{self._4x}}}$ residuals (ppm)')
 		ppl.xticks([])
 		ppl.axis([-1, len(self), None, None])
 
-		if hist:
+		if hist or kde:
 			ppl.sca(ax2)
-			X = [1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self if r['Sample'] in multiplets]
-			ppl.hist(
-				X,
-				orientation = 'horizontal',
-				histtype = 'stepfilled',
-				ec = [.4]*3,
-				fc = [.25]*3,
-				alpha = .25,
-				bins = np.linspace(-9e3*self.repeatability['r_D47'], 9e3*self.repeatability['r_D47'], int(18/binwidth+1)),
-				)
-			ppl.axis([None, None, ymin, ymax])
+			X = 1e3 * np.array([r[f'D{self._4x}_residual'] for r in self if r['Sample'] in multiplets or r['Sample'] in self.anchors])
+
+			if kde:
+				from scipy.stats import gaussian_kde
+				yi = np.linspace(ymin, ymax, 201)
+				xi = gaussian_kde(X).evaluate(yi)
+				ppl.fill_betweenx(yi, xi, xi*0, fc = (0,0,0,.15), lw = 1, ec = (.75,.75,.75,1))
+# 				ppl.plot(xi, yi, 'k-', lw = 1)
+				ppl.axis([0, None, ymin, ymax])
+			elif hist:
+				ppl.hist(
+					X,
+					orientation = 'horizontal',
+					histtype = 'stepfilled',
+					ec = [.4]*3,
+					fc = [.25]*3,
+					alpha = .25,
+					bins = np.linspace(-9e3*self.repeatability[f'r_D{self._4x}'], 9e3*self.repeatability[f'r_D{self._4x}'], int(18/binwidth+1)),
+					)
+				ppl.axis([None, None, ymin, ymax])
 			ppl.text(0, 0,
-				f"   SD = {self.repeatability['r_D47']*1000:.1f} ppm\n   95% CL = ± {self.repeatability['r_D47']*1000*self.t95:.1f} ppm",
-				size = 8,
+				f"   SD = {self.repeatability[f'r_D{self._4x}']*1000:.1f} ppm\n   95% CL = ± {self.repeatability[f'r_D{self._4x}']*1000*self.t95:.1f} ppm",
+				size = 7.5,
 				alpha = 1,
 				va = 'center',
 				ha = 'left',
