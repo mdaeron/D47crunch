@@ -7,39 +7,7 @@ It is sometimes convenient to quickly build a virtual data set of analyses, for 
 This can be achieved with `virtual_data()`. The example below creates a dataset with four sessions, each of which comprises four analyses of anchor ETH-1, five of ETH-2, six of ETH-3, and two analyses of an unknown sample named `FOO` with an arbitrarily defined isotopic composition. Analytical repeatabilities for Δ47 and Δ48 are also specified arbitrarily. See the `virtual_data()` documentation for additional configuration parameters.
 
 ```py
-from D47crunch import *
-
-args = dict(
-	samples = [
-		dict(Sample = 'ETH-1', N = 4),
-		dict(Sample = 'ETH-2', N = 5),
-		dict(Sample = 'ETH-3', N = 6),
-		dict(
-			Sample = 'FOO',
-			N = 2,
-			d13C_VPDB = -5.,
-			d18O_VPDB = -10.,
-			D47 = 0.3,
-			D48 = 0.15
-			),
-		],
-	rD47 = 0.010,
-	rD48 = 0.030,
-	)
-
-session1 = virtual_data(session = 'Session_01', **args)
-session2 = virtual_data(session = 'Session_02', **args)
-session3 = virtual_data(session = 'Session_03', **args)
-session4 = virtual_data(session = 'Session_04', **args)
-
-D = D47data(session1 + session2 + session3 + session4)
-
-D.crunch()
-D.standardize()
-
-D.table_of_sessions(verbose = True, save_to_file = False)
-D.table_of_samples(verbose = True, save_to_file = False)
-D.table_of_analyses(verbose = True, save_to_file = False)
+.. include:: ../examples/virtual_data_code_examples.py
 ```
 
 ## 2.2 Control data quality

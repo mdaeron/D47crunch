@@ -4,6 +4,8 @@ Apply an arbitrary filter to each docstring
 '''
 
 import pdoc
+from io import StringIO
+from contextlib import redirect_stdout
 
 substitutions = [
 	('δ13C_VPDB', 'δ<sup>13</sup>C<sub>VPDB</sub>'),
@@ -49,19 +51,23 @@ def myfilter(docstr):
 			work[k] = '`'.join(work[k])
 	return ('```'.join(work))
 
+for code_input, code_output in [
+	('examples/virtual_data_code_examples.py', 'docs/virtual_data_code_results.txt'),
+	]:
+
+	with open(code_input) as fid:
+		code = fid.read()
+
+	f = StringIO()
+	with redirect_stdout(f):
+		exec(code)
+
+	with open(code_output, 'w') as fid:
+		fid.write(f.getvalue())
+
+
 pdoc.render.env.filters['myfilter'] = myfilter
 pdoc.render.configure(template_directory = 'pdoc_templates')
 
 with open('docs/index.html', 'w') as fid:
 	fid.write(pdoc.pdoc('D47crunch'))
-
-# foo = '''
-# Create foo δ13C bar Δ47 δ18O_VSMOW `δ13C_VPDB`, `Δ48`.
-# 
-# ````py
-# Create foo δ13C bar `Δ47` δ18O_VSMOW.
-# ```
-# '''
-# 
-# print(myfilter(foo))
-
