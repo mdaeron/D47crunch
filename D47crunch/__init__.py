@@ -467,13 +467,13 @@ def virtual_data(
 	anchors and unknowns for a bunch of sessions:
 
 	```py
-	.. include:: ../examples/virtual_data_code_examples.py
+	.. include:: ../code_examples/virtual_data/example.py
 	```
 	
 	This should output something like:
 	
 	```
-	.. include:: ../docs/virtual_data_code_results.txt
+	.. include:: ../code_examples/virtual_data/output.txt
 	```
 	'''
 	
@@ -2068,7 +2068,7 @@ class D4xdata(list):
 			return pretty_table(out)
 
 
-	def plot_sessions(self, dir = 'output', figsize = (8,8)):
+	def plot_sessions(self, dir = 'output', figsize = (8,8), filetype = 'pdf', dpi = 100):
 		'''
 		Generate session plots and save them to disk.
 
@@ -2076,13 +2076,15 @@ class D4xdata(list):
 
 		+ `dir`: the directory in which to save the plots
 		+ `figsize`: the width and height (in inches) of each plot
+		+ `filetype`: 'pdf' or 'png'
+		+ `dpi`: resolution for PNG output
 		'''
 		if not os.path.exists(dir):
 			os.makedirs(dir)
 
 		for session in self.sessions:
 			sp = self.plot_single_session(session, xylimits = 'constant')
-			ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.pdf')
+			ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.{filetype}', **({'dpi': dpi} if filetype.lower() == 'png' else {}))
 			ppl.close(sp.fig)
 
 
@@ -2635,6 +2637,7 @@ class D4xdata(list):
 		highlight = [],
 		colors = None,
 		figsize = None,
+		dpi = 100,
 		):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
@@ -2647,6 +2650,7 @@ class D4xdata(list):
 		+ `highlight`: a list of samples to highlight
 		+ `colors`: a dict of `{<sample>: <color>}` for all samples
 		+ `figsize`: (width, height) of figure
+		+ `dpi`: resolution for PNG output
 		'''
 		
 		from matplotlib import ticker
@@ -2726,8 +2730,8 @@ class D4xdata(list):
 		ppl.axhspan(-self.repeatability[f'r_D{self._4x}']*1000, self.repeatability[f'r_D{self._4x}']*1000, color = 'k', alpha = .05, lw = 1)
 		ppl.axhspan(-self.repeatability[f'r_D{self._4x}']*1000*self.t95, self.repeatability[f'r_D{self._4x}']*1000*self.t95, color = 'k', alpha = .05, lw = 1)
 		if not (hist or kde):
-			ppl.text(len(self), self.repeatability[f'r_D{self._4x}']*1000, f"   SD = {self.repeatability['r_D{self._4x}']*1000:.1f} ppm", size = 9, alpha = 1, va = 'center')
-			ppl.text(len(self), self.repeatability[f'r_D{self._4x}']*1000*self.t95, f"   95% CL = ± {self.repeatability['r_D{self._4x}']*1000*self.t95:.1f} ppm", size = 9, alpha = 1, va = 'center')
+			ppl.text(len(self), self.repeatability[f'r_D{self._4x}']*1000, f"   SD = {self.repeatability[f'r_D{self._4x}']*1000:.1f} ppm", size = 9, alpha = 1, va = 'center')
+			ppl.text(len(self), self.repeatability[f'r_D{self._4x}']*1000*self.t95, f"   95% CL = ± {self.repeatability[f'r_D{self._4x}']*1000*self.t95:.1f} ppm", size = 9, alpha = 1, va = 'center')
 
 		xmin, xmax, ymin, ymax = ppl.axis()
 		for s in x_sessions:
@@ -2826,7 +2830,7 @@ class D4xdata(list):
 			return fig
 		elif filename == '':
 			filename = f'D{self._4x}_residuals.pdf'
-		ppl.savefig(f'{dir}/{filename}')
+		ppl.savefig(f'{dir}/{filename}', dpi = dpi)
 		ppl.close(fig)
 				
 
@@ -2844,13 +2848,18 @@ class D4xdata(list):
 		figsize = (6,4),
 		subplots_adjust = (0.02, 0.13, 0.85, 0.8),
 		output = None,
+		dpi = 100,
 		):
 		'''
 		Plot temporal distribution of all analyses in the data set.
 		
 		**Parameters**
 
+		+ `dir`: the directory in which to save the plot
 		+ `vs_time`: if `True`, plot as a function of `TimeTag` rather than sequentially.
+		+ `dpi`: resolution for PNG output
+		+ `figsize`: (width, height) of figure
+		+ `dpi`: resolution for PNG output
 		'''
 
 		asamples = [s for s in self.anchors]
@@ -2905,7 +2914,7 @@ class D4xdata(list):
 				os.makedirs(dir)
 			if filename == None:
 				filename = f'D{self._4x}_distribution_of_analyses.pdf'
-			ppl.savefig(f'{dir}/{filename}')
+			ppl.savefig(f'{dir}/{filename}', dpi = dpi)
 			ppl.close(fig)
 		elif output == 'ax':
 			return ppl.gca()

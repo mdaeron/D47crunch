@@ -52,7 +52,8 @@ def myfilter(docstr):
 	return ('```'.join(work))
 
 for code_input, code_output in [
-	('examples/virtual_data_code_examples.py', 'docs/virtual_data_code_results.txt'),
+	('code_examples/virtual_data/example.py', 'code_examples/virtual_data/output.txt'),
+	('code_examples/data_quality/example.py', 'code_examples/data_quality/output.txt'),
 	]:
 
 	with open(code_input) as fid:
@@ -65,6 +66,10 @@ for code_input, code_output in [
 	with open(code_output, 'w') as fid:
 		fid.write(f.getvalue())
 
+	if 'data_quality' in code_input:
+		data47.plot_distribution_of_analyses(dir = 'docs', filename = 'time_distribution.png', dpi = 120)
+		data47.plot_sessions(dir = 'docs', filetype = 'png')
+		data47.plot_residuals(dir = 'docs', filename = 'residuals.png')
 
 pdoc.render.env.filters['myfilter'] = myfilter
 pdoc.render.configure(template_directory = 'pdoc_templates')
