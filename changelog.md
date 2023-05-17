@@ -1,5 +1,8 @@
 # Changelog
 
+### New feature
+* Added `shuffle` option to `virtual_data()`
+
 ## v2.1.1
 *Released on 2023-05-16*
 
