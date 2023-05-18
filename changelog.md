@@ -1,12 +1,13 @@
 # Changelog
 
 ### New feature
+* Add `yspan` option to `D4xdata.plot_residuals()`
 * Added `shuffle` option to `virtual_data()`.
 * Added `filetype` option to `D4xdata.plot_sessions()`.
 * Added `dpi` option to `D4xdata.plot_sessions()`, `D4xdata.plot_residuals()`.
 
 ### Bugfix
-* Correct error in `D4xdata.plot_residuals()` when `hist = False` and `kde = False`.
+* Fix error in `D4xdata.plot_residuals()` when `hist = False` and `kde = False`.
 
 ## v2.1.1
 *Released on 2023-05-16*
