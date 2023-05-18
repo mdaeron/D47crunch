@@ -2638,7 +2638,7 @@ class D4xdata(list):
 		colors = None,
 		figsize = None,
 		dpi = 100,
-		yspan = 1.5,
+		yspan = None,
 		):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
@@ -2653,9 +2653,16 @@ class D4xdata(list):
 		+ `figsize`: (width, height) of figure
 		+ `dpi`: resolution for PNG output
 		+ `yspan`: factor controlling the range of y values shown in plot
+		  (by default: `yspan = 1.5 if kde else 1.0`)
 		'''
 		
 		from matplotlib import ticker
+
+		if yspan is None:
+			if kde:
+				yspan = 1.5
+			else:
+				yspan = 1.0
 		
 		# Layout
 		fig = ppl.figure(figsize = (8,4) if figsize is None else figsize)
