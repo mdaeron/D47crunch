@@ -69,7 +69,7 @@ for code_input, code_output in [
 	if 'data_quality' in code_input:
 		data47.plot_distribution_of_analyses(dir = 'docs', filename = 'time_distribution.png', dpi = 120)
 		data47.plot_sessions(dir = 'docs', filetype = 'png')
-		data47.plot_residuals(dir = 'docs', filename = 'residuals.png')
+		data47.plot_residuals(dir = 'docs', filename = 'residuals.png', kde = True)
 
 pdoc.render.env.filters['myfilter'] = myfilter
 pdoc.render.configure(template_directory = 'pdoc_templates')

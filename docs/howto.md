@@ -41,7 +41,7 @@ Below is one of the resulting sessions plots. Each cross marker is an analysis. 
 ### 2.2.3 Plotting Δ47 or Δ48 residuals
 
 ```py
-data47.plot_residuals(filename = 'residuals.pdf')
+data47.plot_residuals(filename = 'residuals.pdf', kde = True)
 ```
 
 ![residuals.png](residuals.png)

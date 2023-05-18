@@ -16,7 +16,7 @@ args = dict(
 		])
 
 sessions = [
-	virtual_data(session = f'Session_{k+1:02.0f}', seed = int('1234567890'[:k+1]), **args)
+	virtual_data(session = f'Session_{k+1:02.0f}', seed = 123456+k, **args)
 	for k in range(10)]
 
 # shuffle the data:

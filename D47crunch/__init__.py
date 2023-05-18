@@ -2638,6 +2638,7 @@ class D4xdata(list):
 		colors = None,
 		figsize = None,
 		dpi = 100,
+		yspan = 1.5,
 		):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
@@ -2651,6 +2652,7 @@ class D4xdata(list):
 		+ `colors`: a dict of `{<sample>: <color>}` for all samples
 		+ `figsize`: (width, height) of figure
 		+ `dpi`: resolution for PNG output
+		+ `yspan`: factor controlling the range of y values shown in plot
 		'''
 		
 		from matplotlib import ticker
@@ -2734,6 +2736,8 @@ class D4xdata(list):
 			ppl.text(len(self), self.repeatability[f'r_D{self._4x}']*1000*self.t95, f"   95% CL = ± {self.repeatability[f'r_D{self._4x}']*1000*self.t95:.1f} ppm", size = 9, alpha = 1, va = 'center')
 
 		xmin, xmax, ymin, ymax = ppl.axis()
+		if yspan != 1:
+			ymin, ymax = (ymin + ymax)/2 - yspan * (ymax - ymin)/2, (ymin + ymax)/2 + yspan * (ymax - ymin)/2
 		for s in x_sessions:
 			ppl.text(
 				x_sessions[s],
@@ -2796,7 +2800,6 @@ class D4xdata(list):
 				xi = gaussian_kde(X).evaluate(yi)
 				ppl.fill_betweenx(yi, xi, xi*0, fc = (0,0,0,.15), lw = 1, ec = (.75,.75,.75,1))
 # 				ppl.plot(xi, yi, 'k-', lw = 1)
-				ppl.axis([0, None, ymin, ymax])
 			elif hist:
 				ppl.hist(
 					X,
@@ -2807,7 +2810,6 @@ class D4xdata(list):
 					alpha = .25,
 					bins = np.linspace(-9e3*self.repeatability[f'r_D{self._4x}'], 9e3*self.repeatability[f'r_D{self._4x}'], int(18/binwidth+1)),
 					)
-				ppl.axis([None, None, ymin, ymax])
 			ppl.text(0, 0,
 				f"   SD = {self.repeatability[f'r_D{self._4x}']*1000:.1f} ppm\n   95% CL = ± {self.repeatability[f'r_D{self._4x}']*1000*self.t95:.1f} ppm",
 				size = 7.5,
@@ -2816,6 +2818,7 @@ class D4xdata(list):
 				ha = 'left',
 				)
 
+			ppl.axis([0, None, ymin, ymax])
 			ppl.xticks([])
 			ppl.yticks([])
 # 			ax2.spines['left'].set_visible(False)
@@ -2823,6 +2826,7 @@ class D4xdata(list):
 			ax2.spines['top'].set_visible(False)
 			ax2.spines['bottom'].set_visible(False)
 
+		ax1.axis([None, None, ymin, ymax])
 
 		if not os.path.exists(dir):
 			os.makedirs(dir)
