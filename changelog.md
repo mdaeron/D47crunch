@@ -1,6 +1,9 @@
 # Changelog
 
-### New feature
+### Command-line interface (CLI)
+* Rejoice, you no longer need to know Python: it is now possible to process a multi-session Δ47 dataset with custom anchors and custom UID/sample exclusion list by simply calling `D47crunch -a anchors.csv -e exclude.csv -o outdir rawdata.csv`.
+
+### New features
 * Add `yspan` option to `D4xdata.plot_residuals()`
 * Added `shuffle` option to `virtual_data()`.
 * Added `filetype` option to `D4xdata.plot_sessions()`.

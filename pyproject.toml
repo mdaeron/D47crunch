@@ -19,9 +19,12 @@ dependencies = [
     "scipy >=1.7.0",
     "matplotlib >=3.4.2",
     "lmfit >=1.0.2",
+    "typer >=0.9.0",
 ]
 
 [project.urls]
 Home = "https://github.com/mdaeron/D47crunch"
 Documentation = "https://mdaeron.github.io/D47crunch"
 
+[project.scripts]
+D47crunch = "D47crunch:__cli"

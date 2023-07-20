@@ -11,8 +11,9 @@ The **how-to** section provides instructions applicable to various specific task
 
 .. include:: ../docs/tutorial.md
 .. include:: ../docs/howto.md
+.. include:: ../docs/cli.md
 
-## API Documentation
+# 4. API Documentation
 '''
 
 __docformat__ = "restructuredtext"
@@ -25,6 +26,8 @@ __version__   = '2.1.1'
 
 import os
 import numpy as np
+import typer
+from typing_extensions import Annotated
 from statistics import stdev
 from scipy.stats import t as tstudent
 from scipy.stats import levene
@@ -3226,9 +3229,74 @@ class D48data(D4xdata):
 		D4xdata.__init__(self, l = l, mass = '48', **kwargs)
 
 
+
 class _SessionPlot():
 	'''
 	Simple placeholder class
 	'''
 	def __init__(self):
 		pass
+
+_app = typer.Typer(
+	add_completion = False,
+	context_settings={'help_option_names': ['-h', '--help']},
+	rich_markup_mode = 'rich',
+	)
+
+@_app.command()
+def _cli(
+	rawdata: Annotated[str, typer.Argument(help = "Specify the path of a rawdata input file")],
+	exclude: Annotated[str, typer.Option('--exclude', '-e', help = 'The path of a file specifying UIDs and/or Samples to exclude')] = 'none',
+	anchors: Annotated[str, typer.Option('--anchors', '-a', help = 'The path of a file specifying custom anchors')] = 'none',
+	output_dir: Annotated[str, typer.Option('--output-dir', '-o', help = 'Specify the output directory')] = 'output',
+	):
+	"""
+	Process raw D47 data and return standardized results.
+	"""
+
+	data = D47data()
+	data.read(rawdata)
+
+	if exclude != 'none':
+		exclude = read_csv(exclude)
+		exclude_uid = {r['UID'] for r in exclude if 'UID' in r}
+		exclude_sample = {r['Sample'] for r in exclude if 'Sample' in r}
+	else:
+		exclude_uid = []
+		exclude_sample = []
+	
+	data = D47data([r for r in data if r['UID'] not in exclude_uid and r['Sample'] not in exclude_sample])
+
+	if anchors != 'none':
+		anchors = read_csv(anchors)
+		data.Nominal_d13C_VPDB = {
+			_['Sample']: _['d13C_VPDB']
+			for _ in anchors
+			if 'd13C_VPDB' in _
+			}
+		data.Nominal_d18O_VPDB = {
+			_['Sample']: _['d18O_VPDB']
+			for _ in anchors
+			if 'd18O_VPDB' in _
+			}
+		data.Nominal_D4x = {
+			_['Sample']: _['D47']
+			for _ in anchors
+			if 'D47' in _
+			}
+
+	data.refresh()
+	data.wg()
+	data.crunch()
+	data.standardize()
+	data.summary(dir = output_dir)
+	data.table_of_samples(dir = output_dir)
+	data.table_of_sessions(dir = output_dir)
+	data.plot_sessions(dir = output_dir)
+	data.plot_residuals(dir = output_dir, filename = 'D47_residuals.pdf', kde = True)
+	data.table_of_analyses(dir = output_dir)
+	data.plot_distribution_of_analyses(dir = output_dir)
+	data.plot_bulk_compositions(dir = output_dir + '/bulk_compositions')
+
+def __cli():
+	_app()
