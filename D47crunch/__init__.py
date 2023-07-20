@@ -22,7 +22,7 @@ __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2023 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
 __date__      = '2023-07-20'
-__version__   = '2.2.0'
+__version__   = '2.2.1'
 
 import os
 import numpy as np
@@ -3249,6 +3249,7 @@ def _cli(
 	exclude: Annotated[str, typer.Option('--exclude', '-e', help = 'The path of a file specifying UIDs and/or Samples to exclude')] = 'none',
 	anchors: Annotated[str, typer.Option('--anchors', '-a', help = 'The path of a file specifying custom anchors')] = 'none',
 	output_dir: Annotated[str, typer.Option('--output-dir', '-o', help = 'Specify the output directory')] = 'output',
+	run_D48: Annotated[bool, typer.Option('--D48', help = 'Also standardize D48')] = False,
 	):
 	"""
 	Process raw D47 data and return standardized results.
@@ -3290,13 +3291,51 @@ def _cli(
 	data.crunch()
 	data.standardize()
 	data.summary(dir = output_dir)
-	data.table_of_samples(dir = output_dir)
-	data.table_of_sessions(dir = output_dir)
-	data.plot_sessions(dir = output_dir)
 	data.plot_residuals(dir = output_dir, filename = 'D47_residuals.pdf', kde = True)
-	data.table_of_analyses(dir = output_dir)
-	data.plot_distribution_of_analyses(dir = output_dir)
 	data.plot_bulk_compositions(dir = output_dir + '/bulk_compositions')
+	data.plot_sessions(dir = output_dir)
+	
+	if not run_D48:
+		data.table_of_samples(dir = output_dir)
+		data.table_of_analyses(dir = output_dir)
+		data.table_of_sessions(dir = output_dir)
 
+
+	if run_D48:
+		data2 = D48data()
+		data2.read(rawdata)
+
+		data2 = D48data([r for r in data2 if r['UID'] not in exclude_uid and r['Sample'] not in exclude_sample])
+
+		if anchors != 'none':
+			data2.Nominal_d13C_VPDB = {
+				_['Sample']: _['d13C_VPDB']
+				for _ in anchors
+				if 'd13C_VPDB' in _
+				}
+			data2.Nominal_d18O_VPDB = {
+				_['Sample']: _['d18O_VPDB']
+				for _ in anchors
+				if 'd18O_VPDB' in _
+				}
+			data2.Nominal_D4x = {
+				_['Sample']: _['D48']
+				for _ in anchors
+				if 'D48' in _
+				}
+
+		data2.refresh()
+		data2.wg()
+		data2.crunch()
+		data2.standardize()
+		data2.summary(dir = output_dir)
+		data2.plot_sessions(dir = output_dir)
+		data2.plot_residuals(dir = output_dir, filename = 'D48_residuals.pdf', kde = True)
+		data2.plot_distribution_of_analyses(dir = output_dir)
+
+		table_of_analyses(data, data2, dir = output_dir)
+		table_of_samples(data, data2, dir = output_dir)
+		table_of_sessions(data, data2, dir = output_dir)
+		
 def __cli():
 	_app()

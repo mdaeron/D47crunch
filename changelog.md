@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.2.1
+*Released on 2023-07-20*
+
+### New feature
+
+* The CLI now processes Δ48 as well as Δ47 data, thanks to the `--D48` option.
+
+
 ## v2.2.0
 *Released on 2023-07-20*
 

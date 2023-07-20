@@ -4,7 +4,7 @@
 
 Python library for processing and standardizing carbonate clumped-isotope analyses, from low-level data out of a dual-inlet mass spectrometer to final, “absolute” Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates.
 
-This also provides a command-line interface making it possible to process a multi-session Δ<sub>47</sub> dataset by simply calling `D47crunch rawdata.csv`. See the [CLI documentation](https://mdaeron.github.io/D47crunch/#3-command-line-interface-cli) for more options.
+This also provides a command-line interface making it possible to process a multi-session Δ<sub>47</sub> (and potentially Δ<sub>48</sub>) dataset by simply calling `D47crunch rawdata.csv`. See the [CLI documentation](https://mdaeron.github.io/D47crunch/#3-command-line-interface-cli) for more options.
 
 ## Documentation
 

@@ -1,6 +1,6 @@
 # 3. Command-Line Interface (CLI)
 
-Instead of writing Python code, you may directly use the CLI to process raw D47 data using reasonable defaults. The simplest way is simply to call
+Instead of writing Python code, you may directly use the CLI to process raw Δ47 and Δ48 data using reasonable defaults. The simplest way is simply to call:
 
 ```txt
 D47crunch rawdata.csv
@@ -62,3 +62,5 @@ The `--output-dir` or `-o` option may be used to specify a custom directory name
 ```txt
 D47crunch -o `date "+%Y-%M-%d-%Hh%M"` rawdata.csv
 ```
+
+To process Δ48 as well as Δ47, just add the `--D48` option.
