@@ -4,6 +4,8 @@
 
 Python library for processing and standardizing carbonate clumped-isotope analyses, from low-level data out of a dual-inlet mass spectrometer to final, “absolute” Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates.
 
+This also provides a command-line interface making it possible to process a multi-session Δ<sub>47</sub> dataset by simply calling `D47crunch rawdata.csv`. See the [CLI documentation](https://mdaeron.github.io/D47crunch/#3-command-line-interface-cli) for more options.
+
 ## Documentation
 
 For the full API and a short tutorial, see [https://mdaeron.github.io/D47crunch].
@@ -31,13 +33,14 @@ Alternatively:
 import sys
 sys.path.append('/foo/bar')
 ```
-Having done any of the above you should now be able to `import D47crunch`, with the following requirements: [Python 3], [numpy], [matplotlib], [scipy], and [lmfit].
+Having done any of the above you should now be able to `import D47crunch`, with the following requirements: [Python 3], [numpy], [matplotlib], [scipy], [lmfit], and [typer].
 
 [Python 3]: https://www.python.org
 [numpy]: https://numpy.org
 [lmfit]: https://lmfit.github.io
 [matplotlib]: https://matplotlib.org
 [scipy]: https://www.scipy.org
+[typer]: https://typer.tiangolo.com
 [dev branch]: https://github.com/mdaeron/D47crunch/archive/dev.zip
 [latest release]: https://github.com/mdaeron/D47crunch/releases/latest
 

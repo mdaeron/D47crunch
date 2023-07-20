@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.2.0
+*Released on 2023-07-20*
+
 ### Command-line interface (CLI)
 * Rejoice, you no longer need to know Python: it is now possible to process a multi-session Δ47 dataset with custom anchors and custom UID/sample exclusion list by simply calling `D47crunch -a anchors.csv -e exclude.csv -o outdir rawdata.csv`.
 
