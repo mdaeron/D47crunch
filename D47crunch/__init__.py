@@ -11,8 +11,9 @@ The **how-to** section provides instructions applicable to various specific task
 
 .. include:: ../docs/tutorial.md
 .. include:: ../docs/howto.md
+.. include:: ../docs/cli.md
 
-## API Documentation
+# 4. API Documentation
 '''
 
 __docformat__ = "restructuredtext"
@@ -20,11 +21,13 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2023 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2023-05-13'
-__version__   = '2.0.6'
+__date__      = '2023-07-20'
+__version__   = '2.2.0'
 
 import os
 import numpy as np
+import typer
+from typing_extensions import Annotated
 from statistics import stdev
 from scipy.stats import t as tstudent
 from scipy.stats import levene
@@ -412,6 +415,7 @@ def virtual_data(
 	samples = [],
 	a47 = 1., b47 = 0., c47 = -0.9,
 	a48 = 1., b48 = 0., c48 = -0.45,
+	rd45 = 0.020, rd46 = 0.060,
 	rD47 = 0.015, rD48 = 0.045,
 	d13Cwg_VPDB = None, d18Owg_VSMOW = None,
 	session = None,
@@ -424,6 +428,7 @@ def virtual_data(
 	LAMBDA_17 = None,
 	R18_VPDB = None,
 	seed = 0,
+	shuffle = True,
 	):
 	'''
 	Return list with simulated analyses from a single session.
@@ -441,6 +446,8 @@ def virtual_data(
 	+ `a48`: scrambling factor for Δ48
 	+ `b48`: compositional nonlinearity for Δ48
 	+ `c48`: working gas offset for Δ48
+	+ `rd45`: analytical repeatability of δ45
+	+ `rd46`: analytical repeatability of δ46
 	+ `rD47`: analytical repeatability of Δ47
 	+ `rD48`: analytical repeatability of Δ48
 	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
@@ -456,133 +463,20 @@ def virtual_data(
 	+ `R13_VPDB`, `R17_VSMOW`, `R18_VSMOW`, `LAMBDA_17`, `R18_VPDB`: oxygen-17
 		correction parameters (by default equal to the `simulate_single_analysis` default)
 	+ `seed`: explicitly set to a non-zero value to achieve random but repeatable simulations
+	+ `shuffle`: randomly reorder the sequence of analyses
 	
 		
 	Here is an example of using this method to generate an arbitrary combination of
 	anchors and unknowns for a bunch of sessions:
 
 	```py
-	args = dict(
-		samples = [
-			dict(Sample = 'ETH-1', N = 4),
-			dict(Sample = 'ETH-2', N = 5),
-			dict(Sample = 'ETH-3', N = 6),
-			dict(Sample = 'FOO', N = 2,
-				d13C_VPDB = -5., d18O_VPDB = -10.,
-				D47 = 0.3, D48 = 0.15),
-			], rD47 = 0.010, rD48 = 0.030)
-
-	session1 = virtual_data(session = 'Session_01', **args, seed = 123)
-	session2 = virtual_data(session = 'Session_02', **args, seed = 1234)
-	session3 = virtual_data(session = 'Session_03', **args, seed = 12345)
-	session4 = virtual_data(session = 'Session_04', **args, seed = 123456)
-
-	D = D47data(session1 + session2 + session3 + session4)
-
-	D.crunch()
-	D.standardize()
-
-	D.table_of_sessions(verbose = True, save_to_file = False)
-	D.table_of_samples(verbose = True, save_to_file = False)
-	D.table_of_analyses(verbose = True, save_to_file = False)
+	.. include:: ../code_examples/virtual_data/example.py
 	```
 	
 	This should output something like:
 	
 	```
-	[table_of_sessions] 
-	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
-	Session     Na  Nu  d13Cwg_VPDB  d18Owg_VSMOW  r_d13C  r_d18O   r_D47         a ± SE    1e3 x b ± SE          c ± SE
-	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
-	Session_01  15   2       -4.000        26.000  0.0000  0.0000  0.0110  0.997 ± 0.017  -0.097 ± 0.244  -0.896 ± 0.006
-	Session_02  15   2       -4.000        26.000  0.0000  0.0000  0.0109  1.002 ± 0.017  -0.110 ± 0.244  -0.901 ± 0.006
-	Session_03  15   2       -4.000        26.000  0.0000  0.0000  0.0107  1.010 ± 0.017  -0.037 ± 0.244  -0.904 ± 0.006
-	Session_04  15   2       -4.000        26.000  0.0000  0.0000  0.0106  1.001 ± 0.017  -0.181 ± 0.244  -0.894 ± 0.006
-	––––––––––  ––  ––  –––––––––––  ––––––––––––  ––––––  ––––––  ––––––  –––––––––––––  ––––––––––––––  ––––––––––––––
-
-	[table_of_samples] 
-	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-	Sample   N  d13C_VPDB  d18O_VSMOW     D47      SE    95% CL      SD  p_Levene
-	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-	ETH-1   16       2.02       37.02  0.2052                    0.0079          
-	ETH-2   20     -10.17       19.88  0.2085                    0.0100          
-	ETH-3   24       1.71       37.45  0.6132                    0.0105          
-	FOO      8      -5.00       28.91  0.2989  0.0040  ± 0.0080  0.0101     0.638
-	––––––  ––  –––––––––  ––––––––––  ––––––  ––––––  ––––––––  ––––––  ––––––––
-
-	[table_of_analyses] 
-	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
-	UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46         d47         d48         d49   d13C_VPDB  d18O_VSMOW     D47raw     D48raw     D49raw       D47
-	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
-	1    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.122986   21.273526   27.780042    2.020000   37.024281  -0.706013  -0.328878  -0.000013  0.192554
-	2    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.130144   21.282615   27.780042    2.020000   37.024281  -0.698974  -0.319981  -0.000013  0.199615
-	3    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.149219   21.299572   27.780042    2.020000   37.024281  -0.680215  -0.303383  -0.000013  0.218429
-	4    Session_01   ETH-1       -4.000        26.000   6.018962  10.747026   16.136616   21.233128   27.780042    2.020000   37.024281  -0.692609  -0.368421  -0.000013  0.205998
-	5    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.697171  -12.203054  -18.023381  -10.170000   19.875825  -0.680771  -0.290128  -0.000002  0.215054
-	6    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701124  -12.184422  -18.023381  -10.170000   19.875825  -0.684772  -0.271272  -0.000002  0.211041
-	7    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.715105  -12.195251  -18.023381  -10.170000   19.875825  -0.698923  -0.282232  -0.000002  0.196848
-	8    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701529  -12.204963  -18.023381  -10.170000   19.875825  -0.685182  -0.292061  -0.000002  0.210630
-	9    Session_01   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.711420  -12.228478  -18.023381  -10.170000   19.875825  -0.695193  -0.315859  -0.000002  0.200589
-	10   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.666719   22.296486   28.306614    1.710000   37.450394  -0.290459  -0.147284  -0.000014  0.609363
-	11   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.671553   22.291060   28.306614    1.710000   37.450394  -0.285706  -0.152592  -0.000014  0.614130
-	12   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.652854   22.273271   28.306614    1.710000   37.450394  -0.304093  -0.169990  -0.000014  0.595689
-	13   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.684168   22.263156   28.306614    1.710000   37.450394  -0.273302  -0.179883  -0.000014  0.626572
-	14   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.662702   22.253578   28.306614    1.710000   37.450394  -0.294409  -0.189251  -0.000014  0.605401
-	15   Session_01   ETH-3       -4.000        26.000   5.742374  11.161270   16.681957   22.230907   28.306614    1.710000   37.450394  -0.275476  -0.211424  -0.000014  0.624391
-	16   Session_01     FOO       -4.000        26.000  -0.840413   2.828738    1.312044    5.395798    4.665655   -5.000000   28.907344  -0.598436  -0.268176  -0.000006  0.298996
-	17   Session_01     FOO       -4.000        26.000  -0.840413   2.828738    1.328123    5.307086    4.665655   -5.000000   28.907344  -0.582387  -0.356389  -0.000006  0.315092
-	18   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.122201   21.340606   27.780042    2.020000   37.024281  -0.706785  -0.263217  -0.000013  0.195135
-	19   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.134868   21.305714   27.780042    2.020000   37.024281  -0.694328  -0.297370  -0.000013  0.207564
-	20   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.140008   21.261931   27.780042    2.020000   37.024281  -0.689273  -0.340227  -0.000013  0.212607
-	21   Session_02   ETH-1       -4.000        26.000   6.018962  10.747026   16.135540   21.298472   27.780042    2.020000   37.024281  -0.693667  -0.304459  -0.000013  0.208224
-	22   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701213  -12.202602  -18.023381  -10.170000   19.875825  -0.684862  -0.289671  -0.000002  0.213842
-	23   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.685649  -12.190405  -18.023381  -10.170000   19.875825  -0.669108  -0.277327  -0.000002  0.229559
-	24   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.719003  -12.257955  -18.023381  -10.170000   19.875825  -0.702869  -0.345692  -0.000002  0.195876
-	25   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.700592  -12.204641  -18.023381  -10.170000   19.875825  -0.684233  -0.291735  -0.000002  0.214469
-	26   Session_02   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.720426  -12.214561  -18.023381  -10.170000   19.875825  -0.704308  -0.301774  -0.000002  0.194439
-	27   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.673044   22.262090   28.306614    1.710000   37.450394  -0.284240  -0.180926  -0.000014  0.616730
-	28   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.666542   22.263401   28.306614    1.710000   37.450394  -0.290634  -0.179643  -0.000014  0.610350
-	29   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.680487   22.243486   28.306614    1.710000   37.450394  -0.276921  -0.199121  -0.000014  0.624031
-	30   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.663900   22.245175   28.306614    1.710000   37.450394  -0.293231  -0.197469  -0.000014  0.607759
-	31   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.674379   22.301309   28.306614    1.710000   37.450394  -0.282927  -0.142568  -0.000014  0.618039
-	32   Session_02   ETH-3       -4.000        26.000   5.742374  11.161270   16.660825   22.270466   28.306614    1.710000   37.450394  -0.296255  -0.172733  -0.000014  0.604742
-	33   Session_02     FOO       -4.000        26.000  -0.840413   2.828738    1.294076    5.349940    4.665655   -5.000000   28.907344  -0.616369  -0.313776  -0.000006  0.283707
-	34   Session_02     FOO       -4.000        26.000  -0.840413   2.828738    1.313775    5.292121    4.665655   -5.000000   28.907344  -0.596708  -0.371269  -0.000006  0.303323
-	35   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.121613   21.259909   27.780042    2.020000   37.024281  -0.707364  -0.342207  -0.000013  0.194934
-	36   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.145714   21.304889   27.780042    2.020000   37.024281  -0.683661  -0.298178  -0.000013  0.218401
-	37   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.126573   21.325093   27.780042    2.020000   37.024281  -0.702485  -0.278401  -0.000013  0.199764
-	38   Session_03   ETH-1       -4.000        26.000   6.018962  10.747026   16.132057   21.323211   27.780042    2.020000   37.024281  -0.697092  -0.280244  -0.000013  0.205104
-	39   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.708448  -12.232023  -18.023381  -10.170000   19.875825  -0.692185  -0.319447  -0.000002  0.208915
-	40   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.714417  -12.202504  -18.023381  -10.170000   19.875825  -0.698226  -0.289572  -0.000002  0.202934
-	41   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.720039  -12.264469  -18.023381  -10.170000   19.875825  -0.703917  -0.352285  -0.000002  0.197300
-	42   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.701953  -12.228550  -18.023381  -10.170000   19.875825  -0.685611  -0.315932  -0.000002  0.215423
-	43   Session_03   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.704535  -12.213634  -18.023381  -10.170000   19.875825  -0.688224  -0.300836  -0.000002  0.212837
-	44   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.652920   22.230043   28.306614    1.710000   37.450394  -0.304028  -0.212269  -0.000014  0.594265
-	45   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.691485   22.261017   28.306614    1.710000   37.450394  -0.266106  -0.181975  -0.000014  0.631810
-	46   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.679119   22.305357   28.306614    1.710000   37.450394  -0.278266  -0.138609  -0.000014  0.619771
-	47   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.663623   22.327286   28.306614    1.710000   37.450394  -0.293503  -0.117161  -0.000014  0.604685
-	48   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.678524   22.282103   28.306614    1.710000   37.450394  -0.278851  -0.161352  -0.000014  0.619192
-	49   Session_03   ETH-3       -4.000        26.000   5.742374  11.161270   16.666246   22.283361   28.306614    1.710000   37.450394  -0.290925  -0.160121  -0.000014  0.607238
-	50   Session_03     FOO       -4.000        26.000  -0.840413   2.828738    1.309929    5.340249    4.665655   -5.000000   28.907344  -0.600546  -0.323413  -0.000006  0.300148
-	51   Session_03     FOO       -4.000        26.000  -0.840413   2.828738    1.317548    5.334102    4.665655   -5.000000   28.907344  -0.592942  -0.329524  -0.000006  0.307676
-	52   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.136865   21.300298   27.780042    2.020000   37.024281  -0.692364  -0.302672  -0.000013  0.204033
-	53   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.133538   21.291260   27.780042    2.020000   37.024281  -0.695637  -0.311519  -0.000013  0.200762
-	54   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.139991   21.319865   27.780042    2.020000   37.024281  -0.689290  -0.283519  -0.000013  0.207107
-	55   Session_04   ETH-1       -4.000        26.000   6.018962  10.747026   16.145748   21.330075   27.780042    2.020000   37.024281  -0.683629  -0.273524  -0.000013  0.212766
-	56   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.702989  -12.202762  -18.023381  -10.170000   19.875825  -0.686660  -0.289833  -0.000002  0.204507
-	57   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.692830  -12.240287  -18.023381  -10.170000   19.875825  -0.676377  -0.327811  -0.000002  0.214786
-	58   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.702899  -12.180291  -18.023381  -10.170000   19.875825  -0.686568  -0.267091  -0.000002  0.204598
-	59   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.709282  -12.282257  -18.023381  -10.170000   19.875825  -0.693029  -0.370287  -0.000002  0.198140
-	60   Session_04   ETH-2       -4.000        26.000  -5.995859  -5.976076  -12.679330  -12.235994  -18.023381  -10.170000   19.875825  -0.662712  -0.323466  -0.000002  0.228446
-	61   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.695594   22.238663   28.306614    1.710000   37.450394  -0.262066  -0.203838  -0.000014  0.634200
-	62   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.663504   22.286354   28.306614    1.710000   37.450394  -0.293620  -0.157194  -0.000014  0.602656
-	63   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.666457   22.254290   28.306614    1.710000   37.450394  -0.290717  -0.188555  -0.000014  0.605558
-	64   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.666910   22.223232   28.306614    1.710000   37.450394  -0.290271  -0.218930  -0.000014  0.606004
-	65   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.679662   22.257256   28.306614    1.710000   37.450394  -0.277732  -0.185653  -0.000014  0.618539
-	66   Session_04   ETH-3       -4.000        26.000   5.742374  11.161270   16.676768   22.267680   28.306614    1.710000   37.450394  -0.280578  -0.175459  -0.000014  0.615693
-	67   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.307663    5.317330    4.665655   -5.000000   28.907344  -0.602808  -0.346202  -0.000006  0.290853
-	68   Session_04     FOO       -4.000        26.000  -0.840413   2.828738    1.308562    5.331400    4.665655   -5.000000   28.907344  -0.601911  -0.332212  -0.000006  0.291749
-	–––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
+	.. include:: ../code_examples/virtual_data/output.txt
 	```
 	'''
 	
@@ -595,6 +489,10 @@ def virtual_data(
 		rng = nprandom.default_rng()
 	
 	N = sum([s['N'] for s in samples])
+	errors45 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+	errors45 *= rd45 / stdev(errors45) # scale errors to rd45
+	errors46 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
+	errors46 *= rd46 / stdev(errors46) # scale errors to rd46
 	errors47 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
 	errors47 *= rD47 / stdev(errors47) # scale errors to rD47
 	errors48 = rng.normal(loc = 0, scale = 1, size = N) # generate random measurement errors
@@ -623,14 +521,20 @@ def virtual_data(
 		sN = s['N']
 		while sN:
 			out.append(simulate_single_analysis(**kw))
-			out[-1]['d47'] += errors47[k] * a47
-			out[-1]['d48'] += errors48[k] * a48
+			out[-1]['d45'] += errors45[k]
+			out[-1]['d46'] += errors46[k]
+			out[-1]['d47'] += (errors45[k] + errors46[k] + errors47[k]) * a47
+			out[-1]['d48'] += (2*errors46[k] + errors48[k]) * a48
 			sN -= 1
 			k += 1
 
 		if session is not None:
 			for r in out:
 				r['Session'] = session
+
+		if shuffle:
+			nprandom.shuffle(out)
+
 	return out
 
 def table_of_samples(
@@ -1738,6 +1642,7 @@ class D4xdata(list):
 				b2 = result.params.valuesdict()[f'b2_{s}']
 				c2 = result.params.valuesdict()[f'c2_{s}']
 				r[f'D{self._4x}'] = (r[f'D{self._4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
+				
 
 			self.standardization = result
 
@@ -2166,7 +2071,7 @@ class D4xdata(list):
 			return pretty_table(out)
 
 
-	def plot_sessions(self, dir = 'output', figsize = (8,8)):
+	def plot_sessions(self, dir = 'output', figsize = (8,8), filetype = 'pdf', dpi = 100):
 		'''
 		Generate session plots and save them to disk.
 
@@ -2174,13 +2079,15 @@ class D4xdata(list):
 
 		+ `dir`: the directory in which to save the plots
 		+ `figsize`: the width and height (in inches) of each plot
+		+ `filetype`: 'pdf' or 'png'
+		+ `dpi`: resolution for PNG output
 		'''
 		if not os.path.exists(dir):
 			os.makedirs(dir)
 
 		for session in self.sessions:
 			sp = self.plot_single_session(session, xylimits = 'constant')
-			ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.pdf')
+			ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.{filetype}', **({'dpi': dpi} if filetype.lower() == 'png' else {}))
 			ppl.close(sp.fig)
 
 
@@ -2221,7 +2128,7 @@ class D4xdata(list):
 			D4x_pop = [r[f'D{self._4x}'] for r in self.samples[sample]['data']]
 			if len(D4x_pop) > 2:
 				self.samples[sample]['p_Levene'] = levene(D4x_ref_pop, D4x_pop, center = 'median')[1]
-
+			
 		if self.standardization_method == 'pooled':
 			for sample in self.anchors:
 				self.samples[sample][f'D{self._4x}'] = self.Nominal_D4x[sample]
@@ -2260,6 +2167,10 @@ class D4xdata(list):
 				wsum = sum([weights[s] for s in weights])
 				for s in weights:
 					self.unknowns[sample][f'session_D{self._4x}'][s] += [self.unknowns[sample][f'session_D{self._4x}'][s][1]**-2 / wsum]
+
+		for r in self:
+			r[f'D{self._4x}_residual'] = r[f'D{self._4x}'] - self.samples[r['Sample']][f'D{self._4x}']
+
 
 
 	def consolidate_sessions(self):
@@ -2460,9 +2371,6 @@ class D4xdata(list):
 		'''
 		Compute the repeatability of `[r[key] for r in self]`
 		'''
-		# NB: it's debatable whether rD47 should be computed
-		# with Nf = len(self)-len(self.samples) instead of
-		# Nf = len(self) - len(self.unknwons) - 3*len(self.sessions)
 
 		if samples == 'all samples':
 			mysamples = [k for k in self.samples]
@@ -2477,17 +2385,43 @@ class D4xdata(list):
 			sessions = [k for k in self.sessions]
 
 		if key in ['D47', 'D48']:
-			chisq, Nf = 0, 0
-			for sample in mysamples :
-				X = [ r[key] for r in self if r['Sample'] == sample and r['Session'] in sessions ]
-				if len(X) > 1 :
-					chisq += np.sum([ (x-self.samples[sample][key])**2 for x in X ])
-					if sample in self.unknowns:
-						Nf += len(X) - 1
-					else:
-						Nf += len(X)
-			if samples in ['anchors', 'all samples']:
-				Nf -= sum([self.sessions[s]['Np'] for s in sessions])
+			# Full disclosure: the definition of Nf is tricky/debatable
+			G = [r for r in self if r['Sample'] in mysamples and r['Session'] in sessions]
+			chisq = (np.array([r[f'{key}_residual'] for r in G])**2).sum()
+			Nf = len(G)
+# 			print(f'len(G) = {Nf}')
+			Nf -= len([s for s in mysamples if s in self.unknowns])
+# 			print(f'{len([s for s in mysamples if s in self.unknowns])} unknown samples to consider')
+			for session in sessions:
+				Np = len([
+					_ for _ in self.standardization.params
+					if (
+						self.standardization.params[_].expr is not None
+						and (
+							(_[0] in 'abc' and _[1] == '_' and _[2:] == pf(session))
+							or (_[0] in 'abc' and _[1:3] == '2_' and _[3:] == pf(session))
+							)
+						)
+					])
+# 				print(f'session {session}: {Np} parameters to consider')
+				Na = len({
+					r['Sample'] for r in self.sessions[session]['data']
+					if r['Sample'] in self.anchors and r['Sample'] in mysamples
+					})
+# 				print(f'session {session}: {Na} different anchors in that session')
+				Nf -= min(Np, Na)
+# 			print(f'Nf = {Nf}')
+
+# 			for sample in mysamples :
+# 				X = [ r[key] for r in self if r['Sample'] == sample and r['Session'] in sessions ]
+# 				if len(X) > 1 :
+# 					chisq += np.sum([ (x-self.samples[sample][key])**2 for x in X ])
+# 					if sample in self.unknowns:
+# 						Nf += len(X) - 1
+# 					else:
+# 						Nf += len(X)
+# 			if samples in ['anchors', 'all samples']:
+# 				Nf -= sum([self.sessions[s]['Np'] for s in sessions])
 			r = (chisq / Nf)**.5 if Nf > 0 else 0
 
 		else: # if key not in ['D47', 'D48']
@@ -2698,6 +2632,7 @@ class D4xdata(list):
 
 	def plot_residuals(
 		self,
+		kde = False,
 		hist = False,
 		binwidth = 2/3,
 		dir = 'output',
@@ -2705,21 +2640,36 @@ class D4xdata(list):
 		highlight = [],
 		colors = None,
 		figsize = None,
+		dpi = 100,
+		yspan = None,
 		):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
 		the order of analyses in the `D4xdata` object)
 
-		+ `hist`: whether to add a histogram of residuals
+		+ `kde`: whether to add a kernel density estimate of residuals
+		+ `hist`: whether to add a histogram of residuals (incompatible with `kde`)
 		+ `histbins`: specify bin edges for the histogram
 		+ `dir`: the directory in which to save the plot
 		+ `highlight`: a list of samples to highlight
 		+ `colors`: a dict of `{<sample>: <color>}` for all samples
 		+ `figsize`: (width, height) of figure
+		+ `dpi`: resolution for PNG output
+		+ `yspan`: factor controlling the range of y values shown in plot
+		  (by default: `yspan = 1.5 if kde else 1.0`)
 		'''
+		
+		from matplotlib import ticker
+
+		if yspan is None:
+			if kde:
+				yspan = 1.5
+			else:
+				yspan = 1.0
+		
 		# Layout
 		fig = ppl.figure(figsize = (8,4) if figsize is None else figsize)
-		if hist:
+		if hist or kde:
 			ppl.subplots_adjust(left = .08, bottom = .05, right = .98, top = .8, wspace = -0.72)
 			ax1, ax2 = ppl.subplot(121), ppl.subplot(1,15,15)
 		else:
@@ -2750,6 +2700,8 @@ class D4xdata(list):
 		ppl.sca(ax1)
 		
 		ppl.axhline(0, color = 'k', alpha = .25, lw = 0.75)
+
+		ax1.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'${x:+.0f}$' if x else '$0$'))
 
 		session = self[0]['Session']
 		x1 = 0
@@ -2783,17 +2735,19 @@ class D4xdata(list):
 				)
 			if highlight and r['Sample'] not in highlight:
 				kw['alpha'] = 0.2
-			ppl.plot(k, 1e3 * (r['D47'] - self.samples[r['Sample']]['D47']), **kw)
+			ppl.plot(k, 1e3 * r[f'D{self._4x}_residual'], **kw)
 		x2 = k
 		x_sessions[session] = (x1+x2)/2
 
-		ppl.axhspan(-self.repeatability['r_D47']*1000, self.repeatability['r_D47']*1000, color = 'k', alpha = .05, lw = 1)
-		ppl.axhspan(-self.repeatability['r_D47']*1000*self.t95, self.repeatability['r_D47']*1000*self.t95, color = 'k', alpha = .05, lw = 1)
-		if not hist:
-			ppl.text(len(self), self.repeatability['r_D47']*1000, f"   SD = {self.repeatability['r_D47']*1000:.1f} ppm", size = 9, alpha = 1, va = 'center')
-			ppl.text(len(self), self.repeatability['r_D47']*1000*self.t95, f"   95% CL = ± {self.repeatability['r_D47']*1000*self.t95:.1f} ppm", size = 9, alpha = 1, va = 'center')
+		ppl.axhspan(-self.repeatability[f'r_D{self._4x}']*1000, self.repeatability[f'r_D{self._4x}']*1000, color = 'k', alpha = .05, lw = 1)
+		ppl.axhspan(-self.repeatability[f'r_D{self._4x}']*1000*self.t95, self.repeatability[f'r_D{self._4x}']*1000*self.t95, color = 'k', alpha = .05, lw = 1)
+		if not (hist or kde):
+			ppl.text(len(self), self.repeatability[f'r_D{self._4x}']*1000, f"   SD = {self.repeatability[f'r_D{self._4x}']*1000:.1f} ppm", size = 9, alpha = 1, va = 'center')
+			ppl.text(len(self), self.repeatability[f'r_D{self._4x}']*1000*self.t95, f"   95% CL = ± {self.repeatability[f'r_D{self._4x}']*1000*self.t95:.1f} ppm", size = 9, alpha = 1, va = 'center')
 
 		xmin, xmax, ymin, ymax = ppl.axis()
+		if yspan != 1:
+			ymin, ymax = (ymin + ymax)/2 - yspan * (ymax - ymin)/2, (ymin + ymax)/2 + yspan * (ymax - ymin)/2
 		for s in x_sessions:
 			ppl.text(
 				x_sessions[s],
@@ -2807,7 +2761,7 @@ class D4xdata(list):
 					)
 				)
 
-		if hist:
+		if hist or kde:
 			ppl.sca(ax2)
 
 		for s in colors:
@@ -2834,7 +2788,7 @@ class D4xdata(list):
 			kw['label'] = 'other (N$\\,$>$\\,$1)' if one_or_more_singlets else 'other'
 			ppl.plot([], [], **kw)
 
-		if hist:
+		if hist or kde:
 			leg = ppl.legend(loc = 'upper right', bbox_to_anchor = (1, 1), bbox_transform=fig.transFigure, borderaxespad = 1.5, fontsize = 9)
 		else:
 			leg = ppl.legend(loc = 'lower right', bbox_to_anchor = (1, 0), bbox_transform=fig.transFigure, borderaxespad = 1.5)
@@ -2842,31 +2796,39 @@ class D4xdata(list):
 
 		ppl.sca(ax1)
 
-		ppl.ylabel('Δ$_{47}$ residuals (ppm)')
+		ppl.ylabel(f'Δ$_{{{self._4x}}}$ residuals (ppm)')
 		ppl.xticks([])
 		ppl.axis([-1, len(self), None, None])
 
-		if hist:
+		if hist or kde:
 			ppl.sca(ax2)
-			X = [1e3 * (r['D47'] - self.samples[r['Sample']]['D47']) for r in self if r['Sample'] in multiplets]
-			ppl.hist(
-				X,
-				orientation = 'horizontal',
-				histtype = 'stepfilled',
-				ec = [.4]*3,
-				fc = [.25]*3,
-				alpha = .25,
-				bins = np.linspace(-9e3*self.repeatability['r_D47'], 9e3*self.repeatability['r_D47'], int(18/binwidth+1)),
-				)
-			ppl.axis([None, None, ymin, ymax])
+			X = 1e3 * np.array([r[f'D{self._4x}_residual'] for r in self if r['Sample'] in multiplets or r['Sample'] in self.anchors])
+
+			if kde:
+				from scipy.stats import gaussian_kde
+				yi = np.linspace(ymin, ymax, 201)
+				xi = gaussian_kde(X).evaluate(yi)
+				ppl.fill_betweenx(yi, xi, xi*0, fc = (0,0,0,.15), lw = 1, ec = (.75,.75,.75,1))
+# 				ppl.plot(xi, yi, 'k-', lw = 1)
+			elif hist:
+				ppl.hist(
+					X,
+					orientation = 'horizontal',
+					histtype = 'stepfilled',
+					ec = [.4]*3,
+					fc = [.25]*3,
+					alpha = .25,
+					bins = np.linspace(-9e3*self.repeatability[f'r_D{self._4x}'], 9e3*self.repeatability[f'r_D{self._4x}'], int(18/binwidth+1)),
+					)
 			ppl.text(0, 0,
-				f"   SD = {self.repeatability['r_D47']*1000:.1f} ppm\n   95% CL = ± {self.repeatability['r_D47']*1000*self.t95:.1f} ppm",
-				size = 8,
+				f"   SD = {self.repeatability[f'r_D{self._4x}']*1000:.1f} ppm\n   95% CL = ± {self.repeatability[f'r_D{self._4x}']*1000*self.t95:.1f} ppm",
+				size = 7.5,
 				alpha = 1,
 				va = 'center',
 				ha = 'left',
 				)
 
+			ppl.axis([0, None, ymin, ymax])
 			ppl.xticks([])
 			ppl.yticks([])
 # 			ax2.spines['left'].set_visible(False)
@@ -2874,6 +2836,7 @@ class D4xdata(list):
 			ax2.spines['top'].set_visible(False)
 			ax2.spines['bottom'].set_visible(False)
 
+		ax1.axis([None, None, ymin, ymax])
 
 		if not os.path.exists(dir):
 			os.makedirs(dir)
@@ -2881,7 +2844,7 @@ class D4xdata(list):
 			return fig
 		elif filename == '':
 			filename = f'D{self._4x}_residuals.pdf'
-		ppl.savefig(f'{dir}/{filename}')
+		ppl.savefig(f'{dir}/{filename}', dpi = dpi)
 		ppl.close(fig)
 				
 
@@ -2899,13 +2862,18 @@ class D4xdata(list):
 		figsize = (6,4),
 		subplots_adjust = (0.02, 0.13, 0.85, 0.8),
 		output = None,
+		dpi = 100,
 		):
 		'''
 		Plot temporal distribution of all analyses in the data set.
 		
 		**Parameters**
 
+		+ `dir`: the directory in which to save the plot
 		+ `vs_time`: if `True`, plot as a function of `TimeTag` rather than sequentially.
+		+ `dpi`: resolution for PNG output
+		+ `figsize`: (width, height) of figure
+		+ `dpi`: resolution for PNG output
 		'''
 
 		asamples = [s for s in self.anchors]
@@ -2960,12 +2928,162 @@ class D4xdata(list):
 				os.makedirs(dir)
 			if filename == None:
 				filename = f'D{self._4x}_distribution_of_analyses.pdf'
-			ppl.savefig(f'{dir}/{filename}')
+			ppl.savefig(f'{dir}/{filename}', dpi = dpi)
 			ppl.close(fig)
 		elif output == 'ax':
 			return ppl.gca()
 		elif output == 'fig':
 			return fig
+
+
+	def plot_bulk_compositions(
+		self,
+		samples = None,
+		dir = 'output/bulk_compositions',
+		figsize = (6,6),
+		subplots_adjust = (0.15, 0.12, 0.95, 0.92),
+		show = False,
+		sample_color = (0,.5,1),
+		analysis_color = (.7,.7,.7),
+		labeldist = 0.3,
+		radius = 0.05,
+		):
+		'''
+		Plot δ13C_VBDP vs δ18O_VSMOW (of CO2) for all analyses.
+		
+		By default, creates a directory `./output/bulk_compositions` where plots for
+		each sample are saved. Another plot named `__all__.pdf` shows all analyses together.
+		
+		
+		**Parameters**
+
+		+ `samples`: Only these samples are processed (by default: all samples).
+		+ `dir`: where to save the plots
+		+ `figsize`: (width, height) of figure
+		+ `subplots_adjust`: passed to `subplots_adjust()`
+		+ `show`: whether to call `matplotlib.pyplot.show()` on the plot with all samples,
+		allowing for interactive visualization/exploration in (δ13C, δ18O) space.
+		+ `sample_color`: color used for replicate markers/labels
+		+ `analysis_color`: color used for sample markers/labels
+		+ `labeldist`: distance (in inches) from replicate markers to replicate labels
+		+ `radius`: radius of the dashed circle providing scale. No circle if `radius = 0`.
+		'''
+
+		from matplotlib.patches import Ellipse
+
+		if samples is None:
+			samples = [_ for _ in self.samples]
+
+		saved = {}
+
+		for s in samples:
+
+			fig = ppl.figure(figsize = figsize)
+			fig.subplots_adjust(*subplots_adjust)
+			ax = ppl.subplot(111)
+			ppl.xlabel('$δ^{18}O_{VSMOW}$ of $CO_2$ (‰)')
+			ppl.ylabel('$δ^{13}C_{VPDB}$ (‰)')
+			ppl.title(s)
+
+
+			XY = np.array([[_['d18O_VSMOW'], _['d13C_VPDB']] for _ in self.samples[s]['data']])
+			UID = [_['UID'] for _ in self.samples[s]['data']]
+			XY0 = XY.mean(0)
+
+			for xy in XY:
+				ppl.plot([xy[0], XY0[0]], [xy[1], XY0[1]], '-', lw = 1, color = analysis_color)
+				
+			ppl.plot(*XY.T, 'wo', mew = 1, mec = analysis_color)
+			ppl.plot(*XY0, 'wo', mew = 2, mec = sample_color)
+			ppl.text(*XY0, f'  {s}', va = 'center', ha = 'left', color = sample_color, weight = 'bold')
+			saved[s] = [XY, XY0]
+			
+			x1, x2, y1, y2 = ppl.axis()
+			x0, dx = (x1+x2)/2, (x2-x1)/2
+			y0, dy = (y1+y2)/2, (y2-y1)/2
+			dx, dy = [max(max(dx, dy), radius)]*2
+
+			ppl.axis([
+				x0 - 1.2*dx,
+				x0 + 1.2*dx,
+				y0 - 1.2*dy,
+				y0 + 1.2*dy,
+				])			
+
+			XY0_in_display_space = fig.dpi_scale_trans.inverted().transform(ax.transData.transform(XY0))
+
+			for xy, uid in zip(XY, UID):
+
+				xy_in_display_space = fig.dpi_scale_trans.inverted().transform(ax.transData.transform(xy))
+				vector_in_display_space = xy_in_display_space - XY0_in_display_space
+
+				if (vector_in_display_space**2).sum() > 0:
+
+					unit_vector_in_display_space = vector_in_display_space / ((vector_in_display_space**2).sum())**0.5
+					label_vector_in_display_space = vector_in_display_space + unit_vector_in_display_space * labeldist
+					label_xy_in_display_space = XY0_in_display_space + label_vector_in_display_space
+					label_xy_in_data_space = ax.transData.inverted().transform(fig.dpi_scale_trans.transform(label_xy_in_display_space))
+
+					ppl.text(*label_xy_in_data_space, uid, va = 'center', ha = 'center', color = analysis_color)
+
+				else:
+
+					ppl.text(*xy, f'{uid}  ', va = 'center', ha = 'right', color = analysis_color)
+
+			if radius:
+				ax.add_artist(Ellipse(
+					xy = XY0,
+					width = radius*2,
+					height = radius*2,
+					ls = (0, (2,2)),
+					lw = .7,
+					ec = analysis_color,
+					fc = 'None',
+					))
+				ppl.text(
+					XY0[0],
+					XY0[1]-radius,
+					f'\n± {radius*1e3:.0f} ppm',
+					color = analysis_color,
+					va = 'top',
+					ha = 'center',
+					linespacing = 0.4,
+					size = 8,
+					)
+
+			if not os.path.exists(dir):
+				os.makedirs(dir)
+			fig.savefig(f'{dir}/{s}.pdf')
+			ppl.close(fig)
+
+		fig = ppl.figure(figsize = figsize)
+		fig.subplots_adjust(*subplots_adjust)
+		ppl.xlabel('$δ^{18}O_{VSMOW}$ of $CO_2$ (‰)')
+		ppl.ylabel('$δ^{13}C_{VPDB}$ (‰)')
+
+		for s in saved:
+			for xy in saved[s][0]:
+				ppl.plot([xy[0], saved[s][1][0]], [xy[1], saved[s][1][1]], '-', lw = 1, color = analysis_color)
+			ppl.plot(*saved[s][0].T, 'wo', mew = 1, mec = analysis_color)
+			ppl.plot(*saved[s][1], 'wo', mew = 1.5, mec = sample_color)
+			ppl.text(*saved[s][1], f'  {s}', va = 'center', ha = 'left', color = sample_color, weight = 'bold')
+
+		x1, x2, y1, y2 = ppl.axis()
+		ppl.axis([
+			x1 - (x2-x1)/10,
+			x2 + (x2-x1)/10,
+			y1 - (y2-y1)/10,
+			y2 + (y2-y1)/10,
+			])			
+
+
+		if not os.path.exists(dir):
+			os.makedirs(dir)
+		fig.savefig(f'{dir}/__all__.pdf')
+		if show:
+			ppl.show()
+		ppl.close(fig)
+		
 
 
 class D47data(D4xdata):
@@ -3111,9 +3229,74 @@ class D48data(D4xdata):
 		D4xdata.__init__(self, l = l, mass = '48', **kwargs)
 
 
+
 class _SessionPlot():
 	'''
 	Simple placeholder class
 	'''
 	def __init__(self):
 		pass
+
+_app = typer.Typer(
+	add_completion = False,
+	context_settings={'help_option_names': ['-h', '--help']},
+	rich_markup_mode = 'rich',
+	)
+
+@_app.command()
+def _cli(
+	rawdata: Annotated[str, typer.Argument(help = "Specify the path of a rawdata input file")],
+	exclude: Annotated[str, typer.Option('--exclude', '-e', help = 'The path of a file specifying UIDs and/or Samples to exclude')] = 'none',
+	anchors: Annotated[str, typer.Option('--anchors', '-a', help = 'The path of a file specifying custom anchors')] = 'none',
+	output_dir: Annotated[str, typer.Option('--output-dir', '-o', help = 'Specify the output directory')] = 'output',
+	):
+	"""
+	Process raw D47 data and return standardized results.
+	"""
+
+	data = D47data()
+	data.read(rawdata)
+
+	if exclude != 'none':
+		exclude = read_csv(exclude)
+		exclude_uid = {r['UID'] for r in exclude if 'UID' in r}
+		exclude_sample = {r['Sample'] for r in exclude if 'Sample' in r}
+	else:
+		exclude_uid = []
+		exclude_sample = []
+	
+	data = D47data([r for r in data if r['UID'] not in exclude_uid and r['Sample'] not in exclude_sample])
+
+	if anchors != 'none':
+		anchors = read_csv(anchors)
+		data.Nominal_d13C_VPDB = {
+			_['Sample']: _['d13C_VPDB']
+			for _ in anchors
+			if 'd13C_VPDB' in _
+			}
+		data.Nominal_d18O_VPDB = {
+			_['Sample']: _['d18O_VPDB']
+			for _ in anchors
+			if 'd18O_VPDB' in _
+			}
+		data.Nominal_D4x = {
+			_['Sample']: _['D47']
+			for _ in anchors
+			if 'D47' in _
+			}
+
+	data.refresh()
+	data.wg()
+	data.crunch()
+	data.standardize()
+	data.summary(dir = output_dir)
+	data.table_of_samples(dir = output_dir)
+	data.table_of_sessions(dir = output_dir)
+	data.plot_sessions(dir = output_dir)
+	data.plot_residuals(dir = output_dir, filename = 'D47_residuals.pdf', kde = True)
+	data.table_of_analyses(dir = output_dir)
+	data.plot_distribution_of_analyses(dir = output_dir)
+	data.plot_bulk_compositions(dir = output_dir + '/bulk_compositions')
+
+def __cli():
+	_app()

@@ -4,42 +4,10 @@
 
 It is sometimes convenient to quickly build a virtual data set of analyses, for instance to assess the final analytical precision achievable for a given combination of anchor and unknown analyses (see also Fig. 6 of [Daëron, 2021](https://doi.org/10.1029/2020GC009592)).
 
-This can be achieved with `virtual_data()`. The example below creates a dataset with four sessions, each of which comprises four analyses of anchor ETH-1, five of ETH-2, six of ETH-3, and two analyses of an unknown sample named `FOO` with an arbitrarily defined isotopic composition. Analytical repeatabilities for Δ47 and Δ48 are also specified arbitrarily. See the `virtual_data()` documentation for additional configuration parameters.
+This can be achieved with `virtual_data()`. The example below creates a dataset with four sessions, each of which comprises three analyses of anchor ETH-1, three of ETH-2, three of ETH-3, and three analyses each of two unknown samples named `FOO` and  `BAR` with an arbitrarily defined isotopic composition. Analytical repeatabilities for Δ47 and Δ48 are also specified arbitrarily. See the `virtual_data()` documentation for additional configuration parameters.
 
 ```py
-from D47crunch import *
-
-args = dict(
-	samples = [
-		dict(Sample = 'ETH-1', N = 4),
-		dict(Sample = 'ETH-2', N = 5),
-		dict(Sample = 'ETH-3', N = 6),
-		dict(
-			Sample = 'FOO',
-			N = 2,
-			d13C_VPDB = -5.,
-			d18O_VPDB = -10.,
-			D47 = 0.3,
-			D48 = 0.15
-			),
-		],
-	rD47 = 0.010,
-	rD48 = 0.030,
-	)
-
-session1 = virtual_data(session = 'Session_01', **args)
-session2 = virtual_data(session = 'Session_02', **args)
-session3 = virtual_data(session = 'Session_03', **args)
-session4 = virtual_data(session = 'Session_04', **args)
-
-D = D47data(session1 + session2 + session3 + session4)
-
-D.crunch()
-D.standardize()
-
-D.table_of_sessions(verbose = True, save_to_file = False)
-D.table_of_samples(verbose = True, save_to_file = False)
-D.table_of_analyses(verbose = True, save_to_file = False)
+.. include:: ../code_examples/virtual_data/example.py
 ```
 
 ## 2.2 Control data quality
@@ -47,38 +15,7 @@ D.table_of_analyses(verbose = True, save_to_file = False)
 `D47crunch` offers several tools to visualize processed data. The examples below use the same virtual data set, generated with:
 
 ```py
-from D47crunch import *
-from random import shuffle
-
-# generate virtual data:
-args = dict(
-	samples = [
-		dict(Sample = 'ETH-1', N = 8),
-		dict(Sample = 'ETH-2', N = 8),
-		dict(Sample = 'ETH-3', N = 8),
-		dict(Sample = 'FOO', N = 4,
-			d13C_VPDB = -5., d18O_VPDB = -10.,
-			D47 = 0.3, D48 = 0.15),
-		dict(Sample = 'BAR', N = 4,
-			d13C_VPDB = -15., d18O_VPDB = -15.,
-			D47 = 0.5, D48 = 0.2),
-		])
-
-sessions = [
-	virtual_data(session = f'Session_{k+1:02.0f}', seed = int('1234567890'[:k+1]), **args)
-	for k in range(10)]
-
-# shuffle the data:
-data = [r for s in sessions for r in s]
-shuffle(data)
-data = sorted(data, key = lambda r: r['Session'])
-
-# create D47data instance:
-data47 = D47data(data)
-
-# process D47data instance:
-data47.crunch()
-data47.standardize()
+.. include:: ../code_examples/data_quality/example.py
 ```
 
 ### 2.2.1 Plotting the distribution of analyses through time
@@ -99,17 +36,40 @@ data47.plot_sessions()
 
 Below is one of the resulting sessions plots. Each cross marker is an analysis. Anchors are in red and unknowns in blue. Short horizontal lines show the nominal Δ47 value for anchors, in red, or the average Δ47 value for unknowns, in blue (overall average for all sessions). Curved grey contours correspond to Δ47 standardization errors in this session.
 
-![D47_plot_Session_03.png](D47_plot_Session_03.png)
+![D47_plot_Session_03.png](D47_plot_Session_09.png)
 
 ### 2.2.3 Plotting Δ47 or Δ48 residuals
 
 ```py
-data47.plot_residuals(filename = 'residuals.pdf')
+data47.plot_residuals(filename = 'residuals.pdf', kde = True)
 ```
 
 ![residuals.png](residuals.png)
 
 Again, note that this plot only shows the succession of analyses as if they were all distributed at regular time intervals.
+
+### 2.2.4 Checking δ13C and δ18O dispersion
+
+```py
+mydata = D47data(virtual_data(
+	session = 'mysession',
+	samples = [
+		dict(Sample = 'ETH-1', N = 4),
+		dict(Sample = 'ETH-2', N = 4),
+		dict(Sample = 'ETH-3', N = 4),
+		dict(Sample = 'MYSAMPLE', N = 8, D47 = 0.6, D48 = 0.1, d13C_VPDB = -4.0, d18O_VPDB = -12.0),
+	], seed = 123))
+
+mydata.refresh()
+mydata.wg()
+mydata.crunch()
+mydata.plot_bulk_compositions()
+```
+
+`D4xdata.plot_bulk_compositions()` produces a series of plots, one for each sample, and an additional plot with all samples together. For example, here is the plot for sample `MYSAMPLE`:
+
+![bulk_compositions.png](bulk_compositions.png)
+
 
 ## 2.3 Use a different set of anchors, change anchor nominal values, and/or change oxygen-17 correction parameters
 
