@@ -8,6 +8,11 @@ import D47crunch
 # create a D47data() object
 clumpy = D47crunch.D47data(verbose = True)
 
+clumpy.Nominal_D47 = {
+	k: clumpy.Nominal_D47[k]
+	for k in ['ETH-1', 'ETH-2', 'ETH-3']
+	}
+
 # read raw data from external csv file
 clumpy.read('rawdata.csv')
 
@@ -40,3 +45,6 @@ clumpy.table_of_analyses(print_out = False, save_to_file = True, dir = 'csv', fi
 
 # generate plots for each session
 clumpy.plot_sessions(dir = 'session_plots')
+
+# save D47 data with correlations
+clumpy.save_D47_correl()

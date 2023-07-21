@@ -1,10 +1,15 @@
 # Changelog
 
+### New feature
+* New method `D4xdata.save_D4x_correl()` to export a list of Δ<sub>4x</sub> values along with their SE and correlation matrix.
+
+### Other changes
+* The CLI now also calls `save_D4x_correl()`.
+
 ## v2.2.1
 *Released on 2023-07-20*
 
 ### New feature
-
 * The CLI now processes Δ48 as well as Δ47 data, thanks to the `--D48` option.
 
 

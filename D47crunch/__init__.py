@@ -3085,6 +3085,34 @@ class D4xdata(list):
 		ppl.close(fig)
 		
 
+	def save_D4x_correl(
+		self,
+		samples = None,
+		dir = 'output',
+		filename = None,
+		):
+		'''
+		Save D4x values along with their SE and correlation matrix.
+		'''
+		if samples is None:
+			samples = sorted([s for s in self.unknowns])
+		
+		out = [['Sample']] + [[s] for s in samples]
+		out[0] += [f'D{self._4x}', f'D{self._4x}_SE', f'D{self._4x}_correl']
+		for k,s in enumerate(samples):
+			out[k+1] += [f'{self.samples[s][f"D{self._4x}"]:.4f}', f'{self.samples[s][f"SE_D{self._4x}"]:.4f}']
+			for s2 in samples:
+				out[k+1] += [f'{self.sample_D4x_correl(s,s2):.4f}']
+		
+		if not os.path.exists(dir):
+			os.makedirs(dir)
+		if filename is None:
+			filename = f'D{self._4x}_correl.csv'
+		with open(f'{dir}/{filename}', 'w') as fid:
+			fid.write(make_csv(out))
+		
+		
+		
 
 class D47data(D4xdata):
 	'''
@@ -3175,7 +3203,7 @@ class D47data(D4xdata):
 			if priority != 'old' or s not in self.Nominal_D47:
 				self.Nominal_D47[s] = foo[s]
 	
-
+	save_D47_correl = D4xdata.save_D4x_correl
 
 
 class D48data(D4xdata):
@@ -3228,6 +3256,7 @@ class D48data(D4xdata):
 		'''
 		D4xdata.__init__(self, l = l, mass = '48', **kwargs)
 
+	save_D48_correl = D4xdata.save_D4x_correl
 
 
 class _SessionPlot():
@@ -3253,6 +3282,8 @@ def _cli(
 	):
 	"""
 	Process raw D47 data and return standardized results.
+	
+	See [](https://mdaeron.github.io/D47crunch/#3-command-line-interface-cli) for more details.
 	"""
 
 	data = D47data()
@@ -3270,21 +3301,24 @@ def _cli(
 
 	if anchors != 'none':
 		anchors = read_csv(anchors)
-		data.Nominal_d13C_VPDB = {
-			_['Sample']: _['d13C_VPDB']
-			for _ in anchors
-			if 'd13C_VPDB' in _
-			}
-		data.Nominal_d18O_VPDB = {
-			_['Sample']: _['d18O_VPDB']
-			for _ in anchors
-			if 'd18O_VPDB' in _
-			}
-		data.Nominal_D4x = {
-			_['Sample']: _['D47']
-			for _ in anchors
-			if 'D47' in _
-			}
+		if len([_ for _ in anchors if 'd13C_VPDB' in _]):
+			data.Nominal_d13C_VPDB = {
+				_['Sample']: _['d13C_VPDB']
+				for _ in anchors
+				if 'd13C_VPDB' in _
+				}
+		if len([_ for _ in anchors if 'd18O_VPDB' in _]):
+			data.Nominal_d18O_VPDB = {
+				_['Sample']: _['d18O_VPDB']
+				for _ in anchors
+				if 'd18O_VPDB' in _
+				}
+		if len([_ for _ in anchors if 'D47' in _]):
+			data.Nominal_D4x = {
+				_['Sample']: _['D47']
+				for _ in anchors
+				if 'D47' in _
+				}
 
 	data.refresh()
 	data.wg()
@@ -3294,6 +3328,7 @@ def _cli(
 	data.plot_residuals(dir = output_dir, filename = 'D47_residuals.pdf', kde = True)
 	data.plot_bulk_compositions(dir = output_dir + '/bulk_compositions')
 	data.plot_sessions(dir = output_dir)
+	data.save_D47_correl(dir = output_dir)
 	
 	if not run_D48:
 		data.table_of_samples(dir = output_dir)
@@ -3303,26 +3338,30 @@ def _cli(
 
 	if run_D48:
 		data2 = D48data()
+		print(rawdata)
 		data2.read(rawdata)
 
 		data2 = D48data([r for r in data2 if r['UID'] not in exclude_uid and r['Sample'] not in exclude_sample])
 
 		if anchors != 'none':
-			data2.Nominal_d13C_VPDB = {
-				_['Sample']: _['d13C_VPDB']
-				for _ in anchors
-				if 'd13C_VPDB' in _
-				}
-			data2.Nominal_d18O_VPDB = {
-				_['Sample']: _['d18O_VPDB']
-				for _ in anchors
-				if 'd18O_VPDB' in _
-				}
-			data2.Nominal_D4x = {
-				_['Sample']: _['D48']
-				for _ in anchors
-				if 'D48' in _
-				}
+			if len([_ for _ in anchors if 'd13C_VPDB' in _]):
+				data2.Nominal_d13C_VPDB = {
+					_['Sample']: _['d13C_VPDB']
+					for _ in anchors
+					if 'd13C_VPDB' in _
+					}
+			if len([_ for _ in anchors if 'd18O_VPDB' in _]):
+				data2.Nominal_d18O_VPDB = {
+					_['Sample']: _['d18O_VPDB']
+					for _ in anchors
+					if 'd18O_VPDB' in _
+					}
+			if len([_ for _ in anchors if 'D48' in _]):
+				data2.Nominal_D4x = {
+					_['Sample']: _['D48']
+					for _ in anchors
+					if 'D48' in _
+					}
 
 		data2.refresh()
 		data2.wg()
@@ -3332,6 +3371,7 @@ def _cli(
 		data2.plot_sessions(dir = output_dir)
 		data2.plot_residuals(dir = output_dir, filename = 'D48_residuals.pdf', kde = True)
 		data2.plot_distribution_of_analyses(dir = output_dir)
+		data2.save_D48_correl(dir = output_dir)
 
 		table_of_analyses(data, data2, dir = output_dir)
 		table_of_samples(data, data2, dir = output_dir)

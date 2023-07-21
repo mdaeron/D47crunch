@@ -19,6 +19,7 @@ This will create a directory named `output` and populate it by calling the follo
 * `D47data.table_of_analyses()`
 * `D47data.plot_distribution_of_analyses()`
 * `D47data.plot_bulk_compositions()`
+* `D47data.save_D47_correl()`
 
 You may specify a custom set of anchors instead of the default ones using the `--anchors` or `-a` option:
 
