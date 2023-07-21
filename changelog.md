@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.3.0
+*Released on 2023-07-21*
+
 ### New feature
 * New method `D4xdata.save_D4x_correl()` to export a list of Δ<sub>4x</sub> values along with their SE and correlation matrix.
 
