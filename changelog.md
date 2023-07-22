@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.3.1
+*Released on 2023-07-22*
+
+### Improvements
+* Better help text and examples for CLI
+
 ## v2.3.0
 *Released on 2023-07-21*
 
