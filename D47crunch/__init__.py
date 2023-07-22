@@ -3085,14 +3085,24 @@ class D4xdata(list):
 		ppl.close(fig)
 		
 
-	def save_D4x_correl(
+	def _save_D4x_correl(
 		self,
 		samples = None,
 		dir = 'output',
 		filename = None,
+		D4x_precision = 4,
+		correl_precision = 4,
 		):
 		'''
 		Save D4x values along with their SE and correlation matrix.
+
+		**Parameters**
+
+		+ `samples`: Only these samples are output (by default: all samples).
+		+ `dir`: the directory in which to save the faile (by defaut: `output`)
+		+ `filename`: the name to the csv file to write to (by default: `D4x_correl.csv`)
+		+ `D4x_precision`: the precision to use when writing `D4x` and `D4x_SE` values (by default: 4)
+		+ `correl_precision`: the precision to use when writing correlation factor values (by default: 4)
 		'''
 		if samples is None:
 			samples = sorted([s for s in self.unknowns])
@@ -3203,7 +3213,10 @@ class D47data(D4xdata):
 			if priority != 'old' or s not in self.Nominal_D47:
 				self.Nominal_D47[s] = foo[s]
 	
-	save_D47_correl = D4xdata.save_D4x_correl
+	def save_D47_correl(self, *args, **kwargs):
+		return self._save_D4x_correl(*args, **kwargs)
+
+	save_D47_correl.__doc__ = D4xdata._save_D4x_correl.__doc__.replace('D4x', 'D47')
 
 
 class D48data(D4xdata):
@@ -3256,8 +3269,10 @@ class D48data(D4xdata):
 		'''
 		D4xdata.__init__(self, l = l, mass = '48', **kwargs)
 
-	save_D48_correl = D4xdata.save_D4x_correl
+	def save_D48_correl(self, *args, **kwargs):
+		return self._save_D4x_correl(*args, **kwargs)
 
+	save_D48_correl.__doc__ = D4xdata._save_D4x_correl.__doc__.replace('D4x', 'D48')
 
 class _SessionPlot():
 	'''
