@@ -6,4 +6,3 @@
 * improve `test_virtual_data()` to populate with non-default parameters
 * use a true CSV parser?
 * add (many) plot customization options to CLI?
-* write CLI and `save_D4x_correl()` docstrings

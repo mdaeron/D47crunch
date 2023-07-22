@@ -40,6 +40,8 @@ from functools import wraps
 from colorsys import hls_to_rgb
 from matplotlib import rcParams
 
+typer.rich_utils.STYLE_HELPTEXT = ''
+
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = 'Helvetica'
 rcParams['font.size'] = 10
@@ -3298,7 +3300,50 @@ def _cli(
 	"""
 	Process raw D47 data and return standardized results.
 	
-	See [](https://mdaeron.github.io/D47crunch/#3-command-line-interface-cli) for more details.
+	See [b]https://mdaeron.github.io/D47crunch/#3-command-line-interface-cli[/b] for more details.
+	
+	Reads raw data from an input file, optionally excluding some samples and/or analyses, thean standardizes
+	the data based either on the default [b]d13C_VDPB[/b], [b]d18O_VPDB[/b], [b]D47[/b], and [b]D48[/b] anchors or on different
+	user-specified anchors. A new directory (named `output` by default) is created to store the results and
+	the following sequence is applied:
+	
+	* [b]D47data.wg()[/b]
+	* [b]D47data.crunch()[/b]
+	* [b]D47data.standardize()[/b]
+	* [b]D47data.summary()[/b]
+	* [b]D47data.table_of_samples()[/b]
+	* [b]D47data.table_of_sessions()[/b]
+	* [b]D47data.plot_sessions()[/b]
+	* [b]D47data.plot_residuals()[/b]
+	* [b]D47data.table_of_analyses()[/b]
+	* [b]D47data.plot_distribution_of_analyses()[/b]
+	* [b]D47data.plot_bulk_compositions()[/b]
+	* [b]D47data.save_D47_correl()[/b]
+	
+	Optionally, also apply similar methods for [b]]D48[/b].
+	
+	[b]Example CSV file for --anchors option:[/b]	
+	[i]
+	Sample,  d13C_VPDB,  d18O_VPDB,     D47,    D48
+	ETH-1,        2.02,      -2.19,  0.2052,  0.138
+	ETH-2,      -10.17,     -18.69,  0.2085,  0.138
+	ETH-3,        1.71,      -1.78,  0.6132,  0.270
+	ETH-4,            ,           ,  0.4511,  0.223
+	[/i]
+	Except for [i]Sample[/i], none of the columns above are mandatory.
+
+	[b]Example CSV file for --exclude option:[/b]	
+	[i]
+	Sample,  UID
+	 FOO-1,
+	 BAR-2,
+	      ,  A04
+	      ,  A17
+	      ,  A88
+	[/i]
+	This will exclude all analyses of samples [i]FOO-1[/i] and [i]BAR-2[/i],
+	and the analyses with UIDs [i]A04[/i], [i]A17[/i], and [i]A88[/i].
+	Neither column is mandatory.
 	"""
 
 	data = D47data()
