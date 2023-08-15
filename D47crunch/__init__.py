@@ -3240,7 +3240,7 @@ class D48data(D4xdata):
 	reference frame.
 
 	By default equal to (after [Fiebig et al. (2019)](https://doi.org/10.1016/j.chemgeo.2019.05.019),
-	Fiebig et al. (in press)):
+	[Fiebig et al. (2021)](https://doi.org/10.1016/j.gca.2021.07.012)):
 
 	```py
 	{
@@ -3275,6 +3275,49 @@ class D48data(D4xdata):
 		return self._save_D4x_correl(*args, **kwargs)
 
 	save_D48_correl.__doc__ = D4xdata._save_D4x_correl.__doc__.replace('D4x', 'D48')
+
+
+class D49data(D4xdata):
+	'''
+	Store and process data for a large set of Δ49 analyses,
+	usually comprising more than one analytical session.
+	'''
+	
+	Nominal_D4x = {"1000C": 0.0, "25C": 2.228}  # Wang 2004
+	'''
+	Nominal Δ49 values assigned to the Δ49 anchor samples, used by
+	`D49data.standardize()` to normalize unknown samples to an absolute Δ49
+	reference frame.
+
+	By default equal to (after [Wang et al. (2004)](https://doi.org/10.1016/j.gca.2004.05.039)):
+
+	```py
+	{
+		"1000C": 0.0,
+		"25C": 2.228
+	}
+	```
+	'''
+	
+	@property
+	def Nominal_D49(self):
+		return self.Nominal_D4x
+	
+	@Nominal_D49.setter
+	def Nominal_D49(self, new):
+		self.Nominal_D4x = dict(**new)
+		self.refresh()
+	
+	def __init__(self, l=[], **kwargs):
+		'''
+		**Parameters:** same as `D4xdata.__init__()`
+		'''
+		D4xdata.__init__(self, l=l, mass='49', **kwargs)
+	
+	def save_D49_correl(self, *args, **kwargs):
+		return self._save_D4x_correl(*args, **kwargs)
+	
+	save_D49_correl.__doc__ = D4xdata._save_D4x_correl.__doc__.replace('D4x', 'D49')
 
 class _SessionPlot():
 	'''
