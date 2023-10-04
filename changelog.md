@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.3.2
+*Released on 2023-09-19*
+
+### Bug fix
+* Add `rich` dependency
+
 ## v2.3.1
 *Released on 2023-07-22*
 
