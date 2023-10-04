@@ -296,6 +296,21 @@
                 </ul>
 
             </li>
+            <li>
+                    <a class="class" href="#D49data">D49data</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#D49data.__init__">D49data</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#D49data.Nominal_D4x">Nominal_D4x</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#D49data.save_D49_correl">save_D49_correl</a>
+                        </li>
+                </ul>
+
+            </li>
     </ul>
 
 
@@ -316,7 +331,7 @@ D47crunch    </h1>
 
 <p>Process and standardize carbonate and/or CO<sub>2</sub> clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
-Δ<sub>47</sub> and Δ<sub>48</sub> values with fully propagated analytical error estimates
+Δ<sub>47</sub>, Δ<sub>48</sub> and Δ<sub>49</sub> values with fully propagated analytical error estimates
 (<a href="https://doi.org/10.1029/2020GC009592">Daëron, 2021</a>).</p>
 
 <p>The <strong>tutorial</strong> section takes you through a series of simple steps to import/process data and print out the results.
@@ -893,7 +908,7 @@ B06
 </span><span id="L-3"><a href="#L-3"><span class="linenos">   3</span></a>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">   4</span></a><span class="sd">Process and standardize carbonate and/or CO2 clumped-isotope analyses,</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">   5</span></a><span class="sd">from low-level data out of a dual-inlet mass spectrometer to final, “absolute”</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">   6</span></a><span class="sd">Δ47 and Δ48 values with fully propagated analytical error estimates</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">   6</span></a><span class="sd">Δ47, Δ48 and Δ49 values with fully propagated analytical error estimates</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">   7</span></a><span class="sd">([Daëron, 2021](https://doi.org/10.1029/2020GC009592)).</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">   8</span></a>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">   9</span></a><span class="sd">The **tutorial** section takes you through a series of simple steps to import/process data and print out the results.</span>
@@ -911,8 +926,8 @@ B06
 </span><span id="L-21"><a href="#L-21"><span class="linenos">  21</span></a><span class="n">__contact__</span>   <span class="o">=</span> <span class="s1">&#39;daeron@lsce.ipsl.fr&#39;</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos">  22</span></a><span class="n">__copyright__</span> <span class="o">=</span> <span class="s1">&#39;Copyright (c) 2023 Mathieu Daëron&#39;</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos">  23</span></a><span class="n">__license__</span>   <span class="o">=</span> <span class="s1">&#39;Modified BSD License - https://opensource.org/licenses/BSD-3-Clause&#39;</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">  24</span></a><span class="n">__date__</span>      <span class="o">=</span> <span class="s1">&#39;2023-07-22&#39;</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">  25</span></a><span class="n">__version__</span>   <span class="o">=</span> <span class="s1">&#39;2.3.1&#39;</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">  24</span></a><span class="n">__date__</span>      <span class="o">=</span> <span class="s1">&#39;2023-10-04&#39;</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">  25</span></a><span class="n">__version__</span>   <span class="o">=</span> <span class="s1">&#39;2.4.0&#39;</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos">  26</span></a>
 </span><span id="L-27"><a href="#L-27"><span class="linenos">  27</span></a><span class="kn">import</span> <span class="nn">os</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos">  28</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -4130,7 +4145,7 @@ B06
 </span><span id="L-3240"><a href="#L-3240"><span class="linenos">3240</span></a><span class="sd">	reference frame.</span>
 </span><span id="L-3241"><a href="#L-3241"><span class="linenos">3241</span></a>
 </span><span id="L-3242"><a href="#L-3242"><span class="linenos">3242</span></a><span class="sd">	By default equal to (after [Fiebig et al. (2019)](https://doi.org/10.1016/j.chemgeo.2019.05.019),</span>
-</span><span id="L-3243"><a href="#L-3243"><span class="linenos">3243</span></a><span class="sd">	Fiebig et al. (in press)):</span>
+</span><span id="L-3243"><a href="#L-3243"><span class="linenos">3243</span></a><span class="sd">	[Fiebig et al. (2021)](https://doi.org/10.1016/j.gca.2021.07.012)):</span>
 </span><span id="L-3244"><a href="#L-3244"><span class="linenos">3244</span></a>
 </span><span id="L-3245"><a href="#L-3245"><span class="linenos">3245</span></a><span class="sd">	```py</span>
 </span><span id="L-3246"><a href="#L-3246"><span class="linenos">3246</span></a><span class="sd">	{</span>
@@ -4166,169 +4181,212 @@ B06
 </span><span id="L-3276"><a href="#L-3276"><span class="linenos">3276</span></a>
 </span><span id="L-3277"><a href="#L-3277"><span class="linenos">3277</span></a>	<span class="n">save_D48_correl</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">D4xdata</span><span class="o">.</span><span class="n">_save_D4x_correl</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D4x&#39;</span><span class="p">,</span> <span class="s1">&#39;D48&#39;</span><span class="p">)</span>
 </span><span id="L-3278"><a href="#L-3278"><span class="linenos">3278</span></a>
-</span><span id="L-3279"><a href="#L-3279"><span class="linenos">3279</span></a><span class="k">class</span> <span class="nc">_SessionPlot</span><span class="p">():</span>
-</span><span id="L-3280"><a href="#L-3280"><span class="linenos">3280</span></a><span class="w">	</span><span class="sd">&#39;&#39;&#39;</span>
-</span><span id="L-3281"><a href="#L-3281"><span class="linenos">3281</span></a><span class="sd">	Simple placeholder class</span>
-</span><span id="L-3282"><a href="#L-3282"><span class="linenos">3282</span></a><span class="sd">	&#39;&#39;&#39;</span>
-</span><span id="L-3283"><a href="#L-3283"><span class="linenos">3283</span></a>	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-3284"><a href="#L-3284"><span class="linenos">3284</span></a>		<span class="k">pass</span>
-</span><span id="L-3285"><a href="#L-3285"><span class="linenos">3285</span></a>
-</span><span id="L-3286"><a href="#L-3286"><span class="linenos">3286</span></a><span class="n">_app</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Typer</span><span class="p">(</span>
-</span><span id="L-3287"><a href="#L-3287"><span class="linenos">3287</span></a>	<span class="n">add_completion</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="L-3288"><a href="#L-3288"><span class="linenos">3288</span></a>	<span class="n">context_settings</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;help_option_names&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;-h&#39;</span><span class="p">,</span> <span class="s1">&#39;--help&#39;</span><span class="p">]},</span>
-</span><span id="L-3289"><a href="#L-3289"><span class="linenos">3289</span></a>	<span class="n">rich_markup_mode</span> <span class="o">=</span> <span class="s1">&#39;rich&#39;</span><span class="p">,</span>
-</span><span id="L-3290"><a href="#L-3290"><span class="linenos">3290</span></a>	<span class="p">)</span>
+</span><span id="L-3279"><a href="#L-3279"><span class="linenos">3279</span></a>
+</span><span id="L-3280"><a href="#L-3280"><span class="linenos">3280</span></a><span class="k">class</span> <span class="nc">D49data</span><span class="p">(</span><span class="n">D4xdata</span><span class="p">):</span>
+</span><span id="L-3281"><a href="#L-3281"><span class="linenos">3281</span></a><span class="w">	</span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="L-3282"><a href="#L-3282"><span class="linenos">3282</span></a><span class="sd">	Store and process data for a large set of Δ49 analyses,</span>
+</span><span id="L-3283"><a href="#L-3283"><span class="linenos">3283</span></a><span class="sd">	usually comprising more than one analytical session.</span>
+</span><span id="L-3284"><a href="#L-3284"><span class="linenos">3284</span></a><span class="sd">	&#39;&#39;&#39;</span>
+</span><span id="L-3285"><a href="#L-3285"><span class="linenos">3285</span></a>	
+</span><span id="L-3286"><a href="#L-3286"><span class="linenos">3286</span></a>	<span class="n">Nominal_D4x</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1000C&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;25C&quot;</span><span class="p">:</span> <span class="mf">2.228</span><span class="p">}</span>  <span class="c1"># Wang 2004</span>
+</span><span id="L-3287"><a href="#L-3287"><span class="linenos">3287</span></a><span class="w">	</span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="L-3288"><a href="#L-3288"><span class="linenos">3288</span></a><span class="sd">	Nominal Δ49 values assigned to the Δ49 anchor samples, used by</span>
+</span><span id="L-3289"><a href="#L-3289"><span class="linenos">3289</span></a><span class="sd">	`D49data.standardize()` to normalize unknown samples to an absolute Δ49</span>
+</span><span id="L-3290"><a href="#L-3290"><span class="linenos">3290</span></a><span class="sd">	reference frame.</span>
 </span><span id="L-3291"><a href="#L-3291"><span class="linenos">3291</span></a>
-</span><span id="L-3292"><a href="#L-3292"><span class="linenos">3292</span></a><span class="nd">@_app</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-</span><span id="L-3293"><a href="#L-3293"><span class="linenos">3293</span></a><span class="k">def</span> <span class="nf">_cli</span><span class="p">(</span>
-</span><span id="L-3294"><a href="#L-3294"><span class="linenos">3294</span></a>	<span class="n">rawdata</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typer</span><span class="o">.</span><span class="n">Argument</span><span class="p">(</span><span class="n">help</span> <span class="o">=</span> <span class="s2">&quot;Specify the path of a rawdata input file&quot;</span><span class="p">)],</span>
-</span><span id="L-3295"><a href="#L-3295"><span class="linenos">3295</span></a>	<span class="n">exclude</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;--exclude&#39;</span><span class="p">,</span> <span class="s1">&#39;-e&#39;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;The path of a file specifying UIDs and/or Samples to exclude&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span>
-</span><span id="L-3296"><a href="#L-3296"><span class="linenos">3296</span></a>	<span class="n">anchors</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;--anchors&#39;</span><span class="p">,</span> <span class="s1">&#39;-a&#39;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;The path of a file specifying custom anchors&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span>
-</span><span id="L-3297"><a href="#L-3297"><span class="linenos">3297</span></a>	<span class="n">output_dir</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;--output-dir&#39;</span><span class="p">,</span> <span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;Specify the output directory&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="s1">&#39;output&#39;</span><span class="p">,</span>
-</span><span id="L-3298"><a href="#L-3298"><span class="linenos">3298</span></a>	<span class="n">run_D48</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;--D48&#39;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;Also standardize D48&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-</span><span id="L-3299"><a href="#L-3299"><span class="linenos">3299</span></a>	<span class="p">):</span>
-</span><span id="L-3300"><a href="#L-3300"><span class="linenos">3300</span></a><span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-3301"><a href="#L-3301"><span class="linenos">3301</span></a><span class="sd">	Process raw D47 data and return standardized results.</span>
-</span><span id="L-3302"><a href="#L-3302"><span class="linenos">3302</span></a><span class="sd">	</span>
-</span><span id="L-3303"><a href="#L-3303"><span class="linenos">3303</span></a><span class="sd">	See [b]https://mdaeron.github.io/D47crunch/#3-command-line-interface-cli[/b] for more details.</span>
-</span><span id="L-3304"><a href="#L-3304"><span class="linenos">3304</span></a><span class="sd">	</span>
-</span><span id="L-3305"><a href="#L-3305"><span class="linenos">3305</span></a><span class="sd">	Reads raw data from an input file, optionally excluding some samples and/or analyses, thean standardizes</span>
-</span><span id="L-3306"><a href="#L-3306"><span class="linenos">3306</span></a><span class="sd">	the data based either on the default [b]d13C_VDPB[/b], [b]d18O_VPDB[/b], [b]D47[/b], and [b]D48[/b] anchors or on different</span>
-</span><span id="L-3307"><a href="#L-3307"><span class="linenos">3307</span></a><span class="sd">	user-specified anchors. A new directory (named `output` by default) is created to store the results and</span>
-</span><span id="L-3308"><a href="#L-3308"><span class="linenos">3308</span></a><span class="sd">	the following sequence is applied:</span>
-</span><span id="L-3309"><a href="#L-3309"><span class="linenos">3309</span></a><span class="sd">	</span>
-</span><span id="L-3310"><a href="#L-3310"><span class="linenos">3310</span></a><span class="sd">	* [b]D47data.wg()[/b]</span>
-</span><span id="L-3311"><a href="#L-3311"><span class="linenos">3311</span></a><span class="sd">	* [b]D47data.crunch()[/b]</span>
-</span><span id="L-3312"><a href="#L-3312"><span class="linenos">3312</span></a><span class="sd">	* [b]D47data.standardize()[/b]</span>
-</span><span id="L-3313"><a href="#L-3313"><span class="linenos">3313</span></a><span class="sd">	* [b]D47data.summary()[/b]</span>
-</span><span id="L-3314"><a href="#L-3314"><span class="linenos">3314</span></a><span class="sd">	* [b]D47data.table_of_samples()[/b]</span>
-</span><span id="L-3315"><a href="#L-3315"><span class="linenos">3315</span></a><span class="sd">	* [b]D47data.table_of_sessions()[/b]</span>
-</span><span id="L-3316"><a href="#L-3316"><span class="linenos">3316</span></a><span class="sd">	* [b]D47data.plot_sessions()[/b]</span>
-</span><span id="L-3317"><a href="#L-3317"><span class="linenos">3317</span></a><span class="sd">	* [b]D47data.plot_residuals()[/b]</span>
-</span><span id="L-3318"><a href="#L-3318"><span class="linenos">3318</span></a><span class="sd">	* [b]D47data.table_of_analyses()[/b]</span>
-</span><span id="L-3319"><a href="#L-3319"><span class="linenos">3319</span></a><span class="sd">	* [b]D47data.plot_distribution_of_analyses()[/b]</span>
-</span><span id="L-3320"><a href="#L-3320"><span class="linenos">3320</span></a><span class="sd">	* [b]D47data.plot_bulk_compositions()[/b]</span>
-</span><span id="L-3321"><a href="#L-3321"><span class="linenos">3321</span></a><span class="sd">	* [b]D47data.save_D47_correl()[/b]</span>
-</span><span id="L-3322"><a href="#L-3322"><span class="linenos">3322</span></a><span class="sd">	</span>
-</span><span id="L-3323"><a href="#L-3323"><span class="linenos">3323</span></a><span class="sd">	Optionally, also apply similar methods for [b]]D48[/b].</span>
-</span><span id="L-3324"><a href="#L-3324"><span class="linenos">3324</span></a><span class="sd">	</span>
-</span><span id="L-3325"><a href="#L-3325"><span class="linenos">3325</span></a><span class="sd">	[b]Example CSV file for --anchors option:[/b]	</span>
-</span><span id="L-3326"><a href="#L-3326"><span class="linenos">3326</span></a><span class="sd">	[i]</span>
-</span><span id="L-3327"><a href="#L-3327"><span class="linenos">3327</span></a><span class="sd">	Sample,  d13C_VPDB,  d18O_VPDB,     D47,    D48</span>
-</span><span id="L-3328"><a href="#L-3328"><span class="linenos">3328</span></a><span class="sd">	ETH-1,        2.02,      -2.19,  0.2052,  0.138</span>
-</span><span id="L-3329"><a href="#L-3329"><span class="linenos">3329</span></a><span class="sd">	ETH-2,      -10.17,     -18.69,  0.2085,  0.138</span>
-</span><span id="L-3330"><a href="#L-3330"><span class="linenos">3330</span></a><span class="sd">	ETH-3,        1.71,      -1.78,  0.6132,  0.270</span>
-</span><span id="L-3331"><a href="#L-3331"><span class="linenos">3331</span></a><span class="sd">	ETH-4,            ,           ,  0.4511,  0.223</span>
-</span><span id="L-3332"><a href="#L-3332"><span class="linenos">3332</span></a><span class="sd">	[/i]</span>
-</span><span id="L-3333"><a href="#L-3333"><span class="linenos">3333</span></a><span class="sd">	Except for [i]Sample[/i], none of the columns above are mandatory.</span>
+</span><span id="L-3292"><a href="#L-3292"><span class="linenos">3292</span></a><span class="sd">	By default equal to (after [Wang et al. (2004)](https://doi.org/10.1016/j.gca.2004.05.039)):</span>
+</span><span id="L-3293"><a href="#L-3293"><span class="linenos">3293</span></a>
+</span><span id="L-3294"><a href="#L-3294"><span class="linenos">3294</span></a><span class="sd">	```py</span>
+</span><span id="L-3295"><a href="#L-3295"><span class="linenos">3295</span></a><span class="sd">	{</span>
+</span><span id="L-3296"><a href="#L-3296"><span class="linenos">3296</span></a><span class="sd">		&quot;1000C&quot;: 0.0,</span>
+</span><span id="L-3297"><a href="#L-3297"><span class="linenos">3297</span></a><span class="sd">		&quot;25C&quot;: 2.228</span>
+</span><span id="L-3298"><a href="#L-3298"><span class="linenos">3298</span></a><span class="sd">	}</span>
+</span><span id="L-3299"><a href="#L-3299"><span class="linenos">3299</span></a><span class="sd">	```</span>
+</span><span id="L-3300"><a href="#L-3300"><span class="linenos">3300</span></a><span class="sd">	&#39;&#39;&#39;</span>
+</span><span id="L-3301"><a href="#L-3301"><span class="linenos">3301</span></a>	
+</span><span id="L-3302"><a href="#L-3302"><span class="linenos">3302</span></a>	<span class="nd">@property</span>
+</span><span id="L-3303"><a href="#L-3303"><span class="linenos">3303</span></a>	<span class="k">def</span> <span class="nf">Nominal_D49</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-3304"><a href="#L-3304"><span class="linenos">3304</span></a>		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nominal_D4x</span>
+</span><span id="L-3305"><a href="#L-3305"><span class="linenos">3305</span></a>	
+</span><span id="L-3306"><a href="#L-3306"><span class="linenos">3306</span></a>	<span class="nd">@Nominal_D49</span><span class="o">.</span><span class="n">setter</span>
+</span><span id="L-3307"><a href="#L-3307"><span class="linenos">3307</span></a>	<span class="k">def</span> <span class="nf">Nominal_D49</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+</span><span id="L-3308"><a href="#L-3308"><span class="linenos">3308</span></a>		<span class="bp">self</span><span class="o">.</span><span class="n">Nominal_D4x</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">new</span><span class="p">)</span>
+</span><span id="L-3309"><a href="#L-3309"><span class="linenos">3309</span></a>		<span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+</span><span id="L-3310"><a href="#L-3310"><span class="linenos">3310</span></a>	
+</span><span id="L-3311"><a href="#L-3311"><span class="linenos">3311</span></a>	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="p">[],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="L-3312"><a href="#L-3312"><span class="linenos">3312</span></a><span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="L-3313"><a href="#L-3313"><span class="linenos">3313</span></a><span class="sd">		**Parameters:** same as `D4xdata.__init__()`</span>
+</span><span id="L-3314"><a href="#L-3314"><span class="linenos">3314</span></a><span class="sd">		&#39;&#39;&#39;</span>
+</span><span id="L-3315"><a href="#L-3315"><span class="linenos">3315</span></a>		<span class="n">D4xdata</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="n">l</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="s1">&#39;49&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="L-3316"><a href="#L-3316"><span class="linenos">3316</span></a>	
+</span><span id="L-3317"><a href="#L-3317"><span class="linenos">3317</span></a>	<span class="k">def</span> <span class="nf">save_D49_correl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="L-3318"><a href="#L-3318"><span class="linenos">3318</span></a>		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_D4x_correl</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="L-3319"><a href="#L-3319"><span class="linenos">3319</span></a>	
+</span><span id="L-3320"><a href="#L-3320"><span class="linenos">3320</span></a>	<span class="n">save_D49_correl</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">D4xdata</span><span class="o">.</span><span class="n">_save_D4x_correl</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D4x&#39;</span><span class="p">,</span> <span class="s1">&#39;D49&#39;</span><span class="p">)</span>
+</span><span id="L-3321"><a href="#L-3321"><span class="linenos">3321</span></a>
+</span><span id="L-3322"><a href="#L-3322"><span class="linenos">3322</span></a><span class="k">class</span> <span class="nc">_SessionPlot</span><span class="p">():</span>
+</span><span id="L-3323"><a href="#L-3323"><span class="linenos">3323</span></a><span class="w">	</span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="L-3324"><a href="#L-3324"><span class="linenos">3324</span></a><span class="sd">	Simple placeholder class</span>
+</span><span id="L-3325"><a href="#L-3325"><span class="linenos">3325</span></a><span class="sd">	&#39;&#39;&#39;</span>
+</span><span id="L-3326"><a href="#L-3326"><span class="linenos">3326</span></a>	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-3327"><a href="#L-3327"><span class="linenos">3327</span></a>		<span class="k">pass</span>
+</span><span id="L-3328"><a href="#L-3328"><span class="linenos">3328</span></a>
+</span><span id="L-3329"><a href="#L-3329"><span class="linenos">3329</span></a><span class="n">_app</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Typer</span><span class="p">(</span>
+</span><span id="L-3330"><a href="#L-3330"><span class="linenos">3330</span></a>	<span class="n">add_completion</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="L-3331"><a href="#L-3331"><span class="linenos">3331</span></a>	<span class="n">context_settings</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;help_option_names&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;-h&#39;</span><span class="p">,</span> <span class="s1">&#39;--help&#39;</span><span class="p">]},</span>
+</span><span id="L-3332"><a href="#L-3332"><span class="linenos">3332</span></a>	<span class="n">rich_markup_mode</span> <span class="o">=</span> <span class="s1">&#39;rich&#39;</span><span class="p">,</span>
+</span><span id="L-3333"><a href="#L-3333"><span class="linenos">3333</span></a>	<span class="p">)</span>
 </span><span id="L-3334"><a href="#L-3334"><span class="linenos">3334</span></a>
-</span><span id="L-3335"><a href="#L-3335"><span class="linenos">3335</span></a><span class="sd">	[b]Example CSV file for --exclude option:[/b]	</span>
-</span><span id="L-3336"><a href="#L-3336"><span class="linenos">3336</span></a><span class="sd">	[i]</span>
-</span><span id="L-3337"><a href="#L-3337"><span class="linenos">3337</span></a><span class="sd">	Sample,  UID</span>
-</span><span id="L-3338"><a href="#L-3338"><span class="linenos">3338</span></a><span class="sd">	 FOO-1,</span>
-</span><span id="L-3339"><a href="#L-3339"><span class="linenos">3339</span></a><span class="sd">	 BAR-2,</span>
-</span><span id="L-3340"><a href="#L-3340"><span class="linenos">3340</span></a><span class="sd">	      ,  A04</span>
-</span><span id="L-3341"><a href="#L-3341"><span class="linenos">3341</span></a><span class="sd">	      ,  A17</span>
-</span><span id="L-3342"><a href="#L-3342"><span class="linenos">3342</span></a><span class="sd">	      ,  A88</span>
-</span><span id="L-3343"><a href="#L-3343"><span class="linenos">3343</span></a><span class="sd">	[/i]</span>
-</span><span id="L-3344"><a href="#L-3344"><span class="linenos">3344</span></a><span class="sd">	This will exclude all analyses of samples [i]FOO-1[/i] and [i]BAR-2[/i],</span>
-</span><span id="L-3345"><a href="#L-3345"><span class="linenos">3345</span></a><span class="sd">	and the analyses with UIDs [i]A04[/i], [i]A17[/i], and [i]A88[/i].</span>
-</span><span id="L-3346"><a href="#L-3346"><span class="linenos">3346</span></a><span class="sd">	Neither column is mandatory.</span>
-</span><span id="L-3347"><a href="#L-3347"><span class="linenos">3347</span></a><span class="sd">	&quot;&quot;&quot;</span>
-</span><span id="L-3348"><a href="#L-3348"><span class="linenos">3348</span></a>
-</span><span id="L-3349"><a href="#L-3349"><span class="linenos">3349</span></a>	<span class="n">data</span> <span class="o">=</span> <span class="n">D47data</span><span class="p">()</span>
-</span><span id="L-3350"><a href="#L-3350"><span class="linenos">3350</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">rawdata</span><span class="p">)</span>
-</span><span id="L-3351"><a href="#L-3351"><span class="linenos">3351</span></a>
-</span><span id="L-3352"><a href="#L-3352"><span class="linenos">3352</span></a>	<span class="k">if</span> <span class="n">exclude</span> <span class="o">!=</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
-</span><span id="L-3353"><a href="#L-3353"><span class="linenos">3353</span></a>		<span class="n">exclude</span> <span class="o">=</span> <span class="n">read_csv</span><span class="p">(</span><span class="n">exclude</span><span class="p">)</span>
-</span><span id="L-3354"><a href="#L-3354"><span class="linenos">3354</span></a>		<span class="n">exclude_uid</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;UID&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="k">if</span> <span class="s1">&#39;UID&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">}</span>
-</span><span id="L-3355"><a href="#L-3355"><span class="linenos">3355</span></a>		<span class="n">exclude_sample</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="k">if</span> <span class="s1">&#39;Sample&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">}</span>
-</span><span id="L-3356"><a href="#L-3356"><span class="linenos">3356</span></a>	<span class="k">else</span><span class="p">:</span>
-</span><span id="L-3357"><a href="#L-3357"><span class="linenos">3357</span></a>		<span class="n">exclude_uid</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-3358"><a href="#L-3358"><span class="linenos">3358</span></a>		<span class="n">exclude_sample</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-3359"><a href="#L-3359"><span class="linenos">3359</span></a>	
-</span><span id="L-3360"><a href="#L-3360"><span class="linenos">3360</span></a>	<span class="n">data</span> <span class="o">=</span> <span class="n">D47data</span><span class="p">([</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;UID&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude_uid</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude_sample</span><span class="p">])</span>
-</span><span id="L-3361"><a href="#L-3361"><span class="linenos">3361</span></a>
-</span><span id="L-3362"><a href="#L-3362"><span class="linenos">3362</span></a>	<span class="k">if</span> <span class="n">anchors</span> <span class="o">!=</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
-</span><span id="L-3363"><a href="#L-3363"><span class="linenos">3363</span></a>		<span class="n">anchors</span> <span class="o">=</span> <span class="n">read_csv</span><span class="p">(</span><span class="n">anchors</span><span class="p">)</span>
-</span><span id="L-3364"><a href="#L-3364"><span class="linenos">3364</span></a>		<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;d13C_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
-</span><span id="L-3365"><a href="#L-3365"><span class="linenos">3365</span></a>			<span class="n">data</span><span class="o">.</span><span class="n">Nominal_d13C_VPDB</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="L-3366"><a href="#L-3366"><span class="linenos">3366</span></a>				<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;d13C_VPDB&#39;</span><span class="p">]</span>
-</span><span id="L-3367"><a href="#L-3367"><span class="linenos">3367</span></a>				<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
-</span><span id="L-3368"><a href="#L-3368"><span class="linenos">3368</span></a>				<span class="k">if</span> <span class="s1">&#39;d13C_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span>
-</span><span id="L-3369"><a href="#L-3369"><span class="linenos">3369</span></a>				<span class="p">}</span>
-</span><span id="L-3370"><a href="#L-3370"><span class="linenos">3370</span></a>		<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;d18O_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
-</span><span id="L-3371"><a href="#L-3371"><span class="linenos">3371</span></a>			<span class="n">data</span><span class="o">.</span><span class="n">Nominal_d18O_VPDB</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="L-3372"><a href="#L-3372"><span class="linenos">3372</span></a>				<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;d18O_VPDB&#39;</span><span class="p">]</span>
-</span><span id="L-3373"><a href="#L-3373"><span class="linenos">3373</span></a>				<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
-</span><span id="L-3374"><a href="#L-3374"><span class="linenos">3374</span></a>				<span class="k">if</span> <span class="s1">&#39;d18O_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span>
-</span><span id="L-3375"><a href="#L-3375"><span class="linenos">3375</span></a>				<span class="p">}</span>
-</span><span id="L-3376"><a href="#L-3376"><span class="linenos">3376</span></a>		<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;D47&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
-</span><span id="L-3377"><a href="#L-3377"><span class="linenos">3377</span></a>			<span class="n">data</span><span class="o">.</span><span class="n">Nominal_D4x</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="L-3378"><a href="#L-3378"><span class="linenos">3378</span></a>				<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;D47&#39;</span><span class="p">]</span>
-</span><span id="L-3379"><a href="#L-3379"><span class="linenos">3379</span></a>				<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
-</span><span id="L-3380"><a href="#L-3380"><span class="linenos">3380</span></a>				<span class="k">if</span> <span class="s1">&#39;D47&#39;</span> <span class="ow">in</span> <span class="n">_</span>
-</span><span id="L-3381"><a href="#L-3381"><span class="linenos">3381</span></a>				<span class="p">}</span>
-</span><span id="L-3382"><a href="#L-3382"><span class="linenos">3382</span></a>
-</span><span id="L-3383"><a href="#L-3383"><span class="linenos">3383</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
-</span><span id="L-3384"><a href="#L-3384"><span class="linenos">3384</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">wg</span><span class="p">()</span>
-</span><span id="L-3385"><a href="#L-3385"><span class="linenos">3385</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">crunch</span><span class="p">()</span>
-</span><span id="L-3386"><a href="#L-3386"><span class="linenos">3386</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">standardize</span><span class="p">()</span>
-</span><span id="L-3387"><a href="#L-3387"><span class="linenos">3387</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3388"><a href="#L-3388"><span class="linenos">3388</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">plot_residuals</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;D47_residuals.pdf&#39;</span><span class="p">,</span> <span class="n">kde</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-</span><span id="L-3389"><a href="#L-3389"><span class="linenos">3389</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">plot_bulk_compositions</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">+</span> <span class="s1">&#39;/bulk_compositions&#39;</span><span class="p">)</span>
-</span><span id="L-3390"><a href="#L-3390"><span class="linenos">3390</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">plot_sessions</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3391"><a href="#L-3391"><span class="linenos">3391</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">save_D47_correl</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3392"><a href="#L-3392"><span class="linenos">3392</span></a>	
-</span><span id="L-3393"><a href="#L-3393"><span class="linenos">3393</span></a>	<span class="k">if</span> <span class="ow">not</span> <span class="n">run_D48</span><span class="p">:</span>
-</span><span id="L-3394"><a href="#L-3394"><span class="linenos">3394</span></a>		<span class="n">data</span><span class="o">.</span><span class="n">table_of_samples</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3395"><a href="#L-3395"><span class="linenos">3395</span></a>		<span class="n">data</span><span class="o">.</span><span class="n">table_of_analyses</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3396"><a href="#L-3396"><span class="linenos">3396</span></a>		<span class="n">data</span><span class="o">.</span><span class="n">table_of_sessions</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3397"><a href="#L-3397"><span class="linenos">3397</span></a>
-</span><span id="L-3398"><a href="#L-3398"><span class="linenos">3398</span></a>
-</span><span id="L-3399"><a href="#L-3399"><span class="linenos">3399</span></a>	<span class="k">if</span> <span class="n">run_D48</span><span class="p">:</span>
-</span><span id="L-3400"><a href="#L-3400"><span class="linenos">3400</span></a>		<span class="n">data2</span> <span class="o">=</span> <span class="n">D48data</span><span class="p">()</span>
-</span><span id="L-3401"><a href="#L-3401"><span class="linenos">3401</span></a>		<span class="nb">print</span><span class="p">(</span><span class="n">rawdata</span><span class="p">)</span>
-</span><span id="L-3402"><a href="#L-3402"><span class="linenos">3402</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">rawdata</span><span class="p">)</span>
-</span><span id="L-3403"><a href="#L-3403"><span class="linenos">3403</span></a>
-</span><span id="L-3404"><a href="#L-3404"><span class="linenos">3404</span></a>		<span class="n">data2</span> <span class="o">=</span> <span class="n">D48data</span><span class="p">([</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">data2</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;UID&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude_uid</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude_sample</span><span class="p">])</span>
-</span><span id="L-3405"><a href="#L-3405"><span class="linenos">3405</span></a>
-</span><span id="L-3406"><a href="#L-3406"><span class="linenos">3406</span></a>		<span class="k">if</span> <span class="n">anchors</span> <span class="o">!=</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
-</span><span id="L-3407"><a href="#L-3407"><span class="linenos">3407</span></a>			<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;d13C_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
-</span><span id="L-3408"><a href="#L-3408"><span class="linenos">3408</span></a>				<span class="n">data2</span><span class="o">.</span><span class="n">Nominal_d13C_VPDB</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="L-3409"><a href="#L-3409"><span class="linenos">3409</span></a>					<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;d13C_VPDB&#39;</span><span class="p">]</span>
-</span><span id="L-3410"><a href="#L-3410"><span class="linenos">3410</span></a>					<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
-</span><span id="L-3411"><a href="#L-3411"><span class="linenos">3411</span></a>					<span class="k">if</span> <span class="s1">&#39;d13C_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span>
-</span><span id="L-3412"><a href="#L-3412"><span class="linenos">3412</span></a>					<span class="p">}</span>
-</span><span id="L-3413"><a href="#L-3413"><span class="linenos">3413</span></a>			<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;d18O_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
-</span><span id="L-3414"><a href="#L-3414"><span class="linenos">3414</span></a>				<span class="n">data2</span><span class="o">.</span><span class="n">Nominal_d18O_VPDB</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="L-3415"><a href="#L-3415"><span class="linenos">3415</span></a>					<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;d18O_VPDB&#39;</span><span class="p">]</span>
-</span><span id="L-3416"><a href="#L-3416"><span class="linenos">3416</span></a>					<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
-</span><span id="L-3417"><a href="#L-3417"><span class="linenos">3417</span></a>					<span class="k">if</span> <span class="s1">&#39;d18O_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span>
-</span><span id="L-3418"><a href="#L-3418"><span class="linenos">3418</span></a>					<span class="p">}</span>
-</span><span id="L-3419"><a href="#L-3419"><span class="linenos">3419</span></a>			<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;D48&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
-</span><span id="L-3420"><a href="#L-3420"><span class="linenos">3420</span></a>				<span class="n">data2</span><span class="o">.</span><span class="n">Nominal_D4x</span> <span class="o">=</span> <span class="p">{</span>
-</span><span id="L-3421"><a href="#L-3421"><span class="linenos">3421</span></a>					<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;D48&#39;</span><span class="p">]</span>
-</span><span id="L-3422"><a href="#L-3422"><span class="linenos">3422</span></a>					<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
-</span><span id="L-3423"><a href="#L-3423"><span class="linenos">3423</span></a>					<span class="k">if</span> <span class="s1">&#39;D48&#39;</span> <span class="ow">in</span> <span class="n">_</span>
-</span><span id="L-3424"><a href="#L-3424"><span class="linenos">3424</span></a>					<span class="p">}</span>
+</span><span id="L-3335"><a href="#L-3335"><span class="linenos">3335</span></a><span class="nd">@_app</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+</span><span id="L-3336"><a href="#L-3336"><span class="linenos">3336</span></a><span class="k">def</span> <span class="nf">_cli</span><span class="p">(</span>
+</span><span id="L-3337"><a href="#L-3337"><span class="linenos">3337</span></a>	<span class="n">rawdata</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typer</span><span class="o">.</span><span class="n">Argument</span><span class="p">(</span><span class="n">help</span> <span class="o">=</span> <span class="s2">&quot;Specify the path of a rawdata input file&quot;</span><span class="p">)],</span>
+</span><span id="L-3338"><a href="#L-3338"><span class="linenos">3338</span></a>	<span class="n">exclude</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;--exclude&#39;</span><span class="p">,</span> <span class="s1">&#39;-e&#39;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;The path of a file specifying UIDs and/or Samples to exclude&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span>
+</span><span id="L-3339"><a href="#L-3339"><span class="linenos">3339</span></a>	<span class="n">anchors</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;--anchors&#39;</span><span class="p">,</span> <span class="s1">&#39;-a&#39;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;The path of a file specifying custom anchors&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span>
+</span><span id="L-3340"><a href="#L-3340"><span class="linenos">3340</span></a>	<span class="n">output_dir</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;--output-dir&#39;</span><span class="p">,</span> <span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;Specify the output directory&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="s1">&#39;output&#39;</span><span class="p">,</span>
+</span><span id="L-3341"><a href="#L-3341"><span class="linenos">3341</span></a>	<span class="n">run_D48</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="s1">&#39;--D48&#39;</span><span class="p">,</span> <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;Also standardize D48&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="L-3342"><a href="#L-3342"><span class="linenos">3342</span></a>	<span class="p">):</span>
+</span><span id="L-3343"><a href="#L-3343"><span class="linenos">3343</span></a><span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-3344"><a href="#L-3344"><span class="linenos">3344</span></a><span class="sd">	Process raw D47 data and return standardized results.</span>
+</span><span id="L-3345"><a href="#L-3345"><span class="linenos">3345</span></a><span class="sd">	</span>
+</span><span id="L-3346"><a href="#L-3346"><span class="linenos">3346</span></a><span class="sd">	See [b]https://mdaeron.github.io/D47crunch/#3-command-line-interface-cli[/b] for more details.</span>
+</span><span id="L-3347"><a href="#L-3347"><span class="linenos">3347</span></a><span class="sd">	</span>
+</span><span id="L-3348"><a href="#L-3348"><span class="linenos">3348</span></a><span class="sd">	Reads raw data from an input file, optionally excluding some samples and/or analyses, thean standardizes</span>
+</span><span id="L-3349"><a href="#L-3349"><span class="linenos">3349</span></a><span class="sd">	the data based either on the default [b]d13C_VDPB[/b], [b]d18O_VPDB[/b], [b]D47[/b], and [b]D48[/b] anchors or on different</span>
+</span><span id="L-3350"><a href="#L-3350"><span class="linenos">3350</span></a><span class="sd">	user-specified anchors. A new directory (named `output` by default) is created to store the results and</span>
+</span><span id="L-3351"><a href="#L-3351"><span class="linenos">3351</span></a><span class="sd">	the following sequence is applied:</span>
+</span><span id="L-3352"><a href="#L-3352"><span class="linenos">3352</span></a><span class="sd">	</span>
+</span><span id="L-3353"><a href="#L-3353"><span class="linenos">3353</span></a><span class="sd">	* [b]D47data.wg()[/b]</span>
+</span><span id="L-3354"><a href="#L-3354"><span class="linenos">3354</span></a><span class="sd">	* [b]D47data.crunch()[/b]</span>
+</span><span id="L-3355"><a href="#L-3355"><span class="linenos">3355</span></a><span class="sd">	* [b]D47data.standardize()[/b]</span>
+</span><span id="L-3356"><a href="#L-3356"><span class="linenos">3356</span></a><span class="sd">	* [b]D47data.summary()[/b]</span>
+</span><span id="L-3357"><a href="#L-3357"><span class="linenos">3357</span></a><span class="sd">	* [b]D47data.table_of_samples()[/b]</span>
+</span><span id="L-3358"><a href="#L-3358"><span class="linenos">3358</span></a><span class="sd">	* [b]D47data.table_of_sessions()[/b]</span>
+</span><span id="L-3359"><a href="#L-3359"><span class="linenos">3359</span></a><span class="sd">	* [b]D47data.plot_sessions()[/b]</span>
+</span><span id="L-3360"><a href="#L-3360"><span class="linenos">3360</span></a><span class="sd">	* [b]D47data.plot_residuals()[/b]</span>
+</span><span id="L-3361"><a href="#L-3361"><span class="linenos">3361</span></a><span class="sd">	* [b]D47data.table_of_analyses()[/b]</span>
+</span><span id="L-3362"><a href="#L-3362"><span class="linenos">3362</span></a><span class="sd">	* [b]D47data.plot_distribution_of_analyses()[/b]</span>
+</span><span id="L-3363"><a href="#L-3363"><span class="linenos">3363</span></a><span class="sd">	* [b]D47data.plot_bulk_compositions()[/b]</span>
+</span><span id="L-3364"><a href="#L-3364"><span class="linenos">3364</span></a><span class="sd">	* [b]D47data.save_D47_correl()[/b]</span>
+</span><span id="L-3365"><a href="#L-3365"><span class="linenos">3365</span></a><span class="sd">	</span>
+</span><span id="L-3366"><a href="#L-3366"><span class="linenos">3366</span></a><span class="sd">	Optionally, also apply similar methods for [b]]D48[/b].</span>
+</span><span id="L-3367"><a href="#L-3367"><span class="linenos">3367</span></a><span class="sd">	</span>
+</span><span id="L-3368"><a href="#L-3368"><span class="linenos">3368</span></a><span class="sd">	[b]Example CSV file for --anchors option:[/b]	</span>
+</span><span id="L-3369"><a href="#L-3369"><span class="linenos">3369</span></a><span class="sd">	[i]</span>
+</span><span id="L-3370"><a href="#L-3370"><span class="linenos">3370</span></a><span class="sd">	Sample,  d13C_VPDB,  d18O_VPDB,     D47,    D48</span>
+</span><span id="L-3371"><a href="#L-3371"><span class="linenos">3371</span></a><span class="sd">	ETH-1,        2.02,      -2.19,  0.2052,  0.138</span>
+</span><span id="L-3372"><a href="#L-3372"><span class="linenos">3372</span></a><span class="sd">	ETH-2,      -10.17,     -18.69,  0.2085,  0.138</span>
+</span><span id="L-3373"><a href="#L-3373"><span class="linenos">3373</span></a><span class="sd">	ETH-3,        1.71,      -1.78,  0.6132,  0.270</span>
+</span><span id="L-3374"><a href="#L-3374"><span class="linenos">3374</span></a><span class="sd">	ETH-4,            ,           ,  0.4511,  0.223</span>
+</span><span id="L-3375"><a href="#L-3375"><span class="linenos">3375</span></a><span class="sd">	[/i]</span>
+</span><span id="L-3376"><a href="#L-3376"><span class="linenos">3376</span></a><span class="sd">	Except for [i]Sample[/i], none of the columns above are mandatory.</span>
+</span><span id="L-3377"><a href="#L-3377"><span class="linenos">3377</span></a>
+</span><span id="L-3378"><a href="#L-3378"><span class="linenos">3378</span></a><span class="sd">	[b]Example CSV file for --exclude option:[/b]	</span>
+</span><span id="L-3379"><a href="#L-3379"><span class="linenos">3379</span></a><span class="sd">	[i]</span>
+</span><span id="L-3380"><a href="#L-3380"><span class="linenos">3380</span></a><span class="sd">	Sample,  UID</span>
+</span><span id="L-3381"><a href="#L-3381"><span class="linenos">3381</span></a><span class="sd">	 FOO-1,</span>
+</span><span id="L-3382"><a href="#L-3382"><span class="linenos">3382</span></a><span class="sd">	 BAR-2,</span>
+</span><span id="L-3383"><a href="#L-3383"><span class="linenos">3383</span></a><span class="sd">	      ,  A04</span>
+</span><span id="L-3384"><a href="#L-3384"><span class="linenos">3384</span></a><span class="sd">	      ,  A17</span>
+</span><span id="L-3385"><a href="#L-3385"><span class="linenos">3385</span></a><span class="sd">	      ,  A88</span>
+</span><span id="L-3386"><a href="#L-3386"><span class="linenos">3386</span></a><span class="sd">	[/i]</span>
+</span><span id="L-3387"><a href="#L-3387"><span class="linenos">3387</span></a><span class="sd">	This will exclude all analyses of samples [i]FOO-1[/i] and [i]BAR-2[/i],</span>
+</span><span id="L-3388"><a href="#L-3388"><span class="linenos">3388</span></a><span class="sd">	and the analyses with UIDs [i]A04[/i], [i]A17[/i], and [i]A88[/i].</span>
+</span><span id="L-3389"><a href="#L-3389"><span class="linenos">3389</span></a><span class="sd">	Neither column is mandatory.</span>
+</span><span id="L-3390"><a href="#L-3390"><span class="linenos">3390</span></a><span class="sd">	&quot;&quot;&quot;</span>
+</span><span id="L-3391"><a href="#L-3391"><span class="linenos">3391</span></a>
+</span><span id="L-3392"><a href="#L-3392"><span class="linenos">3392</span></a>	<span class="n">data</span> <span class="o">=</span> <span class="n">D47data</span><span class="p">()</span>
+</span><span id="L-3393"><a href="#L-3393"><span class="linenos">3393</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">rawdata</span><span class="p">)</span>
+</span><span id="L-3394"><a href="#L-3394"><span class="linenos">3394</span></a>
+</span><span id="L-3395"><a href="#L-3395"><span class="linenos">3395</span></a>	<span class="k">if</span> <span class="n">exclude</span> <span class="o">!=</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
+</span><span id="L-3396"><a href="#L-3396"><span class="linenos">3396</span></a>		<span class="n">exclude</span> <span class="o">=</span> <span class="n">read_csv</span><span class="p">(</span><span class="n">exclude</span><span class="p">)</span>
+</span><span id="L-3397"><a href="#L-3397"><span class="linenos">3397</span></a>		<span class="n">exclude_uid</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;UID&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="k">if</span> <span class="s1">&#39;UID&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">}</span>
+</span><span id="L-3398"><a href="#L-3398"><span class="linenos">3398</span></a>		<span class="n">exclude_sample</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="k">if</span> <span class="s1">&#39;Sample&#39;</span> <span class="ow">in</span> <span class="n">r</span><span class="p">}</span>
+</span><span id="L-3399"><a href="#L-3399"><span class="linenos">3399</span></a>	<span class="k">else</span><span class="p">:</span>
+</span><span id="L-3400"><a href="#L-3400"><span class="linenos">3400</span></a>		<span class="n">exclude_uid</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-3401"><a href="#L-3401"><span class="linenos">3401</span></a>		<span class="n">exclude_sample</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-3402"><a href="#L-3402"><span class="linenos">3402</span></a>	
+</span><span id="L-3403"><a href="#L-3403"><span class="linenos">3403</span></a>	<span class="n">data</span> <span class="o">=</span> <span class="n">D47data</span><span class="p">([</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;UID&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude_uid</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude_sample</span><span class="p">])</span>
+</span><span id="L-3404"><a href="#L-3404"><span class="linenos">3404</span></a>
+</span><span id="L-3405"><a href="#L-3405"><span class="linenos">3405</span></a>	<span class="k">if</span> <span class="n">anchors</span> <span class="o">!=</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
+</span><span id="L-3406"><a href="#L-3406"><span class="linenos">3406</span></a>		<span class="n">anchors</span> <span class="o">=</span> <span class="n">read_csv</span><span class="p">(</span><span class="n">anchors</span><span class="p">)</span>
+</span><span id="L-3407"><a href="#L-3407"><span class="linenos">3407</span></a>		<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;d13C_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
+</span><span id="L-3408"><a href="#L-3408"><span class="linenos">3408</span></a>			<span class="n">data</span><span class="o">.</span><span class="n">Nominal_d13C_VPDB</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-3409"><a href="#L-3409"><span class="linenos">3409</span></a>				<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;d13C_VPDB&#39;</span><span class="p">]</span>
+</span><span id="L-3410"><a href="#L-3410"><span class="linenos">3410</span></a>				<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
+</span><span id="L-3411"><a href="#L-3411"><span class="linenos">3411</span></a>				<span class="k">if</span> <span class="s1">&#39;d13C_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span>
+</span><span id="L-3412"><a href="#L-3412"><span class="linenos">3412</span></a>				<span class="p">}</span>
+</span><span id="L-3413"><a href="#L-3413"><span class="linenos">3413</span></a>		<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;d18O_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
+</span><span id="L-3414"><a href="#L-3414"><span class="linenos">3414</span></a>			<span class="n">data</span><span class="o">.</span><span class="n">Nominal_d18O_VPDB</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-3415"><a href="#L-3415"><span class="linenos">3415</span></a>				<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;d18O_VPDB&#39;</span><span class="p">]</span>
+</span><span id="L-3416"><a href="#L-3416"><span class="linenos">3416</span></a>				<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
+</span><span id="L-3417"><a href="#L-3417"><span class="linenos">3417</span></a>				<span class="k">if</span> <span class="s1">&#39;d18O_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span>
+</span><span id="L-3418"><a href="#L-3418"><span class="linenos">3418</span></a>				<span class="p">}</span>
+</span><span id="L-3419"><a href="#L-3419"><span class="linenos">3419</span></a>		<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;D47&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
+</span><span id="L-3420"><a href="#L-3420"><span class="linenos">3420</span></a>			<span class="n">data</span><span class="o">.</span><span class="n">Nominal_D4x</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-3421"><a href="#L-3421"><span class="linenos">3421</span></a>				<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;D47&#39;</span><span class="p">]</span>
+</span><span id="L-3422"><a href="#L-3422"><span class="linenos">3422</span></a>				<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
+</span><span id="L-3423"><a href="#L-3423"><span class="linenos">3423</span></a>				<span class="k">if</span> <span class="s1">&#39;D47&#39;</span> <span class="ow">in</span> <span class="n">_</span>
+</span><span id="L-3424"><a href="#L-3424"><span class="linenos">3424</span></a>				<span class="p">}</span>
 </span><span id="L-3425"><a href="#L-3425"><span class="linenos">3425</span></a>
-</span><span id="L-3426"><a href="#L-3426"><span class="linenos">3426</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
-</span><span id="L-3427"><a href="#L-3427"><span class="linenos">3427</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">wg</span><span class="p">()</span>
-</span><span id="L-3428"><a href="#L-3428"><span class="linenos">3428</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">crunch</span><span class="p">()</span>
-</span><span id="L-3429"><a href="#L-3429"><span class="linenos">3429</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">standardize</span><span class="p">()</span>
-</span><span id="L-3430"><a href="#L-3430"><span class="linenos">3430</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3431"><a href="#L-3431"><span class="linenos">3431</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">plot_sessions</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3432"><a href="#L-3432"><span class="linenos">3432</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">plot_residuals</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;D48_residuals.pdf&#39;</span><span class="p">,</span> <span class="n">kde</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
-</span><span id="L-3433"><a href="#L-3433"><span class="linenos">3433</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">plot_distribution_of_analyses</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3434"><a href="#L-3434"><span class="linenos">3434</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">save_D48_correl</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3435"><a href="#L-3435"><span class="linenos">3435</span></a>
-</span><span id="L-3436"><a href="#L-3436"><span class="linenos">3436</span></a>		<span class="n">table_of_analyses</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data2</span><span class="p">,</span> <span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3437"><a href="#L-3437"><span class="linenos">3437</span></a>		<span class="n">table_of_samples</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data2</span><span class="p">,</span> <span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3438"><a href="#L-3438"><span class="linenos">3438</span></a>		<span class="n">table_of_sessions</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data2</span><span class="p">,</span> <span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
-</span><span id="L-3439"><a href="#L-3439"><span class="linenos">3439</span></a>		
-</span><span id="L-3440"><a href="#L-3440"><span class="linenos">3440</span></a><span class="k">def</span> <span class="nf">__cli</span><span class="p">():</span>
-</span><span id="L-3441"><a href="#L-3441"><span class="linenos">3441</span></a>	<span class="n">_app</span><span class="p">()</span>
+</span><span id="L-3426"><a href="#L-3426"><span class="linenos">3426</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+</span><span id="L-3427"><a href="#L-3427"><span class="linenos">3427</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">wg</span><span class="p">()</span>
+</span><span id="L-3428"><a href="#L-3428"><span class="linenos">3428</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">crunch</span><span class="p">()</span>
+</span><span id="L-3429"><a href="#L-3429"><span class="linenos">3429</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">standardize</span><span class="p">()</span>
+</span><span id="L-3430"><a href="#L-3430"><span class="linenos">3430</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3431"><a href="#L-3431"><span class="linenos">3431</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">plot_residuals</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;D47_residuals.pdf&#39;</span><span class="p">,</span> <span class="n">kde</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="L-3432"><a href="#L-3432"><span class="linenos">3432</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">plot_bulk_compositions</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span> <span class="o">+</span> <span class="s1">&#39;/bulk_compositions&#39;</span><span class="p">)</span>
+</span><span id="L-3433"><a href="#L-3433"><span class="linenos">3433</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">plot_sessions</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3434"><a href="#L-3434"><span class="linenos">3434</span></a>	<span class="n">data</span><span class="o">.</span><span class="n">save_D47_correl</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3435"><a href="#L-3435"><span class="linenos">3435</span></a>	
+</span><span id="L-3436"><a href="#L-3436"><span class="linenos">3436</span></a>	<span class="k">if</span> <span class="ow">not</span> <span class="n">run_D48</span><span class="p">:</span>
+</span><span id="L-3437"><a href="#L-3437"><span class="linenos">3437</span></a>		<span class="n">data</span><span class="o">.</span><span class="n">table_of_samples</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3438"><a href="#L-3438"><span class="linenos">3438</span></a>		<span class="n">data</span><span class="o">.</span><span class="n">table_of_analyses</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3439"><a href="#L-3439"><span class="linenos">3439</span></a>		<span class="n">data</span><span class="o">.</span><span class="n">table_of_sessions</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3440"><a href="#L-3440"><span class="linenos">3440</span></a>
+</span><span id="L-3441"><a href="#L-3441"><span class="linenos">3441</span></a>
+</span><span id="L-3442"><a href="#L-3442"><span class="linenos">3442</span></a>	<span class="k">if</span> <span class="n">run_D48</span><span class="p">:</span>
+</span><span id="L-3443"><a href="#L-3443"><span class="linenos">3443</span></a>		<span class="n">data2</span> <span class="o">=</span> <span class="n">D48data</span><span class="p">()</span>
+</span><span id="L-3444"><a href="#L-3444"><span class="linenos">3444</span></a>		<span class="nb">print</span><span class="p">(</span><span class="n">rawdata</span><span class="p">)</span>
+</span><span id="L-3445"><a href="#L-3445"><span class="linenos">3445</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">rawdata</span><span class="p">)</span>
+</span><span id="L-3446"><a href="#L-3446"><span class="linenos">3446</span></a>
+</span><span id="L-3447"><a href="#L-3447"><span class="linenos">3447</span></a>		<span class="n">data2</span> <span class="o">=</span> <span class="n">D48data</span><span class="p">([</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">data2</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;UID&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude_uid</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude_sample</span><span class="p">])</span>
+</span><span id="L-3448"><a href="#L-3448"><span class="linenos">3448</span></a>
+</span><span id="L-3449"><a href="#L-3449"><span class="linenos">3449</span></a>		<span class="k">if</span> <span class="n">anchors</span> <span class="o">!=</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
+</span><span id="L-3450"><a href="#L-3450"><span class="linenos">3450</span></a>			<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;d13C_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
+</span><span id="L-3451"><a href="#L-3451"><span class="linenos">3451</span></a>				<span class="n">data2</span><span class="o">.</span><span class="n">Nominal_d13C_VPDB</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-3452"><a href="#L-3452"><span class="linenos">3452</span></a>					<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;d13C_VPDB&#39;</span><span class="p">]</span>
+</span><span id="L-3453"><a href="#L-3453"><span class="linenos">3453</span></a>					<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
+</span><span id="L-3454"><a href="#L-3454"><span class="linenos">3454</span></a>					<span class="k">if</span> <span class="s1">&#39;d13C_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span>
+</span><span id="L-3455"><a href="#L-3455"><span class="linenos">3455</span></a>					<span class="p">}</span>
+</span><span id="L-3456"><a href="#L-3456"><span class="linenos">3456</span></a>			<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;d18O_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
+</span><span id="L-3457"><a href="#L-3457"><span class="linenos">3457</span></a>				<span class="n">data2</span><span class="o">.</span><span class="n">Nominal_d18O_VPDB</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-3458"><a href="#L-3458"><span class="linenos">3458</span></a>					<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;d18O_VPDB&#39;</span><span class="p">]</span>
+</span><span id="L-3459"><a href="#L-3459"><span class="linenos">3459</span></a>					<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
+</span><span id="L-3460"><a href="#L-3460"><span class="linenos">3460</span></a>					<span class="k">if</span> <span class="s1">&#39;d18O_VPDB&#39;</span> <span class="ow">in</span> <span class="n">_</span>
+</span><span id="L-3461"><a href="#L-3461"><span class="linenos">3461</span></a>					<span class="p">}</span>
+</span><span id="L-3462"><a href="#L-3462"><span class="linenos">3462</span></a>			<span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span> <span class="k">if</span> <span class="s1">&#39;D48&#39;</span> <span class="ow">in</span> <span class="n">_</span><span class="p">]):</span>
+</span><span id="L-3463"><a href="#L-3463"><span class="linenos">3463</span></a>				<span class="n">data2</span><span class="o">.</span><span class="n">Nominal_D4x</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-3464"><a href="#L-3464"><span class="linenos">3464</span></a>					<span class="n">_</span><span class="p">[</span><span class="s1">&#39;Sample&#39;</span><span class="p">]:</span> <span class="n">_</span><span class="p">[</span><span class="s1">&#39;D48&#39;</span><span class="p">]</span>
+</span><span id="L-3465"><a href="#L-3465"><span class="linenos">3465</span></a>					<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">anchors</span>
+</span><span id="L-3466"><a href="#L-3466"><span class="linenos">3466</span></a>					<span class="k">if</span> <span class="s1">&#39;D48&#39;</span> <span class="ow">in</span> <span class="n">_</span>
+</span><span id="L-3467"><a href="#L-3467"><span class="linenos">3467</span></a>					<span class="p">}</span>
+</span><span id="L-3468"><a href="#L-3468"><span class="linenos">3468</span></a>
+</span><span id="L-3469"><a href="#L-3469"><span class="linenos">3469</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+</span><span id="L-3470"><a href="#L-3470"><span class="linenos">3470</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">wg</span><span class="p">()</span>
+</span><span id="L-3471"><a href="#L-3471"><span class="linenos">3471</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">crunch</span><span class="p">()</span>
+</span><span id="L-3472"><a href="#L-3472"><span class="linenos">3472</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">standardize</span><span class="p">()</span>
+</span><span id="L-3473"><a href="#L-3473"><span class="linenos">3473</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3474"><a href="#L-3474"><span class="linenos">3474</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">plot_sessions</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3475"><a href="#L-3475"><span class="linenos">3475</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">plot_residuals</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;D48_residuals.pdf&#39;</span><span class="p">,</span> <span class="n">kde</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</span><span id="L-3476"><a href="#L-3476"><span class="linenos">3476</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">plot_distribution_of_analyses</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3477"><a href="#L-3477"><span class="linenos">3477</span></a>		<span class="n">data2</span><span class="o">.</span><span class="n">save_D48_correl</span><span class="p">(</span><span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3478"><a href="#L-3478"><span class="linenos">3478</span></a>
+</span><span id="L-3479"><a href="#L-3479"><span class="linenos">3479</span></a>		<span class="n">table_of_analyses</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data2</span><span class="p">,</span> <span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3480"><a href="#L-3480"><span class="linenos">3480</span></a>		<span class="n">table_of_samples</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data2</span><span class="p">,</span> <span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3481"><a href="#L-3481"><span class="linenos">3481</span></a>		<span class="n">table_of_sessions</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data2</span><span class="p">,</span> <span class="nb">dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+</span><span id="L-3482"><a href="#L-3482"><span class="linenos">3482</span></a>		
+</span><span id="L-3483"><a href="#L-3483"><span class="linenos">3483</span></a><span class="k">def</span> <span class="nf">__cli</span><span class="p">():</span>
+</span><span id="L-3484"><a href="#L-3484"><span class="linenos">3484</span></a>	<span class="n">_app</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -5242,66 +5300,66 @@ FOO     12      -5.00       28.89  0.3024  0.0031  ± 0.0062  0.0070     0.497
 –––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
 UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46         d47         d48         d49   d13C_VPDB  d18O_VSMOW     D47raw     D48raw     D49raw       D47
 –––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
-1    Session_01   ETH-1       -4.000        26.000   5.995601  10.755323   16.116087   21.285428   27.780042    1.998631   36.986704  -0.696924  -0.333640   0.008600  0.201787
-2    Session_01   ETH-2       -4.000        26.000  -5.974124  -5.955517  -12.668784  -12.208184  -18.023381  -10.163274   19.943159  -0.694902  -0.336672  -0.063946  0.215880
-3    Session_01     BAR       -4.000        26.000  -9.915975  10.968470    0.153453   21.749385   10.707292  -14.995822   37.241294  -0.286638  -0.301325  -0.157376  0.612868
-4    Session_01     BAR       -4.000        26.000  -9.959983  10.926995    0.053806   21.724901   10.707292  -15.041279   37.199026  -0.300066  -0.243252  -0.029371  0.599675
-5    Session_01     FOO       -4.000        26.000  -0.848028   2.874679    1.346196    5.439150    4.665655   -5.017230   28.951964  -0.601502  -0.316664  -0.081898  0.302042
-6    Session_01     FOO       -4.000        26.000  -0.838118   2.819853    1.310384    5.326005    4.665655   -5.004629   28.895933  -0.593755  -0.319861   0.014956  0.309692
-7    Session_01   ETH-3       -4.000        26.000   5.727341  11.211663   16.713472   22.364770   28.306614    1.695479   37.453503  -0.278056  -0.180158  -0.082015  0.614365
-8    Session_01   ETH-1       -4.000        26.000   6.010276  10.840276   16.207960   21.475150   27.780042    2.011176   37.073454  -0.704188  -0.315986  -0.172089  0.194589
-9    Session_01   ETH-3       -4.000        26.000   5.755174  11.255104   16.792797   22.451660   28.306614    1.723596   37.497816  -0.270825  -0.181089  -0.195908  0.621458
-10   Session_01   ETH-1       -4.000        26.000   6.049381  10.706856   16.135579   21.196941   27.780042    2.057827   36.937067  -0.685751  -0.324384   0.045870  0.212791
-11   Session_01   ETH-2       -4.000        26.000  -5.982229  -6.110437  -12.827036  -12.492272  -18.023381  -10.166188   19.784916  -0.693555  -0.312598   0.251040  0.217274
-12   Session_01   ETH-2       -4.000        26.000  -5.991278  -5.995054  -12.741562  -12.184075  -18.023381  -10.180122   19.902809  -0.711697  -0.232746   0.032602  0.199357
-13   Session_01     BAR       -4.000        26.000  -9.920507  10.903408    0.065076   21.704075   10.707292  -14.998270   37.174839  -0.307018  -0.216978  -0.026076  0.592818
-14   Session_01     FOO       -4.000        26.000  -0.876454   2.906764    1.341194    5.490264    4.665655   -5.048760   28.984806  -0.608593  -0.329808  -0.114437  0.295055
-15   Session_01   ETH-3       -4.000        26.000   5.734896  11.229855   16.740410   22.402091   28.306614    1.702875   37.472070  -0.276998  -0.179635  -0.125368  0.615396
-16   Session_02   ETH-1       -4.000        26.000   6.019963  10.773112   16.163825   21.331060   27.780042    2.029040   37.042346  -0.692234  -0.324161  -0.051788  0.207075
-17   Session_02   ETH-2       -4.000        26.000  -5.950370  -5.959974  -12.650784  -12.197864  -18.023381  -10.143809   19.897777  -0.696916  -0.317263  -0.080604  0.216441
-18   Session_02   ETH-3       -4.000        26.000   5.716356  11.091821   16.582487   22.123857   28.306614    1.692901   37.370126  -0.279100  -0.178789   0.162540  0.624067
-19   Session_02     FOO       -4.000        26.000  -0.819742   2.826793    1.317044    5.330616    4.665655   -4.986618   28.903335  -0.612871  -0.329113  -0.018244  0.294481
-20   Session_02     BAR       -4.000        26.000  -9.957566  10.903888    0.031785   21.739434   10.707292  -15.048386   37.213724  -0.302139  -0.183327   0.012926  0.608897
-21   Session_02   ETH-3       -4.000        26.000   5.757137  11.232751   16.744567   22.398244   28.306614    1.731295   37.514660  -0.298533  -0.189123  -0.154557  0.604363
-22   Session_02     FOO       -4.000        26.000  -0.848415   2.849823    1.308081    5.427767    4.665655   -5.018107   28.927036  -0.614791  -0.278426  -0.032784  0.292547
-23   Session_02   ETH-3       -4.000        26.000   5.719281  11.207303   16.681693   22.370886   28.306614    1.691780   37.488633  -0.296801  -0.165556  -0.065004  0.606143
-24   Session_02     BAR       -4.000        26.000  -9.936020  10.862339    0.024660   21.563307   10.707292  -15.023836   37.171034  -0.291333  -0.273498   0.070452  0.619812
-25   Session_02   ETH-1       -4.000        26.000   5.993918  10.617469   15.991900   21.070358   27.780042    2.006934   36.882679  -0.683329  -0.271476   0.278458  0.216152
-26   Session_02     FOO       -4.000        26.000  -0.835046   2.870518    1.355370    5.487896    4.665655   -5.004585   28.948243  -0.601666  -0.259900  -0.087592  0.305777
-27   Session_02   ETH-1       -4.000        26.000   6.030532  10.851030   16.245571   21.457100   27.780042    2.037466   37.122284  -0.698413  -0.354920  -0.214443  0.200795
-28   Session_02   ETH-2       -4.000        26.000  -5.993476  -5.944866  -12.696865  -12.149754  -18.023381  -10.190430   19.913381  -0.713779  -0.298963  -0.064251  0.199436
-29   Session_02     BAR       -4.000        26.000  -9.963888  10.865863   -0.023549   21.615868   10.707292  -15.053743   37.174715  -0.313906  -0.229031   0.093637  0.597041
-30   Session_02   ETH-2       -4.000        26.000  -5.982371  -6.036210  -12.762399  -12.309944  -18.023381  -10.175178   19.819614  -0.701348  -0.277354   0.104418  0.212021
-31   Session_03   ETH-3       -4.000        26.000   5.718991  11.146227   16.640814   22.243185   28.306614    1.689442   37.449023  -0.277332  -0.169668   0.053997  0.623187
-32   Session_03   ETH-1       -4.000        26.000   5.994622  10.743980   16.116098   21.243734   27.780042    1.997857   37.033567  -0.684883  -0.352014   0.031692  0.214449
-33   Session_03   ETH-3       -4.000        26.000   5.748546  11.079879   16.580826   22.120063   28.306614    1.723364   37.380534  -0.302133  -0.158882   0.151641  0.598318
-34   Session_03   ETH-1       -4.000        26.000   6.004078  10.683951   16.045192   21.214355   27.780042    2.010134   36.971642  -0.705956  -0.262026   0.138399  0.193323
-35   Session_03     FOO       -4.000        26.000  -0.873798   2.820799    1.272165    5.370745    4.665655   -5.028782   28.878917  -0.596008  -0.277258   0.051165  0.306090
+1    Session_01   ETH-1       -4.000        26.000   6.049381  10.706856   16.135579   21.196941   27.780042    2.057827   36.937067  -0.685751  -0.324384   0.045870  0.212791
+2    Session_01   ETH-3       -4.000        26.000   5.755174  11.255104   16.792797   22.451660   28.306614    1.723596   37.497816  -0.270825  -0.181089  -0.195908  0.621458
+3    Session_01   ETH-2       -4.000        26.000  -5.982229  -6.110437  -12.827036  -12.492272  -18.023381  -10.166188   19.784916  -0.693555  -0.312598   0.251040  0.217274
+4    Session_01   ETH-1       -4.000        26.000   5.995601  10.755323   16.116087   21.285428   27.780042    1.998631   36.986704  -0.696924  -0.333640   0.008600  0.201787
+5    Session_01     BAR       -4.000        26.000  -9.920507  10.903408    0.065076   21.704075   10.707292  -14.998270   37.174839  -0.307018  -0.216978  -0.026076  0.592818
+6    Session_01     FOO       -4.000        26.000  -0.876454   2.906764    1.341194    5.490264    4.665655   -5.048760   28.984806  -0.608593  -0.329808  -0.114437  0.295055
+7    Session_01     FOO       -4.000        26.000  -0.838118   2.819853    1.310384    5.326005    4.665655   -5.004629   28.895933  -0.593755  -0.319861   0.014956  0.309692
+8    Session_01   ETH-2       -4.000        26.000  -5.974124  -5.955517  -12.668784  -12.208184  -18.023381  -10.163274   19.943159  -0.694902  -0.336672  -0.063946  0.215880
+9    Session_01   ETH-3       -4.000        26.000   5.727341  11.211663   16.713472   22.364770   28.306614    1.695479   37.453503  -0.278056  -0.180158  -0.082015  0.614365
+10   Session_01     FOO       -4.000        26.000  -0.848028   2.874679    1.346196    5.439150    4.665655   -5.017230   28.951964  -0.601502  -0.316664  -0.081898  0.302042
+11   Session_01     BAR       -4.000        26.000  -9.959983  10.926995    0.053806   21.724901   10.707292  -15.041279   37.199026  -0.300066  -0.243252  -0.029371  0.599675
+12   Session_01     BAR       -4.000        26.000  -9.915975  10.968470    0.153453   21.749385   10.707292  -14.995822   37.241294  -0.286638  -0.301325  -0.157376  0.612868
+13   Session_01   ETH-3       -4.000        26.000   5.734896  11.229855   16.740410   22.402091   28.306614    1.702875   37.472070  -0.276998  -0.179635  -0.125368  0.615396
+14   Session_01   ETH-2       -4.000        26.000  -5.991278  -5.995054  -12.741562  -12.184075  -18.023381  -10.180122   19.902809  -0.711697  -0.232746   0.032602  0.199357
+15   Session_01   ETH-1       -4.000        26.000   6.010276  10.840276   16.207960   21.475150   27.780042    2.011176   37.073454  -0.704188  -0.315986  -0.172089  0.194589
+16   Session_02   ETH-3       -4.000        26.000   5.757137  11.232751   16.744567   22.398244   28.306614    1.731295   37.514660  -0.298533  -0.189123  -0.154557  0.604363
+17   Session_02   ETH-1       -4.000        26.000   5.993918  10.617469   15.991900   21.070358   27.780042    2.006934   36.882679  -0.683329  -0.271476   0.278458  0.216152
+18   Session_02   ETH-3       -4.000        26.000   5.719281  11.207303   16.681693   22.370886   28.306614    1.691780   37.488633  -0.296801  -0.165556  -0.065004  0.606143
+19   Session_02   ETH-3       -4.000        26.000   5.716356  11.091821   16.582487   22.123857   28.306614    1.692901   37.370126  -0.279100  -0.178789   0.162540  0.624067
+20   Session_02   ETH-1       -4.000        26.000   6.030532  10.851030   16.245571   21.457100   27.780042    2.037466   37.122284  -0.698413  -0.354920  -0.214443  0.200795
+21   Session_02     BAR       -4.000        26.000  -9.963888  10.865863   -0.023549   21.615868   10.707292  -15.053743   37.174715  -0.313906  -0.229031   0.093637  0.597041
+22   Session_02     FOO       -4.000        26.000  -0.819742   2.826793    1.317044    5.330616    4.665655   -4.986618   28.903335  -0.612871  -0.329113  -0.018244  0.294481
+23   Session_02   ETH-1       -4.000        26.000   6.019963  10.773112   16.163825   21.331060   27.780042    2.029040   37.042346  -0.692234  -0.324161  -0.051788  0.207075
+24   Session_02   ETH-2       -4.000        26.000  -5.982371  -6.036210  -12.762399  -12.309944  -18.023381  -10.175178   19.819614  -0.701348  -0.277354   0.104418  0.212021
+25   Session_02     FOO       -4.000        26.000  -0.835046   2.870518    1.355370    5.487896    4.665655   -5.004585   28.948243  -0.601666  -0.259900  -0.087592  0.305777
+26   Session_02   ETH-2       -4.000        26.000  -5.950370  -5.959974  -12.650784  -12.197864  -18.023381  -10.143809   19.897777  -0.696916  -0.317263  -0.080604  0.216441
+27   Session_02     BAR       -4.000        26.000  -9.936020  10.862339    0.024660   21.563307   10.707292  -15.023836   37.171034  -0.291333  -0.273498   0.070452  0.619812
+28   Session_02     FOO       -4.000        26.000  -0.848415   2.849823    1.308081    5.427767    4.665655   -5.018107   28.927036  -0.614791  -0.278426  -0.032784  0.292547
+29   Session_02     BAR       -4.000        26.000  -9.957566  10.903888    0.031785   21.739434   10.707292  -15.048386   37.213724  -0.302139  -0.183327   0.012926  0.608897
+30   Session_02   ETH-2       -4.000        26.000  -5.993476  -5.944866  -12.696865  -12.149754  -18.023381  -10.190430   19.913381  -0.713779  -0.298963  -0.064251  0.199436
+31   Session_03     FOO       -4.000        26.000  -0.800284   2.851299    1.376828    5.379547    4.665655   -4.951581   28.910199  -0.597293  -0.329315  -0.087015  0.304784
+32   Session_03   ETH-3       -4.000        26.000   5.753467  11.206589   16.719131   22.373244   28.306614    1.723960   37.511190  -0.294350  -0.161838  -0.099835  0.606103
+33   Session_03   ETH-2       -4.000        26.000  -5.997147  -5.905858  -12.655382  -12.081612  -18.023381  -10.165400   19.891551  -0.706536  -0.308464  -0.137414  0.197550
+34   Session_03     FOO       -4.000        26.000  -0.873798   2.820799    1.272165    5.370745    4.665655   -5.028782   28.878917  -0.596008  -0.277258   0.051165  0.306090
+35   Session_03     BAR       -4.000        26.000  -9.928709  10.989665    0.148059   21.852677   10.707292  -14.976237   37.324152  -0.299358  -0.242185  -0.184835  0.603855
 36   Session_03   ETH-2       -4.000        26.000  -6.000290  -5.947172  -12.697463  -12.164602  -18.023381  -10.167221   19.848953  -0.705037  -0.309350  -0.052386  0.199061
-37   Session_03   ETH-2       -4.000        26.000  -5.997147  -5.905858  -12.655382  -12.081612  -18.023381  -10.165400   19.891551  -0.706536  -0.308464  -0.137414  0.197550
-38   Session_03   ETH-1       -4.000        26.000   6.040566  10.786620   16.205283   21.374963   27.780042    2.045244   37.077432  -0.685706  -0.307909  -0.099869  0.213609
-39   Session_03     BAR       -4.000        26.000  -9.952115  11.034508    0.169809   21.885915   10.707292  -15.002819   37.370451  -0.296804  -0.298351  -0.246731  0.606414
-40   Session_03     FOO       -4.000        26.000  -0.800284   2.851299    1.376828    5.379547    4.665655   -4.951581   28.910199  -0.597293  -0.329315  -0.087015  0.304784
-41   Session_03     FOO       -4.000        26.000  -0.823857   2.761300    1.258060    5.239992    4.665655   -4.973383   28.817444  -0.603327  -0.288652   0.114488  0.298751
-42   Session_03   ETH-2       -4.000        26.000  -6.008525  -5.909707  -12.647727  -12.075913  -18.023381  -10.177379   19.887608  -0.683183  -0.294956  -0.117608  0.220975
-43   Session_03     BAR       -4.000        26.000  -9.957114  10.898997    0.044946   21.602296   10.707292  -15.003175   37.230716  -0.284699  -0.307849   0.021944  0.618578
-44   Session_03   ETH-3       -4.000        26.000   5.753467  11.206589   16.719131   22.373244   28.306614    1.723960   37.511190  -0.294350  -0.161838  -0.099835  0.606103
-45   Session_03     BAR       -4.000        26.000  -9.928709  10.989665    0.148059   21.852677   10.707292  -14.976237   37.324152  -0.299358  -0.242185  -0.184835  0.603855
-46   Session_04   ETH-1       -4.000        26.000   6.017312  10.735930   16.123043   21.270597   27.780042    2.005824   36.995214  -0.693479  -0.309795   0.023309  0.208980
-47   Session_04     BAR       -4.000        26.000  -9.926078  10.884823    0.060864   21.650722   10.707292  -15.002880   37.185606  -0.287358  -0.232425   0.016044  0.611760
-48   Session_04   ETH-3       -4.000        26.000   5.739420  11.128582   16.641344   22.166106   28.306614    1.695046   37.399884  -0.280608  -0.210162   0.066645  0.614665
-49   Session_04     BAR       -4.000        26.000  -9.931741  10.819830   -0.023748   21.529372   10.707292  -15.006533   37.118743  -0.302866  -0.222623   0.148462  0.596536
-50   Session_04   ETH-2       -4.000        26.000  -5.986501  -5.915157  -12.656583  -12.060382  -18.023381  -10.182247   19.889836  -0.709603  -0.268277  -0.130450  0.199604
-51   Session_04     BAR       -4.000        26.000  -9.951025  10.951923    0.089386   21.738926   10.707292  -15.031949   37.254709  -0.298065  -0.278834  -0.087463  0.601230
-52   Session_04   ETH-1       -4.000        26.000   6.029937  10.766997   16.151273   21.345479   27.780042    2.018148   37.027152  -0.708855  -0.297953  -0.050465  0.193862
-53   Session_04   ETH-3       -4.000        26.000   5.751908  11.207110   16.726741   22.380392   28.306614    1.705481   37.480657  -0.285776  -0.155878  -0.099197  0.609567
-54   Session_04   ETH-3       -4.000        26.000   5.798016  11.254135   16.832228   22.432473   28.306614    1.752928   37.528936  -0.275047  -0.197935  -0.239408  0.620088
-55   Session_04   ETH-2       -4.000        26.000  -5.973623  -5.975018  -12.694278  -12.194472  -18.023381  -10.166297   19.828211  -0.701951  -0.283570  -0.025935  0.207135
-56   Session_04   ETH-1       -4.000        26.000   6.023822  10.730714   16.121184   21.235757   27.780042    2.012958   36.989833  -0.696908  -0.333582   0.026555  0.205610
-57   Session_04     FOO       -4.000        26.000  -0.853969   2.805035    1.267571    5.353907    4.665655   -5.030523   28.850660  -0.605611  -0.262571   0.060903  0.298685
-58   Session_04     FOO       -4.000        26.000  -0.791191   2.708220    1.256167    5.145784    4.665655   -4.960004   28.750896  -0.586913  -0.276505   0.183674  0.317065
-59   Session_04   ETH-2       -4.000        26.000  -5.966627  -5.893789  -12.597717  -12.120719  -18.023381  -10.161842   19.911776  -0.691757  -0.372308  -0.193986  0.217132
-60   Session_04     FOO       -4.000        26.000  -0.848192   2.777763    1.251297    5.280272    4.665655   -5.023358   28.822585  -0.601094  -0.281419   0.108186  0.303128
+37   Session_03   ETH-2       -4.000        26.000  -6.008525  -5.909707  -12.647727  -12.075913  -18.023381  -10.177379   19.887608  -0.683183  -0.294956  -0.117608  0.220975
+38   Session_03   ETH-3       -4.000        26.000   5.748546  11.079879   16.580826   22.120063   28.306614    1.723364   37.380534  -0.302133  -0.158882   0.151641  0.598318
+39   Session_03     FOO       -4.000        26.000  -0.823857   2.761300    1.258060    5.239992    4.665655   -4.973383   28.817444  -0.603327  -0.288652   0.114488  0.298751
+40   Session_03   ETH-1       -4.000        26.000   5.994622  10.743980   16.116098   21.243734   27.780042    1.997857   37.033567  -0.684883  -0.352014   0.031692  0.214449
+41   Session_03   ETH-3       -4.000        26.000   5.718991  11.146227   16.640814   22.243185   28.306614    1.689442   37.449023  -0.277332  -0.169668   0.053997  0.623187
+42   Session_03   ETH-1       -4.000        26.000   6.040566  10.786620   16.205283   21.374963   27.780042    2.045244   37.077432  -0.685706  -0.307909  -0.099869  0.213609
+43   Session_03     BAR       -4.000        26.000  -9.952115  11.034508    0.169809   21.885915   10.707292  -15.002819   37.370451  -0.296804  -0.298351  -0.246731  0.606414
+44   Session_03   ETH-1       -4.000        26.000   6.004078  10.683951   16.045192   21.214355   27.780042    2.010134   36.971642  -0.705956  -0.262026   0.138399  0.193323
+45   Session_03     BAR       -4.000        26.000  -9.957114  10.898997    0.044946   21.602296   10.707292  -15.003175   37.230716  -0.284699  -0.307849   0.021944  0.618578
+46   Session_04   ETH-2       -4.000        26.000  -5.966627  -5.893789  -12.597717  -12.120719  -18.023381  -10.161842   19.911776  -0.691757  -0.372308  -0.193986  0.217132
+47   Session_04   ETH-3       -4.000        26.000   5.751908  11.207110   16.726741   22.380392   28.306614    1.705481   37.480657  -0.285776  -0.155878  -0.099197  0.609567
+48   Session_04     BAR       -4.000        26.000  -9.951025  10.951923    0.089386   21.738926   10.707292  -15.031949   37.254709  -0.298065  -0.278834  -0.087463  0.601230
+49   Session_04     FOO       -4.000        26.000  -0.848192   2.777763    1.251297    5.280272    4.665655   -5.023358   28.822585  -0.601094  -0.281419   0.108186  0.303128
+50   Session_04   ETH-1       -4.000        26.000   6.017312  10.735930   16.123043   21.270597   27.780042    2.005824   36.995214  -0.693479  -0.309795   0.023309  0.208980
+51   Session_04   ETH-2       -4.000        26.000  -5.973623  -5.975018  -12.694278  -12.194472  -18.023381  -10.166297   19.828211  -0.701951  -0.283570  -0.025935  0.207135
+52   Session_04     BAR       -4.000        26.000  -9.931741  10.819830   -0.023748   21.529372   10.707292  -15.006533   37.118743  -0.302866  -0.222623   0.148462  0.596536
+53   Session_04   ETH-1       -4.000        26.000   6.023822  10.730714   16.121184   21.235757   27.780042    2.012958   36.989833  -0.696908  -0.333582   0.026555  0.205610
+54   Session_04     FOO       -4.000        26.000  -0.791191   2.708220    1.256167    5.145784    4.665655   -4.960004   28.750896  -0.586913  -0.276505   0.183674  0.317065
+55   Session_04     FOO       -4.000        26.000  -0.853969   2.805035    1.267571    5.353907    4.665655   -5.030523   28.850660  -0.605611  -0.262571   0.060903  0.298685
+56   Session_04   ETH-2       -4.000        26.000  -5.986501  -5.915157  -12.656583  -12.060382  -18.023381  -10.182247   19.889836  -0.709603  -0.268277  -0.130450  0.199604
+57   Session_04   ETH-3       -4.000        26.000   5.739420  11.128582   16.641344   22.166106   28.306614    1.695046   37.399884  -0.280608  -0.210162   0.066645  0.614665
+58   Session_04     BAR       -4.000        26.000  -9.926078  10.884823    0.060864   21.650722   10.707292  -15.002880   37.185606  -0.287358  -0.232425   0.016044  0.611760
+59   Session_04   ETH-1       -4.000        26.000   6.029937  10.766997   16.151273   21.345479   27.780042    2.018148   37.027152  -0.708855  -0.297953  -0.050465  0.193862
+60   Session_04   ETH-3       -4.000        26.000   5.798016  11.254135   16.832228   22.432473   28.306614    1.752928   37.528936  -0.275047  -0.197935  -0.239408  0.620088
 –––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
 
 
@@ -11860,7 +11918,7 @@ values in case of conflict.</li>
 </span><span id="D48data-3241"><a href="#D48data-3241"><span class="linenos">3241</span></a><span class="sd">	reference frame.</span>
 </span><span id="D48data-3242"><a href="#D48data-3242"><span class="linenos">3242</span></a>
 </span><span id="D48data-3243"><a href="#D48data-3243"><span class="linenos">3243</span></a><span class="sd">	By default equal to (after [Fiebig et al. (2019)](https://doi.org/10.1016/j.chemgeo.2019.05.019),</span>
-</span><span id="D48data-3244"><a href="#D48data-3244"><span class="linenos">3244</span></a><span class="sd">	Fiebig et al. (in press)):</span>
+</span><span id="D48data-3244"><a href="#D48data-3244"><span class="linenos">3244</span></a><span class="sd">	[Fiebig et al. (2021)](https://doi.org/10.1016/j.gca.2021.07.012)):</span>
 </span><span id="D48data-3245"><a href="#D48data-3245"><span class="linenos">3245</span></a>
 </span><span id="D48data-3246"><a href="#D48data-3246"><span class="linenos">3246</span></a><span class="sd">	```py</span>
 </span><span id="D48data-3247"><a href="#D48data-3247"><span class="linenos">3247</span></a><span class="sd">	{</span>
@@ -11940,7 +11998,7 @@ usually comprising more than one analytical session.</p>
 reference frame.</p>
 
 <p>By default equal to (after <a href="https://doi.org/10.1016/j.chemgeo.2019.05.019">Fiebig et al. (2019)</a>,
-Fiebig et al. (in press)):</p>
+<a href="https://doi.org/10.1016/j.gca.2021.07.012">Fiebig et al. (2021)</a>):</p>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code><span class="p">{</span>
@@ -12061,6 +12119,225 @@ Fiebig et al. (in press)):</p>
                 <dd id="D48data.count" class="function">count</dd>
                 <dd id="D48data.reverse" class="function">reverse</dd>
                 <dd id="D48data.sort" class="function">sort</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="D49data">
+                            <input id="D49data-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">D49data</span><wbr>(<span class="base"><a href="#D4xdata">D4xdata</a></span>):
+
+                <label class="view-source-button" for="D49data-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#D49data"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="D49data-3281"><a href="#D49data-3281"><span class="linenos">3281</span></a><span class="k">class</span> <span class="nc">D49data</span><span class="p">(</span><span class="n">D4xdata</span><span class="p">):</span>
+</span><span id="D49data-3282"><a href="#D49data-3282"><span class="linenos">3282</span></a><span class="w">	</span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="D49data-3283"><a href="#D49data-3283"><span class="linenos">3283</span></a><span class="sd">	Store and process data for a large set of Δ49 analyses,</span>
+</span><span id="D49data-3284"><a href="#D49data-3284"><span class="linenos">3284</span></a><span class="sd">	usually comprising more than one analytical session.</span>
+</span><span id="D49data-3285"><a href="#D49data-3285"><span class="linenos">3285</span></a><span class="sd">	&#39;&#39;&#39;</span>
+</span><span id="D49data-3286"><a href="#D49data-3286"><span class="linenos">3286</span></a>	
+</span><span id="D49data-3287"><a href="#D49data-3287"><span class="linenos">3287</span></a>	<span class="n">Nominal_D4x</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;1000C&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;25C&quot;</span><span class="p">:</span> <span class="mf">2.228</span><span class="p">}</span>  <span class="c1"># Wang 2004</span>
+</span><span id="D49data-3288"><a href="#D49data-3288"><span class="linenos">3288</span></a><span class="w">	</span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="D49data-3289"><a href="#D49data-3289"><span class="linenos">3289</span></a><span class="sd">	Nominal Δ49 values assigned to the Δ49 anchor samples, used by</span>
+</span><span id="D49data-3290"><a href="#D49data-3290"><span class="linenos">3290</span></a><span class="sd">	`D49data.standardize()` to normalize unknown samples to an absolute Δ49</span>
+</span><span id="D49data-3291"><a href="#D49data-3291"><span class="linenos">3291</span></a><span class="sd">	reference frame.</span>
+</span><span id="D49data-3292"><a href="#D49data-3292"><span class="linenos">3292</span></a>
+</span><span id="D49data-3293"><a href="#D49data-3293"><span class="linenos">3293</span></a><span class="sd">	By default equal to (after [Wang et al. (2004)](https://doi.org/10.1016/j.gca.2004.05.039)):</span>
+</span><span id="D49data-3294"><a href="#D49data-3294"><span class="linenos">3294</span></a>
+</span><span id="D49data-3295"><a href="#D49data-3295"><span class="linenos">3295</span></a><span class="sd">	```py</span>
+</span><span id="D49data-3296"><a href="#D49data-3296"><span class="linenos">3296</span></a><span class="sd">	{</span>
+</span><span id="D49data-3297"><a href="#D49data-3297"><span class="linenos">3297</span></a><span class="sd">		&quot;1000C&quot;: 0.0,</span>
+</span><span id="D49data-3298"><a href="#D49data-3298"><span class="linenos">3298</span></a><span class="sd">		&quot;25C&quot;: 2.228</span>
+</span><span id="D49data-3299"><a href="#D49data-3299"><span class="linenos">3299</span></a><span class="sd">	}</span>
+</span><span id="D49data-3300"><a href="#D49data-3300"><span class="linenos">3300</span></a><span class="sd">	```</span>
+</span><span id="D49data-3301"><a href="#D49data-3301"><span class="linenos">3301</span></a><span class="sd">	&#39;&#39;&#39;</span>
+</span><span id="D49data-3302"><a href="#D49data-3302"><span class="linenos">3302</span></a>	
+</span><span id="D49data-3303"><a href="#D49data-3303"><span class="linenos">3303</span></a>	<span class="nd">@property</span>
+</span><span id="D49data-3304"><a href="#D49data-3304"><span class="linenos">3304</span></a>	<span class="k">def</span> <span class="nf">Nominal_D49</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="D49data-3305"><a href="#D49data-3305"><span class="linenos">3305</span></a>		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nominal_D4x</span>
+</span><span id="D49data-3306"><a href="#D49data-3306"><span class="linenos">3306</span></a>	
+</span><span id="D49data-3307"><a href="#D49data-3307"><span class="linenos">3307</span></a>	<span class="nd">@Nominal_D49</span><span class="o">.</span><span class="n">setter</span>
+</span><span id="D49data-3308"><a href="#D49data-3308"><span class="linenos">3308</span></a>	<span class="k">def</span> <span class="nf">Nominal_D49</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+</span><span id="D49data-3309"><a href="#D49data-3309"><span class="linenos">3309</span></a>		<span class="bp">self</span><span class="o">.</span><span class="n">Nominal_D4x</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">new</span><span class="p">)</span>
+</span><span id="D49data-3310"><a href="#D49data-3310"><span class="linenos">3310</span></a>		<span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+</span><span id="D49data-3311"><a href="#D49data-3311"><span class="linenos">3311</span></a>	
+</span><span id="D49data-3312"><a href="#D49data-3312"><span class="linenos">3312</span></a>	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="p">[],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="D49data-3313"><a href="#D49data-3313"><span class="linenos">3313</span></a><span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="D49data-3314"><a href="#D49data-3314"><span class="linenos">3314</span></a><span class="sd">		**Parameters:** same as `D4xdata.__init__()`</span>
+</span><span id="D49data-3315"><a href="#D49data-3315"><span class="linenos">3315</span></a><span class="sd">		&#39;&#39;&#39;</span>
+</span><span id="D49data-3316"><a href="#D49data-3316"><span class="linenos">3316</span></a>		<span class="n">D4xdata</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="n">l</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="s1">&#39;49&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="D49data-3317"><a href="#D49data-3317"><span class="linenos">3317</span></a>	
+</span><span id="D49data-3318"><a href="#D49data-3318"><span class="linenos">3318</span></a>	<span class="k">def</span> <span class="nf">save_D49_correl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="D49data-3319"><a href="#D49data-3319"><span class="linenos">3319</span></a>		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_D4x_correl</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="D49data-3320"><a href="#D49data-3320"><span class="linenos">3320</span></a>	
+</span><span id="D49data-3321"><a href="#D49data-3321"><span class="linenos">3321</span></a>	<span class="n">save_D49_correl</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">D4xdata</span><span class="o">.</span><span class="n">_save_D4x_correl</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D4x&#39;</span><span class="p">,</span> <span class="s1">&#39;D49&#39;</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Store and process data for a large set of Δ<sub>49</sub> analyses,
+usually comprising more than one analytical session.</p>
+</div>
+
+
+                            <div id="D49data.__init__" class="classattr">
+                                        <input id="D49data.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">D49data</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">l</span><span class="o">=</span><span class="p">[]</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span>)</span>
+
+                <label class="view-source-button" for="D49data.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#D49data.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="D49data.__init__-3312"><a href="#D49data.__init__-3312"><span class="linenos">3312</span></a>	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="p">[],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="D49data.__init__-3313"><a href="#D49data.__init__-3313"><span class="linenos">3313</span></a><span class="w">		</span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="D49data.__init__-3314"><a href="#D49data.__init__-3314"><span class="linenos">3314</span></a><span class="sd">		**Parameters:** same as `D4xdata.__init__()`</span>
+</span><span id="D49data.__init__-3315"><a href="#D49data.__init__-3315"><span class="linenos">3315</span></a><span class="sd">		&#39;&#39;&#39;</span>
+</span><span id="D49data.__init__-3316"><a href="#D49data.__init__-3316"><span class="linenos">3316</span></a>		<span class="n">D4xdata</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="o">=</span><span class="n">l</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="s1">&#39;49&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p><strong>Parameters:</strong> same as <code><a href="#D4xdata.__init__">D4xdata.__init__()</a></code></p>
+</div>
+
+
+                            </div>
+                            <div id="D49data.Nominal_D4x" class="classattr">
+                                <div class="attr variable">
+            <span class="name">Nominal_D4x</span>        =
+<span class="default_value">{&#39;1000C&#39;: 0.0, &#39;25C&#39;: 2.228}</span>
+
+        
+    </div>
+    <a class="headerlink" href="#D49data.Nominal_D4x"></a>
+    
+            <div class="docstring"><p>Nominal Δ<sub>49</sub> values assigned to the Δ<sub>49</sub> anchor samples, used by
+<code><a href="#D49data.standardize">D49data.standardize()</a></code> to normalize unknown samples to an absolute Δ<sub>49</sub>
+reference frame.</p>
+
+<p>By default equal to (after <a href="https://doi.org/10.1016/j.gca.2004.05.039">Wang et al. (2004)</a>):</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="p">{</span>
+        <span class="s2">&quot;1000C&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">&quot;25C&quot;</span><span class="p">:</span> <span class="mf">2.228</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+</div>
+
+
+                            </div>
+                            <div id="D49data.save_D49_correl" class="classattr">
+                                        <input id="D49data.save_D49_correl-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">save_D49_correl</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="o">*</span><span class="n">args</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="D49data.save_D49_correl-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#D49data.save_D49_correl"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="D49data.save_D49_correl-3318"><a href="#D49data.save_D49_correl-3318"><span class="linenos">3318</span></a>	<span class="k">def</span> <span class="nf">save_D49_correl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="D49data.save_D49_correl-3319"><a href="#D49data.save_D49_correl-3319"><span class="linenos">3319</span></a>		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_D4x_correl</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Save D49 values along with their SE and correlation matrix.</p>
+
+<p><strong>Parameters</strong></p>
+
+<ul>
+<li><code>samples</code>: Only these samples are output (by default: all samples).</li>
+<li><code>dir</code>: the directory in which to save the faile (by defaut: <code>output</code>)</li>
+<li><code>filename</code>: the name to the csv file to write to (by default: <code>D49_correl.csv</code>)</li>
+<li><code>D49_precision</code>: the precision to use when writing <code>D49</code> and <code>D49_SE</code> values (by default: 4)</li>
+<li><code>correl_precision</code>: the precision to use when writing correlation factor values (by default: 4)</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt><a href="#D4xdata">D4xdata</a></dt>
+                                <dd id="D49data.R13_VPDB" class="variable"><a href="#D4xdata.R13_VPDB">R13_VPDB</a></dd>
+                <dd id="D49data.R18_VSMOW" class="variable"><a href="#D4xdata.R18_VSMOW">R18_VSMOW</a></dd>
+                <dd id="D49data.LAMBDA_17" class="variable"><a href="#D4xdata.LAMBDA_17">LAMBDA_17</a></dd>
+                <dd id="D49data.R17_VSMOW" class="variable"><a href="#D4xdata.R17_VSMOW">R17_VSMOW</a></dd>
+                <dd id="D49data.R18_VPDB" class="variable"><a href="#D4xdata.R18_VPDB">R18_VPDB</a></dd>
+                <dd id="D49data.R17_VPDB" class="variable"><a href="#D4xdata.R17_VPDB">R17_VPDB</a></dd>
+                <dd id="D49data.LEVENE_REF_SAMPLE" class="variable"><a href="#D4xdata.LEVENE_REF_SAMPLE">LEVENE_REF_SAMPLE</a></dd>
+                <dd id="D49data.ALPHA_18O_ACID_REACTION" class="variable"><a href="#D4xdata.ALPHA_18O_ACID_REACTION">ALPHA_18O_ACID_REACTION</a></dd>
+                <dd id="D49data.Nominal_d13C_VPDB" class="variable"><a href="#D4xdata.Nominal_d13C_VPDB">Nominal_d13C_VPDB</a></dd>
+                <dd id="D49data.Nominal_d18O_VPDB" class="variable"><a href="#D4xdata.Nominal_d18O_VPDB">Nominal_d18O_VPDB</a></dd>
+                <dd id="D49data.d13C_STANDARDIZATION_METHOD" class="variable"><a href="#D4xdata.d13C_STANDARDIZATION_METHOD">d13C_STANDARDIZATION_METHOD</a></dd>
+                <dd id="D49data.d18O_STANDARDIZATION_METHOD" class="variable"><a href="#D4xdata.d18O_STANDARDIZATION_METHOD">d18O_STANDARDIZATION_METHOD</a></dd>
+                <dd id="D49data.make_verbal" class="function"><a href="#D4xdata.make_verbal">make_verbal</a></dd>
+                <dd id="D49data.msg" class="function"><a href="#D4xdata.msg">msg</a></dd>
+                <dd id="D49data.vmsg" class="function"><a href="#D4xdata.vmsg">vmsg</a></dd>
+                <dd id="D49data.log" class="function"><a href="#D4xdata.log">log</a></dd>
+                <dd id="D49data.refresh" class="function"><a href="#D4xdata.refresh">refresh</a></dd>
+                <dd id="D49data.refresh_sessions" class="function"><a href="#D4xdata.refresh_sessions">refresh_sessions</a></dd>
+                <dd id="D49data.refresh_samples" class="function"><a href="#D4xdata.refresh_samples">refresh_samples</a></dd>
+                <dd id="D49data.read" class="function"><a href="#D4xdata.read">read</a></dd>
+                <dd id="D49data.input" class="function"><a href="#D4xdata.input">input</a></dd>
+                <dd id="D49data.wg" class="function"><a href="#D4xdata.wg">wg</a></dd>
+                <dd id="D49data.compute_bulk_delta" class="function"><a href="#D4xdata.compute_bulk_delta">compute_bulk_delta</a></dd>
+                <dd id="D49data.crunch" class="function"><a href="#D4xdata.crunch">crunch</a></dd>
+                <dd id="D49data.fill_in_missing_info" class="function"><a href="#D4xdata.fill_in_missing_info">fill_in_missing_info</a></dd>
+                <dd id="D49data.standardize_d13C" class="function"><a href="#D4xdata.standardize_d13C">standardize_d13C</a></dd>
+                <dd id="D49data.standardize_d18O" class="function"><a href="#D4xdata.standardize_d18O">standardize_d18O</a></dd>
+                <dd id="D49data.compute_bulk_and_clumping_deltas" class="function"><a href="#D4xdata.compute_bulk_and_clumping_deltas">compute_bulk_and_clumping_deltas</a></dd>
+                <dd id="D49data.compute_isobar_ratios" class="function"><a href="#D4xdata.compute_isobar_ratios">compute_isobar_ratios</a></dd>
+                <dd id="D49data.split_samples" class="function"><a href="#D4xdata.split_samples">split_samples</a></dd>
+                <dd id="D49data.unsplit_samples" class="function"><a href="#D4xdata.unsplit_samples">unsplit_samples</a></dd>
+                <dd id="D49data.assign_timestamps" class="function"><a href="#D4xdata.assign_timestamps">assign_timestamps</a></dd>
+                <dd id="D49data.report" class="function"><a href="#D4xdata.report">report</a></dd>
+                <dd id="D49data.combine_samples" class="function"><a href="#D4xdata.combine_samples">combine_samples</a></dd>
+                <dd id="D49data.standardize" class="function"><a href="#D4xdata.standardize">standardize</a></dd>
+                <dd id="D49data.standardization_error" class="function"><a href="#D4xdata.standardization_error">standardization_error</a></dd>
+                <dd id="D49data.summary" class="function"><a href="#D4xdata.summary">summary</a></dd>
+                <dd id="D49data.table_of_sessions" class="function"><a href="#D4xdata.table_of_sessions">table_of_sessions</a></dd>
+                <dd id="D49data.table_of_analyses" class="function"><a href="#D4xdata.table_of_analyses">table_of_analyses</a></dd>
+                <dd id="D49data.covar_table" class="function"><a href="#D4xdata.covar_table">covar_table</a></dd>
+                <dd id="D49data.table_of_samples" class="function"><a href="#D4xdata.table_of_samples">table_of_samples</a></dd>
+                <dd id="D49data.plot_sessions" class="function"><a href="#D4xdata.plot_sessions">plot_sessions</a></dd>
+                <dd id="D49data.consolidate_samples" class="function"><a href="#D4xdata.consolidate_samples">consolidate_samples</a></dd>
+                <dd id="D49data.consolidate_sessions" class="function"><a href="#D4xdata.consolidate_sessions">consolidate_sessions</a></dd>
+                <dd id="D49data.repeatabilities" class="function"><a href="#D4xdata.repeatabilities">repeatabilities</a></dd>
+                <dd id="D49data.consolidate" class="function"><a href="#D4xdata.consolidate">consolidate</a></dd>
+                <dd id="D49data.rmswd" class="function"><a href="#D4xdata.rmswd">rmswd</a></dd>
+                <dd id="D49data.compute_r" class="function"><a href="#D4xdata.compute_r">compute_r</a></dd>
+                <dd id="D49data.sample_average" class="function"><a href="#D4xdata.sample_average">sample_average</a></dd>
+                <dd id="D49data.sample_D4x_covar" class="function"><a href="#D4xdata.sample_D4x_covar">sample_D4x_covar</a></dd>
+                <dd id="D49data.sample_D4x_correl" class="function"><a href="#D4xdata.sample_D4x_correl">sample_D4x_correl</a></dd>
+                <dd id="D49data.plot_single_session" class="function"><a href="#D4xdata.plot_single_session">plot_single_session</a></dd>
+                <dd id="D49data.plot_residuals" class="function"><a href="#D4xdata.plot_residuals">plot_residuals</a></dd>
+                <dd id="D49data.simulate" class="function"><a href="#D4xdata.simulate">simulate</a></dd>
+                <dd id="D49data.plot_distribution_of_analyses" class="function"><a href="#D4xdata.plot_distribution_of_analyses">plot_distribution_of_analyses</a></dd>
+                <dd id="D49data.plot_bulk_compositions" class="function"><a href="#D4xdata.plot_bulk_compositions">plot_bulk_compositions</a></dd>
+
+            </div>
+            <div><dt>builtins.list</dt>
+                                <dd id="D49data.clear" class="function">clear</dd>
+                <dd id="D49data.copy" class="function">copy</dd>
+                <dd id="D49data.append" class="function">append</dd>
+                <dd id="D49data.insert" class="function">insert</dd>
+                <dd id="D49data.extend" class="function">extend</dd>
+                <dd id="D49data.pop" class="function">pop</dd>
+                <dd id="D49data.remove" class="function">remove</dd>
+                <dd id="D49data.index" class="function">index</dd>
+                <dd id="D49data.count" class="function">count</dd>
+                <dd id="D49data.reverse" class="function">reverse</dd>
+                <dd id="D49data.sort" class="function">sort</dd>
 
             </div>
                                 </dl>

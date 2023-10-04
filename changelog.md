@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.4.0
+*Released on 2023-10-04*
+
+### New feature
+* Support for Δ<sub>49</sub> standardization (https://github.com/mdaeron/D47crunch/pull/15).
+
 ## v2.3.2
 *Released on 2023-09-19*
 

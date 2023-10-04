@@ -3,7 +3,7 @@ Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotop
 
 Process and standardize carbonate and/or CO2 clumped-isotope analyses,
 from low-level data out of a dual-inlet mass spectrometer to final, “absolute”
-Δ47 and Δ48 values with fully propagated analytical error estimates
+Δ47, Δ48 and Δ49 values with fully propagated analytical error estimates
 ([Daëron, 2021](https://doi.org/10.1029/2020GC009592)).
 
 The **tutorial** section takes you through a series of simple steps to import/process data and print out the results.
@@ -21,8 +21,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) 2023 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2023-09-19'
-__version__   = '2.3.2'
+__date__      = '2023-10-04'
+__version__   = '2.4.0'
 
 import os
 import numpy as np
