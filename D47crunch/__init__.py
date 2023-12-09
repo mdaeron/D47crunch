@@ -2217,6 +2217,10 @@ class D4xdata(list):
 		if self.standardization_method == 'pooled':
 			for session in self.sessions:
 
+				# different (better?) computation of D4x repeatability for each session:
+				sqresiduals = [(r[f'D{self._4x}'] - self.samples[r['Sample']][f'D{self._4x}'])**2 for r in self.sessions[session]['data']]
+				self.sessions[session][f'r_D{self._4x}'] = np.mean(sqresiduals)**.5
+
 				self.sessions[session]['a'] = self.standardization.params.valuesdict()[f'a_{pf(session)}']
 				i = self.standardization.var_names.index(f'a_{pf(session)}')
 				self.sessions[session]['SE_a'] = self.standardization.covar[i,i]**.5
