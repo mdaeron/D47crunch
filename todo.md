@@ -6,3 +6,4 @@
 * improve `test_virtual_data()` to populate with non-default parameters
 * use a true CSV parser?
 * add (many) plot customization options to CLI?
+* implement individual weighing of replicates, e.g. according to the sqrt of the number of IRMS acquisitions
