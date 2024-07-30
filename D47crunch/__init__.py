@@ -2073,7 +2073,7 @@ class D4xdata(list):
 			return pretty_table(out)
 
 
-	def plot_sessions(self, dir = 'output', figsize = (8,8), filetype = 'pdf', dpi = 100):
+	def plot_sessions(self, dir = 'output', figsize = (8,8), filetype = 'pdf', dpi = 100, return_data = False):
 		'''
 		Generate session plots and save them to disk.
 
@@ -2084,13 +2084,19 @@ class D4xdata(list):
 		+ `filetype`: 'pdf' or 'png'
 		+ `dpi`: resolution for PNG output
 		'''
-		if not os.path.exists(dir):
-			os.makedirs(dir)
+		
+		if not return_data:
+			if not os.path.exists(dir):
+				os.makedirs(dir)
 
-		for session in self.sessions:
-			sp = self.plot_single_session(session, xylimits = 'constant')
-			ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.{filetype}', **({'dpi': dpi} if filetype.lower() == 'png' else {}))
-			ppl.close(sp.fig)
+			for session in self.sessions:
+				sp = self.plot_single_session(session, xylimits = 'constant')
+				ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.{filetype}', **({'dpi': dpi} if filetype.lower() == 'png' else {}))
+				ppl.close(sp.fig)
+		else:
+			for session in self.sessions:
+				sp = self.plot_single_session(session, xylimits='constant')
+			
 
 
 	@make_verbal
@@ -2561,32 +2567,39 @@ class D4xdata(list):
 		out = _SessionPlot()
 		anchors = [a for a in self.anchors if [r for r in self.sessions[session]['data'] if r['Sample'] == a]]
 		unknowns = [u for u in self.unknowns if [r for r in self.sessions[session]['data'] if r['Sample'] == u]]
+		anchors_d = [r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.anchors]
+		anchors_D = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.anchors]
+		unknowns_d = [r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns]
+		unknowns_D = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns]
+		anchor_avg = (np.array([ np.array([
+				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
+				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
+				]) for sample in anchors]).T,
+			np.array([ np.array([0, 0]) + self.Nominal_D4x[sample] for sample in anchors]).T)
+		unknown_avg = (np.array([ np.array([
+				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
+				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
+				]) for sample in unknowns]).T,
+			np.array([ np.array([0, 0]) + self.unknowns[sample][f'D{self._4x}'] for sample in unknowns]).T)
+		
 		
 		if fig == 'new':
 			out.fig = ppl.figure(figsize = (6,6))
 			ppl.subplots_adjust(.1,.1,.9,.9)
 
 		out.anchor_analyses, = ppl.plot(
-			[r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.anchors],
-			[r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.anchors],
+			anchors_d,
+			anchors_D,
 			**kw_plot_anchors)
 		out.unknown_analyses, = ppl.plot(
-			[r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns],
-			[r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns],
+			unknowns_d,
+			unknowns_D,
 			**kw_plot_unknowns)
 		out.anchor_avg = ppl.plot(
-			np.array([ np.array([
-				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
-				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
-				]) for sample in anchors]).T,
-			np.array([ np.array([0, 0]) + self.Nominal_D4x[sample] for sample in anchors]).T,
+			*anchor_avg,
 			**kw_plot_anchor_avg)
 		out.unknown_avg = ppl.plot(
-			np.array([ np.array([
-				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
-				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
-				]) for sample in unknowns]).T,
-			np.array([ np.array([0, 0]) + self.unknowns[sample][f'D{self._4x}'] for sample in unknowns]).T,
+			*unknown_avg,
 			**kw_plot_unknown_avg)
 		if xylimits == 'constant':
 			x = [r[f'd{self._4x}'] for r in self]
@@ -2627,6 +2640,20 @@ class D4xdata(list):
 			cval = np.arange(np.ceil(SI.min() / .001) * .001, np.ceil(SI.max() / .001 + 1) * .001, cinterval)
 			out.contour = ppl.contour(XI, YI, SI, cval, **kw_contour_error)
 			out.clabel = ppl.clabel(out.contour)
+			contour = (XI, YI, SI, cval, cinterval)
+
+		if fig == None:
+			return {
+			'anchors':anchors,
+			'unknowns':unknowns,
+			'anchors_d':anchors_d,
+			'anchors_D':anchors_D,
+			'unknowns_d':unknowns_d,
+			'unknowns_D':unknowns_D,
+			'anchor_avg':anchor_avg,
+			'unknown_avg':unknown_avg,
+			'contour':contour,
+			}
 
 		ppl.xlabel(x_label)
 		ppl.ylabel(y_label)
