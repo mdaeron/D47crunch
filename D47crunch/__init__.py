@@ -2073,7 +2073,7 @@ class D4xdata(list):
 			return pretty_table(out)
 
 
-	def plot_sessions(self, dir = 'output', figsize = (8,8), filetype = 'pdf', dpi = 100, return_data = False):
+	def plot_sessions(self, dir = 'output', figsize = (8,8), filetype = 'pdf', dpi = 100):
 		'''
 		Generate session plots and save them to disk.
 
@@ -2084,18 +2084,13 @@ class D4xdata(list):
 		+ `filetype`: 'pdf' or 'png'
 		+ `dpi`: resolution for PNG output
 		'''
-		
-		if not return_data:
-			if not os.path.exists(dir):
-				os.makedirs(dir)
+		if not os.path.exists(dir):
+			os.makedirs(dir)
 
-			for session in self.sessions:
-				sp = self.plot_single_session(session, xylimits = 'constant')
-				ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.{filetype}', **({'dpi': dpi} if filetype.lower() == 'png' else {}))
-				ppl.close(sp.fig)
-		else:
-			for session in self.sessions:
-				sp = self.plot_single_session(session, xylimits='constant')
+		for session in self.sessions:
+			sp = self.plot_single_session(session, xylimits = 'constant')
+			ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.{filetype}', **({'dpi': dpi} if filetype.lower() == 'png' else {}))
+			ppl.close(sp.fig)
 			
 
 
