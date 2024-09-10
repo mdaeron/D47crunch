@@ -1,5 +1,9 @@
 # Changelog
 
+### Bugfix
+* Simpler (better?) computation of D4x repeatability at the session level when using pooled regression method.
+
+
 ## v2.4.0
 *Released on 2023-10-04*
 
