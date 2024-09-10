@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.4.1
+*Released on 2024-09-10*
+
+### New feature
+* `D4x.plot_single_session()` is now able to return the data to be plotted instead of plotting directly (used by D4Xgui, contributed by Miguel Bernecker).
+
 ### Bugfix
 * Simpler (better?) computation of D4x repeatability at the session level when using pooled regression method.
 

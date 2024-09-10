@@ -19,10 +19,10 @@ The **how-to** section provides instructions applicable to various specific task
 __docformat__ = "restructuredtext"
 __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
-__copyright__ = 'Copyright (c) 2023 Mathieu Daëron'
+__copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
 __license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2023-10-04'
-__version__   = '2.4.0'
+__date__      = '2024-09-10'
+__version__   = '2.4.1'
 
 import os
 import numpy as np
