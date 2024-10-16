@@ -1,19 +1,11 @@
-[build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
-
 [project]
 name = "D47crunch"
 authors = [{name = "Mathieu Daëron", email = "mathieu@daeron.fr"}]
-readme = "readme.md"
 dynamic = ["version", "description"]
-license = {text = "BSD-3-Clause"}
-classifiers = [
-	"Programming Language :: Python :: 3",
-	"License :: OSI Approved :: BSD License",
-	"Operating System :: OS Independent",
-]
-requires-python = ">=3.8"
+readme = "readme.md"
+license = {file = "LICENSE"}
+classifiers = ["License :: OSI Approved :: MIT License"]
+requires-python = ">= 3.8"
 dependencies = [
     "numpy >=1.21",
     "scipy >=1.7.0",
@@ -22,6 +14,26 @@ dependencies = [
     "typer >=0.9.0",
     "rich",
 ]
+
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+D47crunch = { path = ".", editable = true }
+
+[tool.pixi.system-requirements]
+macos = "12.7.5"
+
+[tool.pixi.dependencies]
+pdoc = ">=14.4.0,<15"
+
+[tool.pixi.tasks]
+docs = {cmd = 'python build_doc.py'}
 
 [project.urls]
 Home = "https://github.com/mdaeron/D47crunch"

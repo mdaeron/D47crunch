@@ -3,14 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 13.1.1"/>
+    <meta name="generator" content="pdoc 14.4.0"/>
     <title>D47crunch API documentation</title>
 
     <style>/*! * Bootstrap Reboot v5.0.0 (https://getbootstrap.com/) * Copyright 2011-2021 The Bootstrap Authors * Copyright 2011-2021 Twitter, Inc. * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE) * Forked from Normalize.css, licensed MIT (https://github.com/necolas/normalize.css/blob/master/LICENSE.md) */*,::after,::before{box-sizing:border-box}@media (prefers-reduced-motion:no-preference){:root{scroll-behavior:smooth}}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#fff;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}hr{margin:1rem 0;color:inherit;background-color:currentColor;border:0;opacity:.25}hr:not([size]){height:1px}h1,h2,h3,h4,h5,h6{margin-top:0;margin-bottom:.5rem;font-weight:500;line-height:1.2}h1{font-size:calc(1.375rem + 1.5vw)}@media (min-width:1200px){h1{font-size:2.5rem}}h2{font-size:calc(1.325rem + .9vw)}@media (min-width:1200px){h2{font-size:2rem}}h3{font-size:calc(1.3rem + .6vw)}@media (min-width:1200px){h3{font-size:1.75rem}}h4{font-size:calc(1.275rem + .3vw)}@media (min-width:1200px){h4{font-size:1.5rem}}h5{font-size:1.25rem}h6{font-size:1rem}p{margin-top:0;margin-bottom:1rem}abbr[data-bs-original-title],abbr[title]{-webkit-text-decoration:underline dotted;text-decoration:underline dotted;cursor:help;-webkit-text-decoration-skip-ink:none;text-decoration-skip-ink:none}address{margin-bottom:1rem;font-style:normal;line-height:inherit}ol,ul{padding-left:2rem}dl,ol,ul{margin-top:0;margin-bottom:1rem}ol ol,ol ul,ul ol,ul ul{margin-bottom:0}dt{font-weight:700}dd{margin-bottom:.5rem;margin-left:0}blockquote{margin:0 0 1rem}b,strong{font-weight:bolder}small{font-size:.875em}mark{padding:.2em;background-color:#fcf8e3}sub,sup{position:relative;font-size:.75em;line-height:0;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}a{color:#0d6efd;text-decoration:underline}a:hover{color:#0a58ca}a:not([href]):not([class]),a:not([href]):not([class]):hover{color:inherit;text-decoration:none}code,kbd,pre,samp{font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:1em;direction:ltr;unicode-bidi:bidi-override}pre{display:block;margin-top:0;margin-bottom:1rem;overflow:auto;font-size:.875em}pre code{font-size:inherit;color:inherit;word-break:normal}code{font-size:.875em;color:#d63384;word-wrap:break-word}a>code{color:inherit}kbd{padding:.2rem .4rem;font-size:.875em;color:#fff;background-color:#212529;border-radius:.2rem}kbd kbd{padding:0;font-size:1em;font-weight:700}figure{margin:0 0 1rem}img,svg{vertical-align:middle}table{caption-side:bottom;border-collapse:collapse}caption{padding-top:.5rem;padding-bottom:.5rem;color:#6c757d;text-align:left}th{text-align:inherit;text-align:-webkit-match-parent}tbody,td,tfoot,th,thead,tr{border-color:inherit;border-style:solid;border-width:0}label{display:inline-block}button{border-radius:0}button:focus:not(:focus-visible){outline:0}button,input,optgroup,select,textarea{margin:0;font-family:inherit;font-size:inherit;line-height:inherit}button,select{text-transform:none}[role=button]{cursor:pointer}select{word-wrap:normal}select:disabled{opacity:1}[list]::-webkit-calendar-picker-indicator{display:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}[type=button]:not(:disabled),[type=reset]:not(:disabled),[type=submit]:not(:disabled),button:not(:disabled){cursor:pointer}::-moz-focus-inner{padding:0;border-style:none}textarea{resize:vertical}fieldset{min-width:0;padding:0;margin:0;border:0}legend{float:left;width:100%;padding:0;margin-bottom:.5rem;font-size:calc(1.275rem + .3vw);line-height:inherit}@media (min-width:1200px){legend{font-size:1.5rem}}legend+*{clear:left}::-webkit-datetime-edit-day-field,::-webkit-datetime-edit-fields-wrapper,::-webkit-datetime-edit-hour-field,::-webkit-datetime-edit-minute,::-webkit-datetime-edit-month-field,::-webkit-datetime-edit-text,::-webkit-datetime-edit-year-field{padding:0}::-webkit-inner-spin-button{height:auto}[type=search]{outline-offset:-2px;-webkit-appearance:textfield}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-color-swatch-wrapper{padding:0}::file-selector-button{font:inherit}::-webkit-file-upload-button{font:inherit;-webkit-appearance:button}output{display:inline-block}iframe{border:0}summary{display:list-item;cursor:pointer}progress{vertical-align:baseline}[hidden]{display:none!important}</style>
     <style>/*! syntax-highlighting.css */pre{line-height:125%;}span.linenos{color:inherit; background-color:transparent; padding-left:5px; padding-right:20px;}.pdoc-code .hll{background-color:#ffffcc}.pdoc-code{background:#f8f8f8;}.pdoc-code .c{color:#3D7B7B; font-style:italic}.pdoc-code .err{border:1px solid #FF0000}.pdoc-code .k{color:#008000; font-weight:bold}.pdoc-code .o{color:#666666}.pdoc-code .ch{color:#3D7B7B; font-style:italic}.pdoc-code .cm{color:#3D7B7B; font-style:italic}.pdoc-code .cp{color:#9C6500}.pdoc-code .cpf{color:#3D7B7B; font-style:italic}.pdoc-code .c1{color:#3D7B7B; font-style:italic}.pdoc-code .cs{color:#3D7B7B; font-style:italic}.pdoc-code .gd{color:#A00000}.pdoc-code .ge{font-style:italic}.pdoc-code .gr{color:#E40000}.pdoc-code .gh{color:#000080; font-weight:bold}.pdoc-code .gi{color:#008400}.pdoc-code .go{color:#717171}.pdoc-code .gp{color:#000080; font-weight:bold}.pdoc-code .gs{font-weight:bold}.pdoc-code .gu{color:#800080; font-weight:bold}.pdoc-code .gt{color:#0044DD}.pdoc-code .kc{color:#008000; font-weight:bold}.pdoc-code .kd{color:#008000; font-weight:bold}.pdoc-code .kn{color:#008000; font-weight:bold}.pdoc-code .kp{color:#008000}.pdoc-code .kr{color:#008000; font-weight:bold}.pdoc-code .kt{color:#B00040}.pdoc-code .m{color:#666666}.pdoc-code .s{color:#BA2121}.pdoc-code .na{color:#687822}.pdoc-code .nb{color:#008000}.pdoc-code .nc{color:#0000FF; font-weight:bold}.pdoc-code .no{color:#880000}.pdoc-code .nd{color:#AA22FF}.pdoc-code .ni{color:#717171; font-weight:bold}.pdoc-code .ne{color:#CB3F38; font-weight:bold}.pdoc-code .nf{color:#0000FF}.pdoc-code .nl{color:#767600}.pdoc-code .nn{color:#0000FF; font-weight:bold}.pdoc-code .nt{color:#008000; font-weight:bold}.pdoc-code .nv{color:#19177C}.pdoc-code .ow{color:#AA22FF; font-weight:bold}.pdoc-code .w{color:#bbbbbb}.pdoc-code .mb{color:#666666}.pdoc-code .mf{color:#666666}.pdoc-code .mh{color:#666666}.pdoc-code .mi{color:#666666}.pdoc-code .mo{color:#666666}.pdoc-code .sa{color:#BA2121}.pdoc-code .sb{color:#BA2121}.pdoc-code .sc{color:#BA2121}.pdoc-code .dl{color:#BA2121}.pdoc-code .sd{color:#BA2121; font-style:italic}.pdoc-code .s2{color:#BA2121}.pdoc-code .se{color:#AA5D1F; font-weight:bold}.pdoc-code .sh{color:#BA2121}.pdoc-code .si{color:#A45A77; font-weight:bold}.pdoc-code .sx{color:#008000}.pdoc-code .sr{color:#A45A77}.pdoc-code .s1{color:#BA2121}.pdoc-code .ss{color:#19177C}.pdoc-code .bp{color:#008000}.pdoc-code .fm{color:#0000FF}.pdoc-code .vc{color:#19177C}.pdoc-code .vg{color:#19177C}.pdoc-code .vi{color:#19177C}.pdoc-code .vm{color:#19177C}.pdoc-code .il{color:#666666}</style>
     <style>/*! theme.css */:root{--pdoc-background:#fff;}.pdoc{--text:#212529;--muted:#6c757d;--link:#3660a5;--link-hover:#1659c5;--code:#f8f8f8;--active:#fff598;--accent:#eee;--accent2:#c1c1c1;--nav-hover:rgba(255, 255, 255, 0.5);--name:#0066BB;--def:#008800;--annotation:#007020;}</style>
-    <style>/*! layout.css */html, body{width:100%;height:100%;}html, main{scroll-behavior:smooth;}body{background-color:var(--pdoc-background);}@media (max-width:769px){#navtoggle{cursor:pointer;position:absolute;width:50px;height:40px;top:1rem;right:1rem;border-color:var(--text);color:var(--text);display:flex;opacity:0.8;z-index:999;}#navtoggle:hover{opacity:1;}#togglestate + div{display:none;}#togglestate:checked + div{display:inherit;}main, header{padding:2rem 3vw;}header + main{margin-top:-3rem;}.git-button{display:none !important;}nav input[type="search"]{max-width:77%;}nav input[type="search"]:first-child{margin-top:-6px;}nav input[type="search"]:valid ~ *{display:none !important;}}@media (min-width:770px){:root{--sidebar-width:clamp(12.5rem, 28vw, 22rem);}nav{position:fixed;overflow:auto;height:100vh;width:var(--sidebar-width);}main, header{padding:3rem 2rem 3rem calc(var(--sidebar-width) + 3rem);width:calc(54rem + var(--sidebar-width));max-width:100%;}header + main{margin-top:-4rem;}#navtoggle{display:none;}}#togglestate{position:absolute;height:0;opacity:0;}nav.pdoc{--pad:clamp(0.5rem, 2vw, 1.75rem);--indent:1.5rem;background-color:var(--accent);border-right:1px solid var(--accent2);box-shadow:0 0 20px rgba(50, 50, 50, .2) inset;padding:0 0 0 var(--pad);overflow-wrap:anywhere;scrollbar-width:thin; scrollbar-color:var(--accent2) transparent }nav.pdoc::-webkit-scrollbar{width:.4rem; }nav.pdoc::-webkit-scrollbar-thumb{background-color:var(--accent2); }nav.pdoc > div{padding:var(--pad) 0;}nav.pdoc .module-list-button{display:inline-flex;align-items:center;color:var(--text);border-color:var(--muted);margin-bottom:1rem;}nav.pdoc .module-list-button:hover{border-color:var(--text);}nav.pdoc input[type=search]{display:block;outline-offset:0;width:calc(100% - var(--pad));}nav.pdoc .logo{max-width:calc(100% - var(--pad));max-height:35vh;display:block;margin:0 auto 1rem;transform:translate(calc(-.5 * var(--pad)), 0);}nav.pdoc ul{list-style:none;padding-left:0;}nav.pdoc > div > ul{margin-left:calc(0px - var(--pad));}nav.pdoc li a{padding:.2rem 0 .2rem calc(var(--pad) + var(--indent));}nav.pdoc > div > ul > li > a{padding-left:var(--pad);}nav.pdoc li{transition:all 100ms;}nav.pdoc li:hover{background-color:var(--nav-hover);}nav.pdoc a, nav.pdoc a:hover{color:var(--text);}nav.pdoc a{display:block;}nav.pdoc > h2:first-of-type{margin-top:1.5rem;}nav.pdoc .class:before{content:"class ";color:var(--muted);}nav.pdoc .function:after{content:"()";color:var(--muted);}nav.pdoc footer:before{content:"";display:block;width:calc(100% - var(--pad));border-top:solid var(--accent2) 1px;margin-top:1.5rem;padding-top:.5rem;}nav.pdoc footer{font-size:small;}</style>
-    <style>/*! content.css */.pdoc{color:var(--text);box-sizing:border-box;line-height:1.5;background:none;}.pdoc .pdoc-button{cursor:pointer;display:inline-block;border:solid black 1px;border-radius:2px;font-size:.75rem;padding:calc(0.5em - 1px) 1em;transition:100ms all;}.pdoc .pdoc-alert{padding:1rem 1rem 1rem calc(1.5rem + 24px);border:1px solid transparent;border-radius:.25rem;background-repeat:no-repeat;background-position:1rem center;margin-bottom:1rem;}.pdoc .pdoc-alert > *:last-child{margin-bottom:0;}.pdoc .pdoc-alert-note {color:#084298;background-color:#cfe2ff;border-color:#b6d4fe;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23084298%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016zm.93-9.412-1%204.705c-.07.34.029.533.304.533.194%200%20.487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703%200-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381%202.29-.287zM8%205.5a1%201%200%201%201%200-2%201%201%200%200%201%200%202z%22/%3E%3C/svg%3E");}.pdoc .pdoc-alert-warning{color:#664d03;background-color:#fff3cd;border-color:#ffecb5;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23664d03%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8.982%201.566a1.13%201.13%200%200%200-1.96%200L.165%2013.233c-.457.778.091%201.767.98%201.767h13.713c.889%200%201.438-.99.98-1.767L8.982%201.566zM8%205c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%205.995A.905.905%200%200%201%208%205zm.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2z%22/%3E%3C/svg%3E");}.pdoc .pdoc-alert-danger{color:#842029;background-color:#f8d7da;border-color:#f5c2c7;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23842029%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5.52.359A.5.5%200%200%201%206%200h4a.5.5%200%200%201%20.474.658L8.694%206H12.5a.5.5%200%200%201%20.395.807l-7%209a.5.5%200%200%201-.873-.454L6.823%209.5H3.5a.5.5%200%200%201-.48-.641l2.5-8.5z%22/%3E%3C/svg%3E");}.pdoc .visually-hidden{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0, 0, 0, 0) !important;white-space:nowrap !important;border:0 !important;}.pdoc h1, .pdoc h2, .pdoc h3{font-weight:300;margin:.3em 0;padding:.2em 0;}.pdoc > section:not(.module-info) h1{font-size:1.5rem;font-weight:500;}.pdoc > section:not(.module-info) h2{font-size:1.4rem;font-weight:500;}.pdoc > section:not(.module-info) h3{font-size:1.3rem;font-weight:500;}.pdoc > section:not(.module-info) h4{font-size:1.2rem;}.pdoc > section:not(.module-info) h5{font-size:1.1rem;}.pdoc a{text-decoration:none;color:var(--link);}.pdoc a:hover{color:var(--link-hover);}.pdoc blockquote{margin-left:2rem;}.pdoc pre{border-top:1px solid var(--accent2);border-bottom:1px solid var(--accent2);margin-top:0;margin-bottom:1em;padding:.5rem 0 .5rem .5rem;overflow-x:auto;background-color:var(--code);}.pdoc code{color:var(--text);padding:.2em .4em;margin:0;font-size:85%;background-color:var(--code);border-radius:6px;}.pdoc a > code{color:inherit;}.pdoc pre > code{display:inline-block;font-size:inherit;background:none;border:none;padding:0;}.pdoc > section:not(.module-info){margin-bottom:1.5rem;}.pdoc .modulename{margin-top:0;font-weight:bold;}.pdoc .modulename a{color:var(--link);transition:100ms all;}.pdoc .git-button{float:right;border:solid var(--link) 1px;}.pdoc .git-button:hover{background-color:var(--link);color:var(--pdoc-background);}.view-source-toggle-state,.view-source-toggle-state ~ .pdoc-code{display:none;}.view-source-toggle-state:checked ~ .pdoc-code{display:block;}.view-source-button{display:inline-block;float:right;font-size:.75rem;line-height:1.5rem;color:var(--muted);padding:0 .4rem 0 1.3rem;cursor:pointer;text-indent:-2px;}.view-source-button > span{visibility:hidden;}.module-info .view-source-button{float:none;display:flex;justify-content:flex-end;margin:-1.2rem .4rem -.2rem 0;}.view-source-button::before{position:absolute;content:"View Source";display:list-item;list-style-type:disclosure-closed;}.view-source-toggle-state:checked ~ .attr .view-source-button::before,.view-source-toggle-state:checked ~ .view-source-button::before{list-style-type:disclosure-open;}.pdoc .docstring{margin-bottom:1.5rem;}.pdoc section:not(.module-info) .docstring{margin-left:clamp(0rem, 5vw - 2rem, 1rem);}.pdoc .docstring .pdoc-code{margin-left:1em;margin-right:1em;}.pdoc h1:target,.pdoc h2:target,.pdoc h3:target,.pdoc h4:target,.pdoc h5:target,.pdoc h6:target,.pdoc .pdoc-code > pre > span:target{background-color:var(--active);box-shadow:-1rem 0 0 0 var(--active);}.pdoc .pdoc-code > pre > span:target{display:block;}.pdoc div:target > .attr,.pdoc section:target > .attr,.pdoc dd:target > a{background-color:var(--active);}.pdoc *{scroll-margin:2rem;}.pdoc .pdoc-code .linenos{user-select:none;}.pdoc .attr:hover{filter:contrast(0.95);}.pdoc section, .pdoc .classattr{position:relative;}.pdoc .headerlink{--width:clamp(1rem, 3vw, 2rem);position:absolute;top:0;left:calc(0rem - var(--width));transition:all 100ms ease-in-out;opacity:0;}.pdoc .headerlink::before{content:"#";display:block;text-align:center;width:var(--width);height:2.3rem;line-height:2.3rem;font-size:1.5rem;}.pdoc .attr:hover ~ .headerlink,.pdoc *:target > .headerlink,.pdoc .headerlink:hover{opacity:1;}.pdoc .attr{display:block;margin:.5rem 0 .5rem;padding:.4rem .4rem .4rem 1rem;background-color:var(--accent);overflow-x:auto;}.pdoc .classattr{margin-left:2rem;}.pdoc .name{color:var(--name);font-weight:bold;}.pdoc .def{color:var(--def);font-weight:bold;}.pdoc .signature{background-color:transparent;}.pdoc .param, .pdoc .return-annotation{white-space:pre;}.pdoc .signature.multiline .param{display:block;}.pdoc .signature.condensed .param{display:inline-block;}.pdoc .annotation{color:var(--annotation);}.pdoc .view-value-toggle-state,.pdoc .view-value-toggle-state ~ .default_value{display:none;}.pdoc .view-value-toggle-state:checked ~ .default_value{display:inherit;}.pdoc .view-value-button{font-size:.5rem;vertical-align:middle;border-style:dashed;margin-top:-0.1rem;}.pdoc .view-value-button:hover{background:white;}.pdoc .view-value-button::before{content:"show";text-align:center;width:2.2em;display:inline-block;}.pdoc .view-value-toggle-state:checked ~ .view-value-button::before{content:"hide";}.pdoc .inherited{margin-left:2rem;}.pdoc .inherited dt{font-weight:700;}.pdoc .inherited dt, .pdoc .inherited dd{display:inline;margin-left:0;margin-bottom:.5rem;}.pdoc .inherited dd:not(:last-child):after{content:", ";}.pdoc .inherited .class:before{content:"class ";}.pdoc .inherited .function a:after{content:"()";}.pdoc .search-result .docstring{overflow:auto;max-height:25vh;}.pdoc .search-result.focused > .attr{background-color:var(--active);}.pdoc .attribution{margin-top:2rem;display:block;opacity:0.5;transition:all 200ms;filter:grayscale(100%);}.pdoc .attribution:hover{opacity:1;filter:grayscale(0%);}.pdoc .attribution img{margin-left:5px;height:35px;vertical-align:middle;width:70px;transition:all 200ms;}.pdoc table{display:block;width:max-content;max-width:100%;overflow:auto;margin-bottom:1rem;}.pdoc table th{font-weight:600;}.pdoc table th, .pdoc table td{padding:6px 13px;border:1px solid var(--accent2);}</style>
+    <style>/*! layout.css */html, body{width:100%;height:100%;}html, main{scroll-behavior:smooth;}body{background-color:var(--pdoc-background);}@media (max-width:769px){#navtoggle{cursor:pointer;position:absolute;width:50px;height:40px;top:1rem;right:1rem;border-color:var(--text);color:var(--text);display:flex;opacity:0.8;z-index:999;}#navtoggle:hover{opacity:1;}#togglestate + div{display:none;}#togglestate:checked + div{display:inherit;}main, header{padding:2rem 3vw;}header + main{margin-top:-3rem;}.git-button{display:none !important;}nav input[type="search"]{max-width:77%;}nav input[type="search"]:first-child{margin-top:-6px;}nav input[type="search"]:valid ~ *{display:none !important;}}@media (min-width:770px){:root{--sidebar-width:clamp(12.5rem, 28vw, 22rem);}nav{position:fixed;overflow:auto;height:100vh;width:var(--sidebar-width);}main, header{padding:3rem 2rem 3rem calc(var(--sidebar-width) + 3rem);width:calc(54rem + var(--sidebar-width));max-width:100%;}header + main{margin-top:-4rem;}#navtoggle{display:none;}}#togglestate{position:absolute;height:0;opacity:0;}nav.pdoc{--pad:clamp(0.5rem, 2vw, 1.75rem);--indent:1.5rem;background-color:var(--accent);border-right:1px solid var(--accent2);box-shadow:0 0 20px rgba(50, 50, 50, .2) inset;padding:0 0 0 var(--pad);overflow-wrap:anywhere;scrollbar-width:thin; scrollbar-color:var(--accent2) transparent; z-index:1}nav.pdoc::-webkit-scrollbar{width:.4rem; }nav.pdoc::-webkit-scrollbar-thumb{background-color:var(--accent2); }nav.pdoc > div{padding:var(--pad) 0;}nav.pdoc .module-list-button{display:inline-flex;align-items:center;color:var(--text);border-color:var(--muted);margin-bottom:1rem;}nav.pdoc .module-list-button:hover{border-color:var(--text);}nav.pdoc input[type=search]{display:block;outline-offset:0;width:calc(100% - var(--pad));}nav.pdoc .logo{max-width:calc(100% - var(--pad));max-height:35vh;display:block;margin:0 auto 1rem;transform:translate(calc(-.5 * var(--pad)), 0);}nav.pdoc ul{list-style:none;padding-left:0;}nav.pdoc > div > ul{margin-left:calc(0px - var(--pad));}nav.pdoc li a{padding:.2rem 0 .2rem calc(var(--pad) + var(--indent));}nav.pdoc > div > ul > li > a{padding-left:var(--pad);}nav.pdoc li{transition:all 100ms;}nav.pdoc li:hover{background-color:var(--nav-hover);}nav.pdoc a, nav.pdoc a:hover{color:var(--text);}nav.pdoc a{display:block;}nav.pdoc > h2:first-of-type{margin-top:1.5rem;}nav.pdoc .class:before{content:"class ";color:var(--muted);}nav.pdoc .function:after{content:"()";color:var(--muted);}nav.pdoc footer:before{content:"";display:block;width:calc(100% - var(--pad));border-top:solid var(--accent2) 1px;margin-top:1.5rem;padding-top:.5rem;}nav.pdoc footer{font-size:small;}</style>
+    <style>/*! content.css */.pdoc{color:var(--text);box-sizing:border-box;line-height:1.5;background:none;}.pdoc .pdoc-button{cursor:pointer;display:inline-block;border:solid black 1px;border-radius:2px;font-size:.75rem;padding:calc(0.5em - 1px) 1em;transition:100ms all;}.pdoc .pdoc-alert{padding:1rem 1rem 1rem calc(1.5rem + 24px);border:1px solid transparent;border-radius:.25rem;background-repeat:no-repeat;background-position:1rem center;margin-bottom:1rem;}.pdoc .pdoc-alert > *:last-child{margin-bottom:0;}.pdoc .pdoc-alert-note {color:#084298;background-color:#cfe2ff;border-color:#b6d4fe;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23084298%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016zm.93-9.412-1%204.705c-.07.34.029.533.304.533.194%200%20.487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703%200-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381%202.29-.287zM8%205.5a1%201%200%201%201%200-2%201%201%200%200%201%200%202z%22/%3E%3C/svg%3E");}.pdoc .pdoc-alert-warning{color:#664d03;background-color:#fff3cd;border-color:#ffecb5;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23664d03%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8.982%201.566a1.13%201.13%200%200%200-1.96%200L.165%2013.233c-.457.778.091%201.767.98%201.767h13.713c.889%200%201.438-.99.98-1.767L8.982%201.566zM8%205c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%205.995A.905.905%200%200%201%208%205zm.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2z%22/%3E%3C/svg%3E");}.pdoc .pdoc-alert-danger{color:#842029;background-color:#f8d7da;border-color:#f5c2c7;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23842029%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5.52.359A.5.5%200%200%201%206%200h4a.5.5%200%200%201%20.474.658L8.694%206H12.5a.5.5%200%200%201%20.395.807l-7%209a.5.5%200%200%201-.873-.454L6.823%209.5H3.5a.5.5%200%200%201-.48-.641l2.5-8.5z%22/%3E%3C/svg%3E");}.pdoc .visually-hidden{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0, 0, 0, 0) !important;white-space:nowrap !important;border:0 !important;}.pdoc h1, .pdoc h2, .pdoc h3{font-weight:300;margin:.3em 0;padding:.2em 0;}.pdoc > section:not(.module-info) h1{font-size:1.5rem;font-weight:500;}.pdoc > section:not(.module-info) h2{font-size:1.4rem;font-weight:500;}.pdoc > section:not(.module-info) h3{font-size:1.3rem;font-weight:500;}.pdoc > section:not(.module-info) h4{font-size:1.2rem;}.pdoc > section:not(.module-info) h5{font-size:1.1rem;}.pdoc a{text-decoration:none;color:var(--link);}.pdoc a:hover{color:var(--link-hover);}.pdoc blockquote{margin-left:2rem;}.pdoc pre{border-top:1px solid var(--accent2);border-bottom:1px solid var(--accent2);margin-top:0;margin-bottom:1em;padding:.5rem 0 .5rem .5rem;overflow-x:auto;background-color:var(--code);}.pdoc code{color:var(--text);padding:.2em .4em;margin:0;font-size:85%;background-color:var(--accent);border-radius:6px;}.pdoc a > code{color:inherit;}.pdoc pre > code{display:inline-block;font-size:inherit;background:none;border:none;padding:0;}.pdoc > section:not(.module-info){margin-bottom:1.5rem;}.pdoc .modulename{margin-top:0;font-weight:bold;}.pdoc .modulename a{color:var(--link);transition:100ms all;}.pdoc .git-button{float:right;border:solid var(--link) 1px;}.pdoc .git-button:hover{background-color:var(--link);color:var(--pdoc-background);}.view-source-toggle-state,.view-source-toggle-state ~ .pdoc-code{display:none;}.view-source-toggle-state:checked ~ .pdoc-code{display:block;}.view-source-button{display:inline-block;float:right;font-size:.75rem;line-height:1.5rem;color:var(--muted);padding:0 .4rem 0 1.3rem;cursor:pointer;text-indent:-2px;}.view-source-button > span{visibility:hidden;}.module-info .view-source-button{float:none;display:flex;justify-content:flex-end;margin:-1.2rem .4rem -.2rem 0;}.view-source-button::before{position:absolute;content:"View Source";display:list-item;list-style-type:disclosure-closed;}.view-source-toggle-state:checked ~ .attr .view-source-button::before,.view-source-toggle-state:checked ~ .view-source-button::before{list-style-type:disclosure-open;}.pdoc .docstring{margin-bottom:1.5rem;}.pdoc section:not(.module-info) .docstring{margin-left:clamp(0rem, 5vw - 2rem, 1rem);}.pdoc .docstring .pdoc-code{margin-left:1em;margin-right:1em;}.pdoc h1:target,.pdoc h2:target,.pdoc h3:target,.pdoc h4:target,.pdoc h5:target,.pdoc h6:target,.pdoc .pdoc-code > pre > span:target{background-color:var(--active);box-shadow:-1rem 0 0 0 var(--active);}.pdoc .pdoc-code > pre > span:target{display:block;}.pdoc div:target > .attr,.pdoc section:target > .attr,.pdoc dd:target > a{background-color:var(--active);}.pdoc *{scroll-margin:2rem;}.pdoc .pdoc-code .linenos{user-select:none;}.pdoc .attr:hover{filter:contrast(0.95);}.pdoc section, .pdoc .classattr{position:relative;}.pdoc .headerlink{--width:clamp(1rem, 3vw, 2rem);position:absolute;top:0;left:calc(0rem - var(--width));transition:all 100ms ease-in-out;opacity:0;}.pdoc .headerlink::before{content:"#";display:block;text-align:center;width:var(--width);height:2.3rem;line-height:2.3rem;font-size:1.5rem;}.pdoc .attr:hover ~ .headerlink,.pdoc *:target > .headerlink,.pdoc .headerlink:hover{opacity:1;}.pdoc .attr{display:block;margin:.5rem 0 .5rem;padding:.4rem .4rem .4rem 1rem;background-color:var(--accent);overflow-x:auto;}.pdoc .classattr{margin-left:2rem;}.pdoc .name{color:var(--name);font-weight:bold;}.pdoc .def{color:var(--def);font-weight:bold;}.pdoc .signature{background-color:transparent;}.pdoc .param, .pdoc .return-annotation{white-space:pre;}.pdoc .signature.multiline .param{display:block;}.pdoc .signature.condensed .param{display:inline-block;}.pdoc .annotation{color:var(--annotation);}.pdoc .view-value-toggle-state,.pdoc .view-value-toggle-state ~ .default_value{display:none;}.pdoc .view-value-toggle-state:checked ~ .default_value{display:inherit;}.pdoc .view-value-button{font-size:.5rem;vertical-align:middle;border-style:dashed;margin-top:-0.1rem;}.pdoc .view-value-button:hover{background:white;}.pdoc .view-value-button::before{content:"show";text-align:center;width:2.2em;display:inline-block;}.pdoc .view-value-toggle-state:checked ~ .view-value-button::before{content:"hide";}.pdoc .inherited{margin-left:2rem;}.pdoc .inherited dt{font-weight:700;}.pdoc .inherited dt, .pdoc .inherited dd{display:inline;margin-left:0;margin-bottom:.5rem;}.pdoc .inherited dd:not(:last-child):after{content:", ";}.pdoc .inherited .class:before{content:"class ";}.pdoc .inherited .function a:after{content:"()";}.pdoc .search-result .docstring{overflow:auto;max-height:25vh;}.pdoc .search-result.focused > .attr{background-color:var(--active);}.pdoc .attribution{margin-top:2rem;display:block;opacity:0.5;transition:all 200ms;filter:grayscale(100%);}.pdoc .attribution:hover{opacity:1;filter:grayscale(0%);}.pdoc .attribution img{margin-left:5px;height:35px;vertical-align:middle;width:70px;transition:all 200ms;}.pdoc table{display:block;width:max-content;max-width:100%;overflow:auto;margin-bottom:1rem;}.pdoc table th{font-weight:600;}.pdoc table th, .pdoc table td{padding:6px 13px;border:1px solid var(--accent2);}</style>
     <style>/*! custom.css */</style></head>
 <body>
     <nav class="pdoc">
@@ -42,7 +42,13 @@
             <h2>API Documentation</h2>
                 <ul class="memberlist">
             <li>
+                    <a class="variable" href="#Petersen_etal_CO2eqD47">Petersen_etal_CO2eqD47</a>
+            </li>
+            <li>
                     <a class="function" href="#fCO2eqD47_Petersen">fCO2eqD47_Petersen</a>
+            </li>
+            <li>
+                    <a class="variable" href="#Wang_etal_CO2eqD47">Wang_etal_CO2eqD47</a>
             </li>
             <li>
                     <a class="function" href="#fCO2eqD47_Wang">fCO2eqD47_Wang</a>
@@ -127,6 +133,21 @@
                         </li>
                         <li>
                                 <a class="variable" href="#D4xdata.d18O_STANDARDIZATION_METHOD">d18O_STANDARDIZATION_METHOD</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#D4xdata.verbose">verbose</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#D4xdata.prefix">prefix</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#D4xdata.logfile">logfile</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#D4xdata.Nf">Nf</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#D4xdata.repeatability">repeatability</a>
                         </li>
                         <li>
                                 <a class="function" href="#D4xdata.make_verbal">make_verbal</a>
@@ -273,6 +294,9 @@
                                 <a class="variable" href="#D47data.Nominal_D4x">Nominal_D4x</a>
                         </li>
                         <li>
+                                <a class="variable" href="#D47data.Nominal_D47">Nominal_D47</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#D47data.D47fromTeq">D47fromTeq</a>
                         </li>
                         <li>
@@ -291,6 +315,9 @@
                                 <a class="variable" href="#D48data.Nominal_D4x">Nominal_D4x</a>
                         </li>
                         <li>
+                                <a class="variable" href="#D48data.Nominal_D48">Nominal_D48</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#D48data.save_D48_correl">save_D48_correl</a>
                         </li>
                 </ul>
@@ -304,6 +331,9 @@
                         </li>
                         <li>
                                 <a class="variable" href="#D49data.Nominal_D4x">Nominal_D4x</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#D49data.Nominal_D49">Nominal_D49</a>
                         </li>
                         <li>
                                 <a class="function" href="#D49data.save_D49_correl">save_D49_correl</a>
@@ -388,7 +418,7 @@ A08,  MYSAMPLE-2,  -3.87692,   4.86889,    0.52185,   10.40390,   1.07032
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code><span class="kn">import</span> <span class="nn">D47crunch</span>
-<span class="n">mydata</span> <span class="o">=</span> <span class="n"><a href="#D47data">D47crunch.D47data</a></span><span class="p">()</span>
+<span class="n">mydata</span> <span class="o">=</span> <span class="n"><a href="#D47data">D47data</a></span><span class="p">()</span>
 </code></pre>
 </div>
 
@@ -621,8 +651,8 @@ A08  mySession  MYSAMPLE-2       -3.807        24.921  -3.876920   4.868890    0
 <ul>
 <li><code><a href="#D4xdata.Nominal_d13C_VPDB">D4xdata.Nominal_d13C_VPDB</a></code></li>
 <li><code><a href="#D4xdata.Nominal_d18O_VPDB">D4xdata.Nominal_d18O_VPDB</a></code></li>
-<li><code><a href="#D47data.Nominal_D4x">D47data.Nominal_D4x</a></code> (also accessible through <code>D47data.Nominal_D47</code>)</li>
-<li><code><a href="#D48data.Nominal_D4x">D48data.Nominal_D4x</a></code> (also accessible through <code>D48data.Nominal_D48</code>)</li>
+<li><code><a href="#D47data.Nominal_D4x">D47data.Nominal_D4x</a></code> (also accessible through <code><a href="#D47data.Nominal_D47">D47data.Nominal_D47</a></code>)</li>
+<li><code><a href="#D48data.Nominal_D4x">D48data.Nominal_D4x</a></code> (also accessible through <code><a href="#D48data.Nominal_D48">D48data.Nominal_D48</a></code>)</li>
 </ul>
 
 <p><sup>17</sup>O correction parameters are defined by:</p>
@@ -638,7 +668,7 @@ A08  mySession  MYSAMPLE-2       -3.807        24.921  -3.876920   4.868890    0
 
 <p>When creating a new instance of <code><a href="#D47data">D47data</a></code> or <code><a href="#D48data">D48data</a></code>, the current values of these variables are copied as properties of the new object. Applying custom values for, e.g., <code>R17_VSMOW</code> and <code>Nominal_D47</code> can thus be done in several ways:</p>
 
-<p><strong>Option 1:</strong> by redefining <code><a href="#D4xdata.R17_VSMOW">D4xdata.R17_VSMOW</a></code> and <code>D47data.Nominal_D47</code> _before_ creating a <code><a href="#D47data">D47data</a></code> object:</p>
+<p><strong>Option 1:</strong> by redefining <code><a href="#D4xdata.R17_VSMOW">D4xdata.R17_VSMOW</a></code> and <code><a href="#D47data.Nominal_D47">D47data.Nominal_D47</a></code> _before_ creating a <code><a href="#D47data">D47data</a></code> object:</p>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code><span class="kn">from</span> <span class="nn">D47crunch</span> <span class="kn">import</span> <span class="n">D4xdata</span><span class="p">,</span> <span class="n">D47data</span>
@@ -914,9 +944,9 @@ B06
 </span><span id="L-9"><a href="#L-9"><span class="linenos">   9</span></a><span class="sd">The **tutorial** section takes you through a series of simple steps to import/process data and print out the results.</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos">  10</span></a><span class="sd">The **how-to** section provides instructions applicable to various specific tasks.</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos">  11</span></a>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">  12</span></a><span class="sd">.. include:: ../docs/tutorial.md</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">  13</span></a><span class="sd">.. include:: ../docs/howto.md</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">  14</span></a><span class="sd">.. include:: ../docs/cli.md</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">  12</span></a><span class="sd">.. include:: ../../docpages/tutorial.md</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">  13</span></a><span class="sd">.. include:: ../../docpages/howto.md</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">  14</span></a><span class="sd">.. include:: ../../docpages/cli.md</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos">  15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos">  16</span></a><span class="sd"># 4. API Documentation</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos">  17</span></a><span class="sd">&#39;&#39;&#39;</span>
@@ -1377,13 +1407,13 @@ B06
 </span><span id="L-472"><a href="#L-472"><span class="linenos"> 472</span></a><span class="sd">	anchors and unknowns for a bunch of sessions:</span>
 </span><span id="L-473"><a href="#L-473"><span class="linenos"> 473</span></a>
 </span><span id="L-474"><a href="#L-474"><span class="linenos"> 474</span></a><span class="sd">	```py</span>
-</span><span id="L-475"><a href="#L-475"><span class="linenos"> 475</span></a><span class="sd">	.. include:: ../code_examples/virtual_data/example.py</span>
+</span><span id="L-475"><a href="#L-475"><span class="linenos"> 475</span></a><span class="sd">	.. include:: ../../code_examples/virtual_data/example.py</span>
 </span><span id="L-476"><a href="#L-476"><span class="linenos"> 476</span></a><span class="sd">	```</span>
 </span><span id="L-477"><a href="#L-477"><span class="linenos"> 477</span></a><span class="sd">	</span>
 </span><span id="L-478"><a href="#L-478"><span class="linenos"> 478</span></a><span class="sd">	This should output something like:</span>
 </span><span id="L-479"><a href="#L-479"><span class="linenos"> 479</span></a><span class="sd">	</span>
 </span><span id="L-480"><a href="#L-480"><span class="linenos"> 480</span></a><span class="sd">	```</span>
-</span><span id="L-481"><a href="#L-481"><span class="linenos"> 481</span></a><span class="sd">	.. include:: ../code_examples/virtual_data/output.txt</span>
+</span><span id="L-481"><a href="#L-481"><span class="linenos"> 481</span></a><span class="sd">	.. include:: ../../code_examples/virtual_data/output.txt</span>
 </span><span id="L-482"><a href="#L-482"><span class="linenos"> 482</span></a><span class="sd">	```</span>
 </span><span id="L-483"><a href="#L-483"><span class="linenos"> 483</span></a><span class="sd">	&#39;&#39;&#39;</span>
 </span><span id="L-484"><a href="#L-484"><span class="linenos"> 484</span></a>	
@@ -4417,6 +4447,406 @@ B06
 
 
             </section>
+                <section id="Petersen_etal_CO2eqD47">
+                    <div class="attr variable">
+            <span class="name">Petersen_etal_CO2eqD47</span>        =
+<input id="Petersen_etal_CO2eqD47-view-value" class="view-value-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+            <label class="view-value-button pdoc-button" for="Petersen_etal_CO2eqD47-view-value"></label><span class="default_value">array([[-1.20000000e+01,  1.14711357e+00],
+       [-1.10000000e+01,  1.13996122e+00],
+       [-1.00000000e+01,  1.13287286e+00],
+       [-9.00000000e+00,  1.12584768e+00],
+       [-8.00000000e+00,  1.11888489e+00],
+       [-7.00000000e+00,  1.11198371e+00],
+       [-6.00000000e+00,  1.10514337e+00],
+       [-5.00000000e+00,  1.09836311e+00],
+       [-4.00000000e+00,  1.09164218e+00],
+       [-3.00000000e+00,  1.08497986e+00],
+       [-2.00000000e+00,  1.07837542e+00],
+       [-1.00000000e+00,  1.07182816e+00],
+       [ 0.00000000e+00,  1.06533736e+00],
+       [ 1.00000000e+00,  1.05890235e+00],
+       [ 2.00000000e+00,  1.05252244e+00],
+       [ 3.00000000e+00,  1.04619698e+00],
+       [ 4.00000000e+00,  1.03992529e+00],
+       [ 5.00000000e+00,  1.03370674e+00],
+       [ 6.00000000e+00,  1.02754069e+00],
+       [ 7.00000000e+00,  1.02142651e+00],
+       [ 8.00000000e+00,  1.01536359e+00],
+       [ 9.00000000e+00,  1.00935131e+00],
+       [ 1.00000000e+01,  1.00338908e+00],
+       [ 1.10000000e+01,  9.97476303e-01],
+       [ 1.20000000e+01,  9.91612409e-01],
+       [ 1.30000000e+01,  9.85796821e-01],
+       [ 1.40000000e+01,  9.80028975e-01],
+       [ 1.50000000e+01,  9.74308318e-01],
+       [ 1.60000000e+01,  9.68634304e-01],
+       [ 1.70000000e+01,  9.63006392e-01],
+       [ 1.80000000e+01,  9.57424055e-01],
+       [ 1.90000000e+01,  9.51886769e-01],
+       [ 2.00000000e+01,  9.46394020e-01],
+       [ 2.10000000e+01,  9.40945302e-01],
+       [ 2.20000000e+01,  9.35540114e-01],
+       [ 2.30000000e+01,  9.30177964e-01],
+       [ 2.40000000e+01,  9.24858369e-01],
+       [ 2.50000000e+01,  9.19580851e-01],
+       [ 2.60000000e+01,  9.14344938e-01],
+       [ 2.70000000e+01,  9.09150167e-01],
+       [ 2.80000000e+01,  9.03996080e-01],
+       [ 2.90000000e+01,  8.98882228e-01],
+       [ 3.00000000e+01,  8.93808167e-01],
+       [ 3.10000000e+01,  8.88773459e-01],
+       [ 3.20000000e+01,  8.83777672e-01],
+       [ 3.30000000e+01,  8.78820382e-01],
+       [ 3.40000000e+01,  8.73901170e-01],
+       [ 3.50000000e+01,  8.69019623e-01],
+       [ 3.60000000e+01,  8.64175334e-01],
+       [ 3.70000000e+01,  8.59367901e-01],
+       [ 3.80000000e+01,  8.54596929e-01],
+       [ 3.90000000e+01,  8.49862028e-01],
+       [ 4.00000000e+01,  8.45162813e-01],
+       [ 4.10000000e+01,  8.40498905e-01],
+       [ 4.20000000e+01,  8.35869931e-01],
+       [ 4.30000000e+01,  8.31275522e-01],
+       [ 4.40000000e+01,  8.26715314e-01],
+       [ 4.50000000e+01,  8.22188950e-01],
+       [ 4.60000000e+01,  8.17696075e-01],
+       [ 4.70000000e+01,  8.13236341e-01],
+       [ 4.80000000e+01,  8.08809404e-01],
+       [ 4.90000000e+01,  8.04414926e-01],
+       [ 5.00000000e+01,  8.00052572e-01],
+       [ 5.10000000e+01,  7.95722012e-01],
+       [ 5.20000000e+01,  7.91422922e-01],
+       [ 5.30000000e+01,  7.87154979e-01],
+       [ 5.40000000e+01,  7.82917869e-01],
+       [ 5.50000000e+01,  7.78711277e-01],
+       [ 5.60000000e+01,  7.74534898e-01],
+       [ 5.70000000e+01,  7.70388426e-01],
+       [ 5.80000000e+01,  7.66271562e-01],
+       [ 5.90000000e+01,  7.62184010e-01],
+       [ 6.00000000e+01,  7.58125479e-01],
+       [ 6.10000000e+01,  7.54095680e-01],
+       [ 6.20000000e+01,  7.50094329e-01],
+       [ 6.30000000e+01,  7.46121147e-01],
+       [ 6.40000000e+01,  7.42175856e-01],
+       [ 6.50000000e+01,  7.38258184e-01],
+       [ 6.60000000e+01,  7.34367860e-01],
+       [ 6.70000000e+01,  7.30504620e-01],
+       [ 6.80000000e+01,  7.26668201e-01],
+       [ 6.90000000e+01,  7.22858343e-01],
+       [ 7.00000000e+01,  7.19074792e-01],
+       [ 7.10000000e+01,  7.15317295e-01],
+       [ 7.20000000e+01,  7.11585602e-01],
+       [ 7.30000000e+01,  7.07879469e-01],
+       [ 7.40000000e+01,  7.04198652e-01],
+       [ 7.50000000e+01,  7.00542912e-01],
+       [ 7.60000000e+01,  6.96912012e-01],
+       [ 7.70000000e+01,  6.93305719e-01],
+       [ 7.80000000e+01,  6.89723802e-01],
+       [ 7.90000000e+01,  6.86166034e-01],
+       [ 8.00000000e+01,  6.82632189e-01],
+       [ 8.10000000e+01,  6.79122047e-01],
+       [ 8.20000000e+01,  6.75635387e-01],
+       [ 8.30000000e+01,  6.72171994e-01],
+       [ 8.40000000e+01,  6.68731654e-01],
+       [ 8.50000000e+01,  6.65314156e-01],
+       [ 8.60000000e+01,  6.61919291e-01],
+       [ 8.70000000e+01,  6.58546854e-01],
+       [ 8.80000000e+01,  6.55196641e-01],
+       [ 8.90000000e+01,  6.51868451e-01],
+       [ 9.00000000e+01,  6.48562087e-01],
+       [ 9.10000000e+01,  6.45277352e-01],
+       [ 9.20000000e+01,  6.42014054e-01],
+       [ 9.30000000e+01,  6.38771999e-01],
+       [ 9.40000000e+01,  6.35551001e-01],
+       [ 9.50000000e+01,  6.32350872e-01],
+       [ 9.60000000e+01,  6.29171428e-01],
+       [ 9.70000000e+01,  6.26012487e-01],
+       [ 9.80000000e+01,  6.22873870e-01],
+       [ 9.90000000e+01,  6.19755397e-01],
+       [ 1.00000000e+02,  6.16656895e-01],
+       [ 1.02000000e+02,  6.10519107e-01],
+       [ 1.04000000e+02,  6.04459143e-01],
+       [ 1.06000000e+02,  5.98475670e-01],
+       [ 1.08000000e+02,  5.92567388e-01],
+       [ 1.10000000e+02,  5.86733026e-01],
+       [ 1.12000000e+02,  5.80971342e-01],
+       [ 1.14000000e+02,  5.75281125e-01],
+       [ 1.16000000e+02,  5.69661187e-01],
+       [ 1.18000000e+02,  5.64110371e-01],
+       [ 1.20000000e+02,  5.58627545e-01],
+       [ 1.22000000e+02,  5.53211600e-01],
+       [ 1.24000000e+02,  5.47861454e-01],
+       [ 1.26000000e+02,  5.42576048e-01],
+       [ 1.28000000e+02,  5.37354347e-01],
+       [ 1.30000000e+02,  5.32195337e-01],
+       [ 1.32000000e+02,  5.27098028e-01],
+       [ 1.34000000e+02,  5.22061450e-01],
+       [ 1.36000000e+02,  5.17084654e-01],
+       [ 1.38000000e+02,  5.12166711e-01],
+       [ 1.40000000e+02,  5.07306712e-01],
+       [ 1.42000000e+02,  5.02503768e-01],
+       [ 1.44000000e+02,  4.97757006e-01],
+       [ 1.46000000e+02,  4.93065573e-01],
+       [ 1.48000000e+02,  4.88428634e-01],
+       [ 1.50000000e+02,  4.83845370e-01],
+       [ 1.52000000e+02,  4.79314980e-01],
+       [ 1.54000000e+02,  4.74836677e-01],
+       [ 1.56000000e+02,  4.70409692e-01],
+       [ 1.58000000e+02,  4.66033271e-01],
+       [ 1.60000000e+02,  4.61706674e-01],
+       [ 1.62000000e+02,  4.57429176e-01],
+       [ 1.64000000e+02,  4.53200067e-01],
+       [ 1.66000000e+02,  4.49018650e-01],
+       [ 1.68000000e+02,  4.44884242e-01],
+       [ 1.70000000e+02,  4.40796174e-01],
+       [ 1.72000000e+02,  4.36753787e-01],
+       [ 1.74000000e+02,  4.32756438e-01],
+       [ 1.76000000e+02,  4.28803494e-01],
+       [ 1.78000000e+02,  4.24894334e-01],
+       [ 1.80000000e+02,  4.21028350e-01],
+       [ 1.82000000e+02,  4.17204944e-01],
+       [ 1.84000000e+02,  4.13423530e-01],
+       [ 1.86000000e+02,  4.09683531e-01],
+       [ 1.88000000e+02,  4.05984383e-01],
+       [ 1.90000000e+02,  4.02325531e-01],
+       [ 1.92000000e+02,  3.98706429e-01],
+       [ 1.94000000e+02,  3.95126543e-01],
+       [ 1.96000000e+02,  3.91585347e-01],
+       [ 1.98000000e+02,  3.88082324e-01],
+       [ 2.00000000e+02,  3.84616967e-01],
+       [ 2.02000000e+02,  3.81188778e-01],
+       [ 2.04000000e+02,  3.77797268e-01],
+       [ 2.06000000e+02,  3.74441954e-01],
+       [ 2.08000000e+02,  3.71122364e-01],
+       [ 2.10000000e+02,  3.67838033e-01],
+       [ 2.12000000e+02,  3.64588505e-01],
+       [ 2.14000000e+02,  3.61373329e-01],
+       [ 2.16000000e+02,  3.58192065e-01],
+       [ 2.18000000e+02,  3.55044277e-01],
+       [ 2.20000000e+02,  3.51929540e-01],
+       [ 2.22000000e+02,  3.48847432e-01],
+       [ 2.24000000e+02,  3.45797540e-01],
+       [ 2.26000000e+02,  3.42779460e-01],
+       [ 2.28000000e+02,  3.39792789e-01],
+       [ 2.30000000e+02,  3.36837136e-01],
+       [ 2.32000000e+02,  3.33912113e-01],
+       [ 2.34000000e+02,  3.31017339e-01],
+       [ 2.36000000e+02,  3.28152439e-01],
+       [ 2.38000000e+02,  3.25317046e-01],
+       [ 2.40000000e+02,  3.22510795e-01],
+       [ 2.42000000e+02,  3.19733329e-01],
+       [ 2.44000000e+02,  3.16984297e-01],
+       [ 2.46000000e+02,  3.14263352e-01],
+       [ 2.48000000e+02,  3.11570153e-01],
+       [ 2.50000000e+02,  3.08904364e-01],
+       [ 2.52000000e+02,  3.06265654e-01],
+       [ 2.54000000e+02,  3.03653699e-01],
+       [ 2.56000000e+02,  3.01068176e-01],
+       [ 2.58000000e+02,  2.98508771e-01],
+       [ 2.60000000e+02,  2.95975171e-01],
+       [ 2.62000000e+02,  2.93467070e-01],
+       [ 2.64000000e+02,  2.90984167e-01],
+       [ 2.66000000e+02,  2.88526163e-01],
+       [ 2.68000000e+02,  2.86092765e-01],
+       [ 2.70000000e+02,  2.83683684e-01],
+       [ 2.72000000e+02,  2.81298636e-01],
+       [ 2.74000000e+02,  2.78937339e-01],
+       [ 2.76000000e+02,  2.76599517e-01],
+       [ 2.78000000e+02,  2.74284898e-01],
+       [ 2.80000000e+02,  2.71993211e-01],
+       [ 2.82000000e+02,  2.69724193e-01],
+       [ 2.84000000e+02,  2.67477582e-01],
+       [ 2.86000000e+02,  2.65253121e-01],
+       [ 2.88000000e+02,  2.63050554e-01],
+       [ 2.90000000e+02,  2.60869633e-01],
+       [ 2.92000000e+02,  2.58710110e-01],
+       [ 2.94000000e+02,  2.56571741e-01],
+       [ 2.96000000e+02,  2.54454286e-01],
+       [ 2.98000000e+02,  2.52357508e-01],
+       [ 3.00000000e+02,  2.50281174e-01],
+       [ 3.02000000e+02,  2.48225053e-01],
+       [ 3.04000000e+02,  2.46188917e-01],
+       [ 3.06000000e+02,  2.44172542e-01],
+       [ 3.08000000e+02,  2.42175707e-01],
+       [ 3.10000000e+02,  2.40198194e-01],
+       [ 3.12000000e+02,  2.38239786e-01],
+       [ 3.14000000e+02,  2.36300272e-01],
+       [ 3.16000000e+02,  2.34379441e-01],
+       [ 3.18000000e+02,  2.32477087e-01],
+       [ 3.20000000e+02,  2.30593005e-01],
+       [ 3.22000000e+02,  2.28726993e-01],
+       [ 3.24000000e+02,  2.26878853e-01],
+       [ 3.26000000e+02,  2.25048388e-01],
+       [ 3.28000000e+02,  2.23235405e-01],
+       [ 3.30000000e+02,  2.21439711e-01],
+       [ 3.32000000e+02,  2.19661118e-01],
+       [ 3.34000000e+02,  2.17899439e-01],
+       [ 3.36000000e+02,  2.16154491e-01],
+       [ 3.38000000e+02,  2.14426091e-01],
+       [ 3.40000000e+02,  2.12714060e-01],
+       [ 3.42000000e+02,  2.11018220e-01],
+       [ 3.44000000e+02,  2.09338398e-01],
+       [ 3.46000000e+02,  2.07674420e-01],
+       [ 3.48000000e+02,  2.06026115e-01],
+       [ 3.50000000e+02,  2.04393315e-01],
+       [ 3.55000000e+02,  2.00378063e-01],
+       [ 3.60000000e+02,  1.96456139e-01],
+       [ 3.65000000e+02,  1.92625077e-01],
+       [ 3.70000000e+02,  1.88882487e-01],
+       [ 3.75000000e+02,  1.85226048e-01],
+       [ 3.80000000e+02,  1.81653511e-01],
+       [ 3.85000000e+02,  1.78162694e-01],
+       [ 3.90000000e+02,  1.74751478e-01],
+       [ 3.95000000e+02,  1.71417807e-01],
+       [ 4.00000000e+02,  1.68159686e-01],
+       [ 4.05000000e+02,  1.64975177e-01],
+       [ 4.10000000e+02,  1.61862398e-01],
+       [ 4.15000000e+02,  1.58819521e-01],
+       [ 4.20000000e+02,  1.55844772e-01],
+       [ 4.25000000e+02,  1.52936426e-01],
+       [ 4.30000000e+02,  1.50092806e-01],
+       [ 4.35000000e+02,  1.47312286e-01],
+       [ 4.40000000e+02,  1.44593281e-01],
+       [ 4.45000000e+02,  1.41934254e-01],
+       [ 4.50000000e+02,  1.39333710e-01],
+       [ 4.55000000e+02,  1.36790195e-01],
+       [ 4.60000000e+02,  1.34302294e-01],
+       [ 4.65000000e+02,  1.31868634e-01],
+       [ 4.70000000e+02,  1.29487876e-01],
+       [ 4.75000000e+02,  1.27158722e-01],
+       [ 4.80000000e+02,  1.24879906e-01],
+       [ 4.85000000e+02,  1.22650197e-01],
+       [ 4.90000000e+02,  1.20468398e-01],
+       [ 4.95000000e+02,  1.18333345e-01],
+       [ 5.00000000e+02,  1.16243903e-01],
+       [ 5.05000000e+02,  1.14198970e-01],
+       [ 5.10000000e+02,  1.12197471e-01],
+       [ 5.15000000e+02,  1.10238362e-01],
+       [ 5.20000000e+02,  1.08320625e-01],
+       [ 5.25000000e+02,  1.06443271e-01],
+       [ 5.30000000e+02,  1.04605335e-01],
+       [ 5.35000000e+02,  1.02805877e-01],
+       [ 5.40000000e+02,  1.01043985e-01],
+       [ 5.45000000e+02,  9.93187680e-02],
+       [ 5.50000000e+02,  9.76293590e-02],
+       [ 5.55000000e+02,  9.59749150e-02],
+       [ 5.60000000e+02,  9.43546120e-02],
+       [ 5.65000000e+02,  9.27676500e-02],
+       [ 5.70000000e+02,  9.12132480e-02],
+       [ 5.75000000e+02,  8.96906480e-02],
+       [ 5.80000000e+02,  8.81991080e-02],
+       [ 5.85000000e+02,  8.67379060e-02],
+       [ 5.90000000e+02,  8.53063410e-02],
+       [ 5.95000000e+02,  8.39037260e-02],
+       [ 6.00000000e+02,  8.25293950e-02],
+       [ 6.05000000e+02,  8.11826970e-02],
+       [ 6.10000000e+02,  7.98629980e-02],
+       [ 6.15000000e+02,  7.85696800e-02],
+       [ 6.20000000e+02,  7.73021410e-02],
+       [ 6.25000000e+02,  7.60597940e-02],
+       [ 6.30000000e+02,  7.48420660e-02],
+       [ 6.35000000e+02,  7.36484000e-02],
+       [ 6.40000000e+02,  7.24782510e-02],
+       [ 6.45000000e+02,  7.13310900e-02],
+       [ 6.50000000e+02,  7.02063990e-02],
+       [ 6.55000000e+02,  6.91036740e-02],
+       [ 6.60000000e+02,  6.80224240e-02],
+       [ 6.65000000e+02,  6.69621680e-02],
+       [ 6.70000000e+02,  6.59224390e-02],
+       [ 6.75000000e+02,  6.49027800e-02],
+       [ 6.80000000e+02,  6.39027480e-02],
+       [ 6.85000000e+02,  6.29219090e-02],
+       [ 6.90000000e+02,  6.19598370e-02],
+       [ 6.95000000e+02,  6.10161220e-02],
+       [ 7.00000000e+02,  6.00903600e-02],
+       [ 7.05000000e+02,  5.91821570e-02],
+       [ 7.10000000e+02,  5.82911310e-02],
+       [ 7.15000000e+02,  5.74169070e-02],
+       [ 7.20000000e+02,  5.65591200e-02],
+       [ 7.25000000e+02,  5.57174140e-02],
+       [ 7.30000000e+02,  5.48914400e-02],
+       [ 7.35000000e+02,  5.40808600e-02],
+       [ 7.40000000e+02,  5.32853430e-02],
+       [ 7.45000000e+02,  5.25045650e-02],
+       [ 7.50000000e+02,  5.17382100e-02],
+       [ 7.55000000e+02,  5.09859710e-02],
+       [ 7.60000000e+02,  5.02475460e-02],
+       [ 7.65000000e+02,  4.95226430e-02],
+       [ 7.70000000e+02,  4.88109740e-02],
+       [ 7.75000000e+02,  4.81122600e-02],
+       [ 7.80000000e+02,  4.74262270e-02],
+       [ 7.85000000e+02,  4.67526090e-02],
+       [ 7.90000000e+02,  4.60911450e-02],
+       [ 7.95000000e+02,  4.54415810e-02],
+       [ 8.00000000e+02,  4.48036680e-02],
+       [ 8.05000000e+02,  4.41771640e-02],
+       [ 8.10000000e+02,  4.35618310e-02],
+       [ 8.15000000e+02,  4.29574380e-02],
+       [ 8.20000000e+02,  4.23637590e-02],
+       [ 8.25000000e+02,  4.17805730e-02],
+       [ 8.30000000e+02,  4.12076640e-02],
+       [ 8.35000000e+02,  4.06448220e-02],
+       [ 8.40000000e+02,  4.00918390e-02],
+       [ 8.45000000e+02,  3.95485160e-02],
+       [ 8.50000000e+02,  3.90146540e-02],
+       [ 8.55000000e+02,  3.84900630e-02],
+       [ 8.60000000e+02,  3.79745540e-02],
+       [ 8.65000000e+02,  3.74679440e-02],
+       [ 8.70000000e+02,  3.69700540e-02],
+       [ 8.75000000e+02,  3.64807070e-02],
+       [ 8.80000000e+02,  3.59997340e-02],
+       [ 8.85000000e+02,  3.55269650e-02],
+       [ 8.90000000e+02,  3.50622380e-02],
+       [ 8.95000000e+02,  3.46053930e-02],
+       [ 9.00000000e+02,  3.41562720e-02],
+       [ 9.05000000e+02,  3.37147240e-02],
+       [ 9.10000000e+02,  3.32805980e-02],
+       [ 9.15000000e+02,  3.28537490e-02],
+       [ 9.20000000e+02,  3.24340320e-02],
+       [ 9.25000000e+02,  3.20213090e-02],
+       [ 9.30000000e+02,  3.16154430e-02],
+       [ 9.35000000e+02,  3.12163000e-02],
+       [ 9.40000000e+02,  3.08237490e-02],
+       [ 9.45000000e+02,  3.04376630e-02],
+       [ 9.50000000e+02,  3.00579150e-02],
+       [ 9.55000000e+02,  2.96843850e-02],
+       [ 9.60000000e+02,  2.93169510e-02],
+       [ 9.65000000e+02,  2.89554980e-02],
+       [ 9.70000000e+02,  2.85999100e-02],
+       [ 9.75000000e+02,  2.82500750e-02],
+       [ 9.80000000e+02,  2.79058840e-02],
+       [ 9.85000000e+02,  2.75672290e-02],
+       [ 9.90000000e+02,  2.72340060e-02],
+       [ 9.95000000e+02,  2.69061120e-02],
+       [ 1.00000000e+03,  2.65834450e-02],
+       [ 1.00500000e+03,  2.62659080e-02],
+       [ 1.01000000e+03,  2.59534050e-02],
+       [ 1.01500000e+03,  2.56458410e-02],
+       [ 1.02000000e+03,  2.53431240e-02],
+       [ 1.02500000e+03,  2.50451630e-02],
+       [ 1.03000000e+03,  2.47518710e-02],
+       [ 1.03500000e+03,  2.44631600e-02],
+       [ 1.04000000e+03,  2.41789470e-02],
+       [ 1.04500000e+03,  2.38991470e-02],
+       [ 1.05000000e+03,  2.36236800e-02],
+       [ 1.05500000e+03,  2.33524670e-02],
+       [ 1.06000000e+03,  2.30854290e-02],
+       [ 1.06500000e+03,  2.28224910e-02],
+       [ 1.07000000e+03,  2.25635770e-02],
+       [ 1.07500000e+03,  2.23086150e-02],
+       [ 1.08000000e+03,  2.20575330e-02],
+       [ 1.08500000e+03,  2.18102600e-02],
+       [ 1.09000000e+03,  2.15667290e-02],
+       [ 1.09500000e+03,  2.13268720e-02],
+       [ 1.10000000e+03,  2.10906220e-02]])</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Petersen_etal_CO2eqD47"></a>
+    
+    
+
+                </section>
                 <section id="fCO2eqD47_Petersen">
                             <input id="fCO2eqD47_Petersen-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -4442,6 +4872,136 @@ B06
 according to <a href="https://doi.org/10.1029/2018GC008127">Petersen et al. (2019)</a>.</p>
 </div>
 
+
+                </section>
+                <section id="Wang_etal_CO2eqD47">
+                    <div class="attr variable">
+            <span class="name">Wang_etal_CO2eqD47</span>        =
+<input id="Wang_etal_CO2eqD47-view-value" class="view-value-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+            <label class="view-value-button pdoc-button" for="Wang_etal_CO2eqD47-view-value"></label><span class="default_value">array([[-8.3000e+01,  1.8954e+00],
+       [-7.3000e+01,  1.7530e+00],
+       [-6.3000e+01,  1.6261e+00],
+       [-5.3000e+01,  1.5126e+00],
+       [-4.3000e+01,  1.4104e+00],
+       [-3.3000e+01,  1.3182e+00],
+       [-2.3000e+01,  1.2345e+00],
+       [-1.3000e+01,  1.1584e+00],
+       [-3.0000e+00,  1.0888e+00],
+       [ 7.0000e+00,  1.0251e+00],
+       [ 1.7000e+01,  9.6650e-01],
+       [ 2.7000e+01,  9.1250e-01],
+       [ 3.7000e+01,  8.6260e-01],
+       [ 4.7000e+01,  8.1640e-01],
+       [ 5.7000e+01,  7.7340e-01],
+       [ 6.7000e+01,  7.3340e-01],
+       [ 8.7000e+01,  6.6120e-01],
+       [ 9.7000e+01,  6.2860e-01],
+       [ 1.0700e+02,  5.9800e-01],
+       [ 1.1700e+02,  5.6930e-01],
+       [ 1.2700e+02,  5.4230e-01],
+       [ 1.3700e+02,  5.1690e-01],
+       [ 1.4700e+02,  4.9300e-01],
+       [ 1.5700e+02,  4.7040e-01],
+       [ 1.6700e+02,  4.4910e-01],
+       [ 1.7700e+02,  4.2890e-01],
+       [ 1.8700e+02,  4.0980e-01],
+       [ 1.9700e+02,  3.9180e-01],
+       [ 2.0700e+02,  3.7470e-01],
+       [ 2.1700e+02,  3.5850e-01],
+       [ 2.2700e+02,  3.4310e-01],
+       [ 2.3700e+02,  3.2850e-01],
+       [ 2.4700e+02,  3.1470e-01],
+       [ 2.5700e+02,  3.0150e-01],
+       [ 2.6700e+02,  2.8900e-01],
+       [ 2.7700e+02,  2.7710e-01],
+       [ 2.8700e+02,  2.6570e-01],
+       [ 2.9700e+02,  2.5500e-01],
+       [ 3.0700e+02,  2.4470e-01],
+       [ 3.1700e+02,  2.3490e-01],
+       [ 3.2700e+02,  2.2560e-01],
+       [ 3.3700e+02,  2.1670e-01],
+       [ 3.4700e+02,  2.0830e-01],
+       [ 3.5700e+02,  2.0020e-01],
+       [ 3.6700e+02,  1.9250e-01],
+       [ 3.7700e+02,  1.8510e-01],
+       [ 3.8700e+02,  1.7810e-01],
+       [ 3.9700e+02,  1.7140e-01],
+       [ 4.0700e+02,  1.6500e-01],
+       [ 4.1700e+02,  1.5890e-01],
+       [ 4.2700e+02,  1.5300e-01],
+       [ 4.3700e+02,  1.4740e-01],
+       [ 4.4700e+02,  1.4210e-01],
+       [ 4.5700e+02,  1.3700e-01],
+       [ 4.6700e+02,  1.3210e-01],
+       [ 4.7700e+02,  1.2740e-01],
+       [ 4.8700e+02,  1.2290e-01],
+       [ 4.9700e+02,  1.1860e-01],
+       [ 5.0700e+02,  1.1450e-01],
+       [ 5.1700e+02,  1.1050e-01],
+       [ 5.2700e+02,  1.0680e-01],
+       [ 5.3700e+02,  1.0310e-01],
+       [ 5.4700e+02,  9.9700e-02],
+       [ 5.5700e+02,  9.6300e-02],
+       [ 5.6700e+02,  9.3100e-02],
+       [ 5.7700e+02,  9.0100e-02],
+       [ 5.8700e+02,  8.7100e-02],
+       [ 5.9700e+02,  8.4300e-02],
+       [ 6.0700e+02,  8.1600e-02],
+       [ 6.1700e+02,  7.9000e-02],
+       [ 6.2700e+02,  7.6500e-02],
+       [ 6.3700e+02,  7.4100e-02],
+       [ 6.4700e+02,  7.1800e-02],
+       [ 6.5700e+02,  6.9500e-02],
+       [ 6.6700e+02,  6.7400e-02],
+       [ 6.7700e+02,  6.5400e-02],
+       [ 6.8700e+02,  6.3400e-02],
+       [ 6.9700e+02,  6.1500e-02],
+       [ 7.0700e+02,  5.9700e-02],
+       [ 7.1700e+02,  5.7900e-02],
+       [ 7.2700e+02,  5.6200e-02],
+       [ 7.3700e+02,  5.4600e-02],
+       [ 7.4700e+02,  5.3000e-02],
+       [ 7.5700e+02,  5.1500e-02],
+       [ 7.6700e+02,  5.0000e-02],
+       [ 7.7700e+02,  4.8600e-02],
+       [ 7.8700e+02,  4.7200e-02],
+       [ 7.9700e+02,  4.5900e-02],
+       [ 8.0700e+02,  4.4700e-02],
+       [ 8.1700e+02,  4.3500e-02],
+       [ 8.2700e+02,  4.2300e-02],
+       [ 8.3700e+02,  4.1100e-02],
+       [ 8.4700e+02,  4.0000e-02],
+       [ 8.5700e+02,  3.9000e-02],
+       [ 8.6700e+02,  3.8000e-02],
+       [ 8.7700e+02,  3.7000e-02],
+       [ 8.8700e+02,  3.6000e-02],
+       [ 8.9700e+02,  3.5100e-02],
+       [ 9.0700e+02,  3.4200e-02],
+       [ 9.1700e+02,  3.3300e-02],
+       [ 9.2700e+02,  3.2500e-02],
+       [ 9.3700e+02,  3.1700e-02],
+       [ 9.4700e+02,  3.0900e-02],
+       [ 9.5700e+02,  3.0200e-02],
+       [ 9.6700e+02,  2.9400e-02],
+       [ 9.7700e+02,  2.8700e-02],
+       [ 9.8700e+02,  2.8100e-02],
+       [ 9.9700e+02,  2.7400e-02],
+       [ 1.0070e+03,  2.6800e-02],
+       [ 1.0170e+03,  2.6100e-02],
+       [ 1.0270e+03,  2.5500e-02],
+       [ 1.0370e+03,  2.4900e-02],
+       [ 1.0470e+03,  2.4400e-02],
+       [ 1.0570e+03,  2.3800e-02],
+       [ 1.0670e+03,  2.3300e-02],
+       [ 1.0770e+03,  2.2800e-02],
+       [ 1.0870e+03,  2.2300e-02],
+       [ 1.0970e+03,  2.1800e-02]])</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Wang_etal_CO2eqD47"></a>
+    
+    
 
                 </section>
                 <section id="fCO2eqD47_Wang">
@@ -5157,13 +5717,13 @@ correction parameters (by default equal to the <code><a href="#D4xdata">D4xdata<
 </span><span id="virtual_data-473"><a href="#virtual_data-473"><span class="linenos">473</span></a><span class="sd">	anchors and unknowns for a bunch of sessions:</span>
 </span><span id="virtual_data-474"><a href="#virtual_data-474"><span class="linenos">474</span></a>
 </span><span id="virtual_data-475"><a href="#virtual_data-475"><span class="linenos">475</span></a><span class="sd">	```py</span>
-</span><span id="virtual_data-476"><a href="#virtual_data-476"><span class="linenos">476</span></a><span class="sd">	.. include:: ../code_examples/virtual_data/example.py</span>
+</span><span id="virtual_data-476"><a href="#virtual_data-476"><span class="linenos">476</span></a><span class="sd">	.. include:: ../../code_examples/virtual_data/example.py</span>
 </span><span id="virtual_data-477"><a href="#virtual_data-477"><span class="linenos">477</span></a><span class="sd">	```</span>
 </span><span id="virtual_data-478"><a href="#virtual_data-478"><span class="linenos">478</span></a><span class="sd">	</span>
 </span><span id="virtual_data-479"><a href="#virtual_data-479"><span class="linenos">479</span></a><span class="sd">	This should output something like:</span>
 </span><span id="virtual_data-480"><a href="#virtual_data-480"><span class="linenos">480</span></a><span class="sd">	</span>
 </span><span id="virtual_data-481"><a href="#virtual_data-481"><span class="linenos">481</span></a><span class="sd">	```</span>
-</span><span id="virtual_data-482"><a href="#virtual_data-482"><span class="linenos">482</span></a><span class="sd">	.. include:: ../code_examples/virtual_data/output.txt</span>
+</span><span id="virtual_data-482"><a href="#virtual_data-482"><span class="linenos">482</span></a><span class="sd">	.. include:: ../../code_examples/virtual_data/output.txt</span>
 </span><span id="virtual_data-483"><a href="#virtual_data-483"><span class="linenos">483</span></a><span class="sd">	```</span>
 </span><span id="virtual_data-484"><a href="#virtual_data-484"><span class="linenos">484</span></a><span class="sd">	&#39;&#39;&#39;</span>
 </span><span id="virtual_data-485"><a href="#virtual_data-485"><span class="linenos">485</span></a>	
@@ -5326,66 +5886,66 @@ FOO     12      -5.00       28.89  0.3024  0.0031  ± 0.0062  0.0070     0.497
 –––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
 UID     Session  Sample  d13Cwg_VPDB  d18Owg_VSMOW        d45        d46         d47         d48         d49   d13C_VPDB  d18O_VSMOW     D47raw     D48raw     D49raw       D47
 –––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
-1    Session_01   ETH-1       -4.000        26.000   5.995601  10.755323   16.116087   21.285428   27.780042    1.998631   36.986704  -0.696924  -0.333640   0.008600  0.201787
-2    Session_01     FOO       -4.000        26.000  -0.848028   2.874679    1.346196    5.439150    4.665655   -5.017230   28.951964  -0.601502  -0.316664  -0.081898  0.302042
-3    Session_01     BAR       -4.000        26.000  -9.920507  10.903408    0.065076   21.704075   10.707292  -14.998270   37.174839  -0.307018  -0.216978  -0.026076  0.592818
-4    Session_01   ETH-1       -4.000        26.000   6.010276  10.840276   16.207960   21.475150   27.780042    2.011176   37.073454  -0.704188  -0.315986  -0.172089  0.194589
-5    Session_01     FOO       -4.000        26.000  -0.838118   2.819853    1.310384    5.326005    4.665655   -5.004629   28.895933  -0.593755  -0.319861   0.014956  0.309692
-6    Session_01   ETH-2       -4.000        26.000  -5.974124  -5.955517  -12.668784  -12.208184  -18.023381  -10.163274   19.943159  -0.694902  -0.336672  -0.063946  0.215880
-7    Session_01     FOO       -4.000        26.000  -0.876454   2.906764    1.341194    5.490264    4.665655   -5.048760   28.984806  -0.608593  -0.329808  -0.114437  0.295055
-8    Session_01   ETH-3       -4.000        26.000   5.727341  11.211663   16.713472   22.364770   28.306614    1.695479   37.453503  -0.278056  -0.180158  -0.082015  0.614365
-9    Session_01     BAR       -4.000        26.000  -9.959983  10.926995    0.053806   21.724901   10.707292  -15.041279   37.199026  -0.300066  -0.243252  -0.029371  0.599675
-10   Session_01   ETH-3       -4.000        26.000   5.734896  11.229855   16.740410   22.402091   28.306614    1.702875   37.472070  -0.276998  -0.179635  -0.125368  0.615396
-11   Session_01     BAR       -4.000        26.000  -9.915975  10.968470    0.153453   21.749385   10.707292  -14.995822   37.241294  -0.286638  -0.301325  -0.157376  0.612868
-12   Session_01   ETH-1       -4.000        26.000   6.049381  10.706856   16.135579   21.196941   27.780042    2.057827   36.937067  -0.685751  -0.324384   0.045870  0.212791
-13   Session_01   ETH-2       -4.000        26.000  -5.991278  -5.995054  -12.741562  -12.184075  -18.023381  -10.180122   19.902809  -0.711697  -0.232746   0.032602  0.199357
-14   Session_01   ETH-2       -4.000        26.000  -5.982229  -6.110437  -12.827036  -12.492272  -18.023381  -10.166188   19.784916  -0.693555  -0.312598   0.251040  0.217274
-15   Session_01   ETH-3       -4.000        26.000   5.755174  11.255104   16.792797   22.451660   28.306614    1.723596   37.497816  -0.270825  -0.181089  -0.195908  0.621458
-16   Session_02   ETH-1       -4.000        26.000   5.993918  10.617469   15.991900   21.070358   27.780042    2.006934   36.882679  -0.683329  -0.271476   0.278458  0.216152
-17   Session_02   ETH-1       -4.000        26.000   6.030532  10.851030   16.245571   21.457100   27.780042    2.037466   37.122284  -0.698413  -0.354920  -0.214443  0.200795
-18   Session_02     BAR       -4.000        26.000  -9.963888  10.865863   -0.023549   21.615868   10.707292  -15.053743   37.174715  -0.313906  -0.229031   0.093637  0.597041
-19   Session_02   ETH-3       -4.000        26.000   5.719281  11.207303   16.681693   22.370886   28.306614    1.691780   37.488633  -0.296801  -0.165556  -0.065004  0.606143
-20   Session_02   ETH-1       -4.000        26.000   6.019963  10.773112   16.163825   21.331060   27.780042    2.029040   37.042346  -0.692234  -0.324161  -0.051788  0.207075
+1    Session_01   ETH-3       -4.000        26.000   5.755174  11.255104   16.792797   22.451660   28.306614    1.723596   37.497816  -0.270825  -0.181089  -0.195908  0.621458
+2    Session_01     BAR       -4.000        26.000  -9.959983  10.926995    0.053806   21.724901   10.707292  -15.041279   37.199026  -0.300066  -0.243252  -0.029371  0.599675
+3    Session_01   ETH-3       -4.000        26.000   5.734896  11.229855   16.740410   22.402091   28.306614    1.702875   37.472070  -0.276998  -0.179635  -0.125368  0.615396
+4    Session_01     FOO       -4.000        26.000  -0.838118   2.819853    1.310384    5.326005    4.665655   -5.004629   28.895933  -0.593755  -0.319861   0.014956  0.309692
+5    Session_01     FOO       -4.000        26.000  -0.848028   2.874679    1.346196    5.439150    4.665655   -5.017230   28.951964  -0.601502  -0.316664  -0.081898  0.302042
+6    Session_01   ETH-1       -4.000        26.000   6.010276  10.840276   16.207960   21.475150   27.780042    2.011176   37.073454  -0.704188  -0.315986  -0.172089  0.194589
+7    Session_01     BAR       -4.000        26.000  -9.920507  10.903408    0.065076   21.704075   10.707292  -14.998270   37.174839  -0.307018  -0.216978  -0.026076  0.592818
+8    Session_01   ETH-2       -4.000        26.000  -5.982229  -6.110437  -12.827036  -12.492272  -18.023381  -10.166188   19.784916  -0.693555  -0.312598   0.251040  0.217274
+9    Session_01   ETH-2       -4.000        26.000  -5.991278  -5.995054  -12.741562  -12.184075  -18.023381  -10.180122   19.902809  -0.711697  -0.232746   0.032602  0.199357
+10   Session_01     BAR       -4.000        26.000  -9.915975  10.968470    0.153453   21.749385   10.707292  -14.995822   37.241294  -0.286638  -0.301325  -0.157376  0.612868
+11   Session_01   ETH-3       -4.000        26.000   5.727341  11.211663   16.713472   22.364770   28.306614    1.695479   37.453503  -0.278056  -0.180158  -0.082015  0.614365
+12   Session_01   ETH-2       -4.000        26.000  -5.974124  -5.955517  -12.668784  -12.208184  -18.023381  -10.163274   19.943159  -0.694902  -0.336672  -0.063946  0.215880
+13   Session_01   ETH-1       -4.000        26.000   6.049381  10.706856   16.135579   21.196941   27.780042    2.057827   36.937067  -0.685751  -0.324384   0.045870  0.212791
+14   Session_01     FOO       -4.000        26.000  -0.876454   2.906764    1.341194    5.490264    4.665655   -5.048760   28.984806  -0.608593  -0.329808  -0.114437  0.295055
+15   Session_01   ETH-1       -4.000        26.000   5.995601  10.755323   16.116087   21.285428   27.780042    1.998631   36.986704  -0.696924  -0.333640   0.008600  0.201787
+16   Session_02   ETH-2       -4.000        26.000  -5.982371  -6.036210  -12.762399  -12.309944  -18.023381  -10.175178   19.819614  -0.701348  -0.277354   0.104418  0.212021
+17   Session_02     BAR       -4.000        26.000  -9.963888  10.865863   -0.023549   21.615868   10.707292  -15.053743   37.174715  -0.313906  -0.229031   0.093637  0.597041
+18   Session_02   ETH-3       -4.000        26.000   5.719281  11.207303   16.681693   22.370886   28.306614    1.691780   37.488633  -0.296801  -0.165556  -0.065004  0.606143
+19   Session_02     FOO       -4.000        26.000  -0.848415   2.849823    1.308081    5.427767    4.665655   -5.018107   28.927036  -0.614791  -0.278426  -0.032784  0.292547
+20   Session_02   ETH-1       -4.000        26.000   5.993918  10.617469   15.991900   21.070358   27.780042    2.006934   36.882679  -0.683329  -0.271476   0.278458  0.216152
 21   Session_02     BAR       -4.000        26.000  -9.957566  10.903888    0.031785   21.739434   10.707292  -15.048386   37.213724  -0.302139  -0.183327   0.012926  0.608897
-22   Session_02     FOO       -4.000        26.000  -0.848415   2.849823    1.308081    5.427767    4.665655   -5.018107   28.927036  -0.614791  -0.278426  -0.032784  0.292547
+22   Session_02   ETH-3       -4.000        26.000   5.716356  11.091821   16.582487   22.123857   28.306614    1.692901   37.370126  -0.279100  -0.178789   0.162540  0.624067
 23   Session_02   ETH-2       -4.000        26.000  -5.950370  -5.959974  -12.650784  -12.197864  -18.023381  -10.143809   19.897777  -0.696916  -0.317263  -0.080604  0.216441
-24   Session_02   ETH-2       -4.000        26.000  -5.982371  -6.036210  -12.762399  -12.309944  -18.023381  -10.175178   19.819614  -0.701348  -0.277354   0.104418  0.212021
-25   Session_02     FOO       -4.000        26.000  -0.835046   2.870518    1.355370    5.487896    4.665655   -5.004585   28.948243  -0.601666  -0.259900  -0.087592  0.305777
-26   Session_02   ETH-3       -4.000        26.000   5.716356  11.091821   16.582487   22.123857   28.306614    1.692901   37.370126  -0.279100  -0.178789   0.162540  0.624067
-27   Session_02   ETH-3       -4.000        26.000   5.757137  11.232751   16.744567   22.398244   28.306614    1.731295   37.514660  -0.298533  -0.189123  -0.154557  0.604363
-28   Session_02     BAR       -4.000        26.000  -9.936020  10.862339    0.024660   21.563307   10.707292  -15.023836   37.171034  -0.291333  -0.273498   0.070452  0.619812
-29   Session_02   ETH-2       -4.000        26.000  -5.993476  -5.944866  -12.696865  -12.149754  -18.023381  -10.190430   19.913381  -0.713779  -0.298963  -0.064251  0.199436
-30   Session_02     FOO       -4.000        26.000  -0.819742   2.826793    1.317044    5.330616    4.665655   -4.986618   28.903335  -0.612871  -0.329113  -0.018244  0.294481
+24   Session_02   ETH-3       -4.000        26.000   5.757137  11.232751   16.744567   22.398244   28.306614    1.731295   37.514660  -0.298533  -0.189123  -0.154557  0.604363
+25   Session_02     FOO       -4.000        26.000  -0.819742   2.826793    1.317044    5.330616    4.665655   -4.986618   28.903335  -0.612871  -0.329113  -0.018244  0.294481
+26   Session_02   ETH-1       -4.000        26.000   6.019963  10.773112   16.163825   21.331060   27.780042    2.029040   37.042346  -0.692234  -0.324161  -0.051788  0.207075
+27   Session_02     BAR       -4.000        26.000  -9.936020  10.862339    0.024660   21.563307   10.707292  -15.023836   37.171034  -0.291333  -0.273498   0.070452  0.619812
+28   Session_02   ETH-2       -4.000        26.000  -5.993476  -5.944866  -12.696865  -12.149754  -18.023381  -10.190430   19.913381  -0.713779  -0.298963  -0.064251  0.199436
+29   Session_02     FOO       -4.000        26.000  -0.835046   2.870518    1.355370    5.487896    4.665655   -5.004585   28.948243  -0.601666  -0.259900  -0.087592  0.305777
+30   Session_02   ETH-1       -4.000        26.000   6.030532  10.851030   16.245571   21.457100   27.780042    2.037466   37.122284  -0.698413  -0.354920  -0.214443  0.200795
 31   Session_03     BAR       -4.000        26.000  -9.952115  11.034508    0.169809   21.885915   10.707292  -15.002819   37.370451  -0.296804  -0.298351  -0.246731  0.606414
-32   Session_03   ETH-1       -4.000        26.000   6.004078  10.683951   16.045192   21.214355   27.780042    2.010134   36.971642  -0.705956  -0.262026   0.138399  0.193323
-33   Session_03   ETH-2       -4.000        26.000  -6.000290  -5.947172  -12.697463  -12.164602  -18.023381  -10.167221   19.848953  -0.705037  -0.309350  -0.052386  0.199061
-34   Session_03   ETH-1       -4.000        26.000   6.040566  10.786620   16.205283   21.374963   27.780042    2.045244   37.077432  -0.685706  -0.307909  -0.099869  0.213609
-35   Session_03     FOO       -4.000        26.000  -0.823857   2.761300    1.258060    5.239992    4.665655   -4.973383   28.817444  -0.603327  -0.288652   0.114488  0.298751
-36   Session_03   ETH-3       -4.000        26.000   5.718991  11.146227   16.640814   22.243185   28.306614    1.689442   37.449023  -0.277332  -0.169668   0.053997  0.623187
-37   Session_03   ETH-3       -4.000        26.000   5.748546  11.079879   16.580826   22.120063   28.306614    1.723364   37.380534  -0.302133  -0.158882   0.151641  0.598318
-38   Session_03     FOO       -4.000        26.000  -0.873798   2.820799    1.272165    5.370745    4.665655   -5.028782   28.878917  -0.596008  -0.277258   0.051165  0.306090
-39   Session_03     BAR       -4.000        26.000  -9.928709  10.989665    0.148059   21.852677   10.707292  -14.976237   37.324152  -0.299358  -0.242185  -0.184835  0.603855
-40   Session_03   ETH-2       -4.000        26.000  -5.997147  -5.905858  -12.655382  -12.081612  -18.023381  -10.165400   19.891551  -0.706536  -0.308464  -0.137414  0.197550
-41   Session_03     BAR       -4.000        26.000  -9.957114  10.898997    0.044946   21.602296   10.707292  -15.003175   37.230716  -0.284699  -0.307849   0.021944  0.618578
-42   Session_03   ETH-3       -4.000        26.000   5.753467  11.206589   16.719131   22.373244   28.306614    1.723960   37.511190  -0.294350  -0.161838  -0.099835  0.606103
+32   Session_03     BAR       -4.000        26.000  -9.957114  10.898997    0.044946   21.602296   10.707292  -15.003175   37.230716  -0.284699  -0.307849   0.021944  0.618578
+33   Session_03     FOO       -4.000        26.000  -0.823857   2.761300    1.258060    5.239992    4.665655   -4.973383   28.817444  -0.603327  -0.288652   0.114488  0.298751
+34   Session_03   ETH-3       -4.000        26.000   5.753467  11.206589   16.719131   22.373244   28.306614    1.723960   37.511190  -0.294350  -0.161838  -0.099835  0.606103
+35   Session_03   ETH-1       -4.000        26.000   6.040566  10.786620   16.205283   21.374963   27.780042    2.045244   37.077432  -0.685706  -0.307909  -0.099869  0.213609
+36   Session_03   ETH-1       -4.000        26.000   5.994622  10.743980   16.116098   21.243734   27.780042    1.997857   37.033567  -0.684883  -0.352014   0.031692  0.214449
+37   Session_03     BAR       -4.000        26.000  -9.928709  10.989665    0.148059   21.852677   10.707292  -14.976237   37.324152  -0.299358  -0.242185  -0.184835  0.603855
+38   Session_03   ETH-2       -4.000        26.000  -6.000290  -5.947172  -12.697463  -12.164602  -18.023381  -10.167221   19.848953  -0.705037  -0.309350  -0.052386  0.199061
+39   Session_03   ETH-3       -4.000        26.000   5.748546  11.079879   16.580826   22.120063   28.306614    1.723364   37.380534  -0.302133  -0.158882   0.151641  0.598318
+40   Session_03     FOO       -4.000        26.000  -0.873798   2.820799    1.272165    5.370745    4.665655   -5.028782   28.878917  -0.596008  -0.277258   0.051165  0.306090
+41   Session_03   ETH-3       -4.000        26.000   5.718991  11.146227   16.640814   22.243185   28.306614    1.689442   37.449023  -0.277332  -0.169668   0.053997  0.623187
+42   Session_03   ETH-1       -4.000        26.000   6.004078  10.683951   16.045192   21.214355   27.780042    2.010134   36.971642  -0.705956  -0.262026   0.138399  0.193323
 43   Session_03     FOO       -4.000        26.000  -0.800284   2.851299    1.376828    5.379547    4.665655   -4.951581   28.910199  -0.597293  -0.329315  -0.087015  0.304784
-44   Session_03   ETH-2       -4.000        26.000  -6.008525  -5.909707  -12.647727  -12.075913  -18.023381  -10.177379   19.887608  -0.683183  -0.294956  -0.117608  0.220975
-45   Session_03   ETH-1       -4.000        26.000   5.994622  10.743980   16.116098   21.243734   27.780042    1.997857   37.033567  -0.684883  -0.352014   0.031692  0.214449
-46   Session_04   ETH-3       -4.000        26.000   5.739420  11.128582   16.641344   22.166106   28.306614    1.695046   37.399884  -0.280608  -0.210162   0.066645  0.614665
-47   Session_04   ETH-1       -4.000        26.000   6.029937  10.766997   16.151273   21.345479   27.780042    2.018148   37.027152  -0.708855  -0.297953  -0.050465  0.193862
-48   Session_04   ETH-1       -4.000        26.000   6.023822  10.730714   16.121184   21.235757   27.780042    2.012958   36.989833  -0.696908  -0.333582   0.026555  0.205610
-49   Session_04   ETH-3       -4.000        26.000   5.798016  11.254135   16.832228   22.432473   28.306614    1.752928   37.528936  -0.275047  -0.197935  -0.239408  0.620088
-50   Session_04   ETH-2       -4.000        26.000  -5.973623  -5.975018  -12.694278  -12.194472  -18.023381  -10.166297   19.828211  -0.701951  -0.283570  -0.025935  0.207135
-51   Session_04   ETH-2       -4.000        26.000  -5.966627  -5.893789  -12.597717  -12.120719  -18.023381  -10.161842   19.911776  -0.691757  -0.372308  -0.193986  0.217132
-52   Session_04     FOO       -4.000        26.000  -0.853969   2.805035    1.267571    5.353907    4.665655   -5.030523   28.850660  -0.605611  -0.262571   0.060903  0.298685
-53   Session_04     BAR       -4.000        26.000  -9.926078  10.884823    0.060864   21.650722   10.707292  -15.002880   37.185606  -0.287358  -0.232425   0.016044  0.611760
-54   Session_04   ETH-2       -4.000        26.000  -5.986501  -5.915157  -12.656583  -12.060382  -18.023381  -10.182247   19.889836  -0.709603  -0.268277  -0.130450  0.199604
-55   Session_04     BAR       -4.000        26.000  -9.951025  10.951923    0.089386   21.738926   10.707292  -15.031949   37.254709  -0.298065  -0.278834  -0.087463  0.601230
-56   Session_04   ETH-3       -4.000        26.000   5.751908  11.207110   16.726741   22.380392   28.306614    1.705481   37.480657  -0.285776  -0.155878  -0.099197  0.609567
-57   Session_04   ETH-1       -4.000        26.000   6.017312  10.735930   16.123043   21.270597   27.780042    2.005824   36.995214  -0.693479  -0.309795   0.023309  0.208980
-58   Session_04     FOO       -4.000        26.000  -0.848192   2.777763    1.251297    5.280272    4.665655   -5.023358   28.822585  -0.601094  -0.281419   0.108186  0.303128
-59   Session_04     BAR       -4.000        26.000  -9.931741  10.819830   -0.023748   21.529372   10.707292  -15.006533   37.118743  -0.302866  -0.222623   0.148462  0.596536
-60   Session_04     FOO       -4.000        26.000  -0.791191   2.708220    1.256167    5.145784    4.665655   -4.960004   28.750896  -0.586913  -0.276505   0.183674  0.317065
+44   Session_03   ETH-2       -4.000        26.000  -5.997147  -5.905858  -12.655382  -12.081612  -18.023381  -10.165400   19.891551  -0.706536  -0.308464  -0.137414  0.197550
+45   Session_03   ETH-2       -4.000        26.000  -6.008525  -5.909707  -12.647727  -12.075913  -18.023381  -10.177379   19.887608  -0.683183  -0.294956  -0.117608  0.220975
+46   Session_04   ETH-1       -4.000        26.000   6.023822  10.730714   16.121184   21.235757   27.780042    2.012958   36.989833  -0.696908  -0.333582   0.026555  0.205610
+47   Session_04   ETH-3       -4.000        26.000   5.739420  11.128582   16.641344   22.166106   28.306614    1.695046   37.399884  -0.280608  -0.210162   0.066645  0.614665
+48   Session_04     BAR       -4.000        26.000  -9.951025  10.951923    0.089386   21.738926   10.707292  -15.031949   37.254709  -0.298065  -0.278834  -0.087463  0.601230
+49   Session_04     FOO       -4.000        26.000  -0.848192   2.777763    1.251297    5.280272    4.665655   -5.023358   28.822585  -0.601094  -0.281419   0.108186  0.303128
+50   Session_04     BAR       -4.000        26.000  -9.931741  10.819830   -0.023748   21.529372   10.707292  -15.006533   37.118743  -0.302866  -0.222623   0.148462  0.596536
+51   Session_04     FOO       -4.000        26.000  -0.853969   2.805035    1.267571    5.353907    4.665655   -5.030523   28.850660  -0.605611  -0.262571   0.060903  0.298685
+52   Session_04   ETH-3       -4.000        26.000   5.751908  11.207110   16.726741   22.380392   28.306614    1.705481   37.480657  -0.285776  -0.155878  -0.099197  0.609567
+53   Session_04   ETH-3       -4.000        26.000   5.798016  11.254135   16.832228   22.432473   28.306614    1.752928   37.528936  -0.275047  -0.197935  -0.239408  0.620088
+54   Session_04     FOO       -4.000        26.000  -0.791191   2.708220    1.256167    5.145784    4.665655   -4.960004   28.750896  -0.586913  -0.276505   0.183674  0.317065
+55   Session_04   ETH-2       -4.000        26.000  -5.966627  -5.893789  -12.597717  -12.120719  -18.023381  -10.161842   19.911776  -0.691757  -0.372308  -0.193986  0.217132
+56   Session_04   ETH-1       -4.000        26.000   6.017312  10.735930   16.123043   21.270597   27.780042    2.005824   36.995214  -0.693479  -0.309795   0.023309  0.208980
+57   Session_04   ETH-2       -4.000        26.000  -5.986501  -5.915157  -12.656583  -12.060382  -18.023381  -10.182247   19.889836  -0.709603  -0.268277  -0.130450  0.199604
+58   Session_04   ETH-2       -4.000        26.000  -5.973623  -5.975018  -12.694278  -12.194472  -18.023381  -10.166297   19.828211  -0.701951  -0.283570  -0.025935  0.207135
+59   Session_04   ETH-1       -4.000        26.000   6.029937  10.766997   16.151273   21.345479   27.780042    2.018148   37.027152  -0.708855  -0.297953  -0.050465  0.193862
+60   Session_04     BAR       -4.000        26.000  -9.926078  10.884823    0.060864   21.650722   10.707292  -15.002880   37.185606  -0.287358  -0.232425   0.016044  0.611760
 –––  ––––––––––  ––––––  –––––––––––  ––––––––––––  –––––––––  –––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  ––––––––––  –––––––––  –––––––––  –––––––––  ––––––––
 
 
@@ -8119,9 +8679,9 @@ analyses, usually comprising more than one analytical session.</p>
 <li><code>l</code>: a list of dictionaries, with each dictionary including at least the keys
 <code>Sample</code>, <code>d45</code>, <code>d46</code>, and <code>d47</code> or <code>d48</code>.</li>
 <li><code>mass</code>: <code>'47'</code> or <code>'48'</code></li>
-<li><code>logfile</code>: if specified, write detailed logs to this file path when calling <code><a href="#D4xdata">D4xdata</a></code> methods.</li>
+<li><code><a href="#D4xdata.logfile">logfile</a></code>: if specified, write detailed logs to this file path when calling <code><a href="#D4xdata">D4xdata</a></code> methods.</li>
 <li><code>session</code>: define session name for analyses without a <code>Session</code> key</li>
-<li><code>verbose</code>: if <code>True</code>, print out detailed logs when calling <code><a href="#D4xdata">D4xdata</a></code> methods.</li>
+<li><code><a href="#D4xdata.verbose">verbose</a></code>: if <code>True</code>, print out detailed logs when calling <code><a href="#D4xdata">D4xdata</a></code> methods.</li>
 </ul>
 
 <p>Returns a <code><a href="#D4xdata">D4xdata</a></code> object derived from <code>list</code>.</p>
@@ -8246,7 +8806,7 @@ sample should be used as a reference for this test.</p>
                             <div id="D4xdata.ALPHA_18O_ACID_REACTION" class="classattr">
                                 <div class="attr variable">
             <span class="name">ALPHA_18O_ACID_REACTION</span>        =
-<span class="default_value">1.008129</span>
+<span class="default_value">np.float64(1.008129)</span>
 
         
     </div>
@@ -8346,6 +8906,61 @@ is defined).</li>
 </ul>
 </div>
 
+
+                            </div>
+                            <div id="D4xdata.verbose" class="classattr">
+                                <div class="attr variable">
+            <span class="name">verbose</span>
+
+        
+    </div>
+    <a class="headerlink" href="#D4xdata.verbose"></a>
+    
+    
+
+                            </div>
+                            <div id="D4xdata.prefix" class="classattr">
+                                <div class="attr variable">
+            <span class="name">prefix</span>
+
+        
+    </div>
+    <a class="headerlink" href="#D4xdata.prefix"></a>
+    
+    
+
+                            </div>
+                            <div id="D4xdata.logfile" class="classattr">
+                                <div class="attr variable">
+            <span class="name">logfile</span>
+
+        
+    </div>
+    <a class="headerlink" href="#D4xdata.logfile"></a>
+    
+    
+
+                            </div>
+                            <div id="D4xdata.Nf" class="classattr">
+                                <div class="attr variable">
+            <span class="name">Nf</span>
+
+        
+    </div>
+    <a class="headerlink" href="#D4xdata.Nf"></a>
+    
+    
+
+                            </div>
+                            <div id="D4xdata.repeatability" class="classattr">
+                                <div class="attr variable">
+            <span class="name">repeatability</span>
+
+        
+    </div>
+    <a class="headerlink" href="#D4xdata.repeatability"></a>
+    
+    
 
                             </div>
                             <div id="D4xdata.make_verbal" class="classattr">
@@ -11787,6 +12402,24 @@ reference frame.</p>
 
 
                             </div>
+                            <div id="D47data.Nominal_D47" class="classattr">
+                                        <input id="D47data.Nominal_D47-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">Nominal_D47</span>
+
+                <label class="view-source-button" for="D47data.Nominal_D47-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#D47data.Nominal_D47"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="D47data.Nominal_D47-3191"><a href="#D47data.Nominal_D47-3191"><span class="linenos">3191</span></a>	<span class="nd">@property</span>
+</span><span id="D47data.Nominal_D47-3192"><a href="#D47data.Nominal_D47-3192"><span class="linenos">3192</span></a>	<span class="k">def</span> <span class="nf">Nominal_D47</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="D47data.Nominal_D47-3193"><a href="#D47data.Nominal_D47-3193"><span class="linenos">3193</span></a>		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nominal_D4x</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
                             <div id="D47data.D47fromTeq" class="classattr">
                                         <input id="D47data.D47fromTeq-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -11902,6 +12535,11 @@ values in case of conflict.</li>
                 <dd id="D47data.Nominal_d18O_VPDB" class="variable"><a href="#D4xdata.Nominal_d18O_VPDB">Nominal_d18O_VPDB</a></dd>
                 <dd id="D47data.d13C_STANDARDIZATION_METHOD" class="variable"><a href="#D4xdata.d13C_STANDARDIZATION_METHOD">d13C_STANDARDIZATION_METHOD</a></dd>
                 <dd id="D47data.d18O_STANDARDIZATION_METHOD" class="variable"><a href="#D4xdata.d18O_STANDARDIZATION_METHOD">d18O_STANDARDIZATION_METHOD</a></dd>
+                <dd id="D47data.verbose" class="variable"><a href="#D4xdata.verbose">verbose</a></dd>
+                <dd id="D47data.prefix" class="variable"><a href="#D4xdata.prefix">prefix</a></dd>
+                <dd id="D47data.logfile" class="variable"><a href="#D4xdata.logfile">logfile</a></dd>
+                <dd id="D47data.Nf" class="variable"><a href="#D4xdata.Nf">Nf</a></dd>
+                <dd id="D47data.repeatability" class="variable"><a href="#D4xdata.repeatability">repeatability</a></dd>
                 <dd id="D47data.make_verbal" class="function"><a href="#D4xdata.make_verbal">make_verbal</a></dd>
                 <dd id="D47data.msg" class="function"><a href="#D4xdata.msg">msg</a></dd>
                 <dd id="D47data.vmsg" class="function"><a href="#D4xdata.vmsg">vmsg</a></dd>
@@ -12091,6 +12729,24 @@ reference frame.</p>
 
 
                             </div>
+                            <div id="D48data.Nominal_D48" class="classattr">
+                                        <input id="D48data.Nominal_D48-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">Nominal_D48</span>
+
+                <label class="view-source-button" for="D48data.Nominal_D48-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#D48data.Nominal_D48"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="D48data.Nominal_D48-3284"><a href="#D48data.Nominal_D48-3284"><span class="linenos">3284</span></a>	<span class="nd">@property</span>
+</span><span id="D48data.Nominal_D48-3285"><a href="#D48data.Nominal_D48-3285"><span class="linenos">3285</span></a>	<span class="k">def</span> <span class="nf">Nominal_D48</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="D48data.Nominal_D48-3286"><a href="#D48data.Nominal_D48-3286"><span class="linenos">3286</span></a>		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nominal_D4x</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
                             <div id="D48data.save_D48_correl" class="classattr">
                                         <input id="D48data.save_D48_correl-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -12138,6 +12794,11 @@ reference frame.</p>
                 <dd id="D48data.Nominal_d18O_VPDB" class="variable"><a href="#D4xdata.Nominal_d18O_VPDB">Nominal_d18O_VPDB</a></dd>
                 <dd id="D48data.d13C_STANDARDIZATION_METHOD" class="variable"><a href="#D4xdata.d13C_STANDARDIZATION_METHOD">d13C_STANDARDIZATION_METHOD</a></dd>
                 <dd id="D48data.d18O_STANDARDIZATION_METHOD" class="variable"><a href="#D4xdata.d18O_STANDARDIZATION_METHOD">d18O_STANDARDIZATION_METHOD</a></dd>
+                <dd id="D48data.verbose" class="variable"><a href="#D4xdata.verbose">verbose</a></dd>
+                <dd id="D48data.prefix" class="variable"><a href="#D4xdata.prefix">prefix</a></dd>
+                <dd id="D48data.logfile" class="variable"><a href="#D4xdata.logfile">logfile</a></dd>
+                <dd id="D48data.Nf" class="variable"><a href="#D4xdata.Nf">Nf</a></dd>
+                <dd id="D48data.repeatability" class="variable"><a href="#D4xdata.repeatability">repeatability</a></dd>
                 <dd id="D48data.make_verbal" class="function"><a href="#D4xdata.make_verbal">make_verbal</a></dd>
                 <dd id="D48data.msg" class="function"><a href="#D4xdata.msg">msg</a></dd>
                 <dd id="D48data.vmsg" class="function"><a href="#D4xdata.vmsg">vmsg</a></dd>
@@ -12310,6 +12971,24 @@ reference frame.</p>
 
 
                             </div>
+                            <div id="D49data.Nominal_D49" class="classattr">
+                                        <input id="D49data.Nominal_D49-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">Nominal_D49</span>
+
+                <label class="view-source-button" for="D49data.Nominal_D49-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#D49data.Nominal_D49"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="D49data.Nominal_D49-3329"><a href="#D49data.Nominal_D49-3329"><span class="linenos">3329</span></a>	<span class="nd">@property</span>
+</span><span id="D49data.Nominal_D49-3330"><a href="#D49data.Nominal_D49-3330"><span class="linenos">3330</span></a>	<span class="k">def</span> <span class="nf">Nominal_D49</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="D49data.Nominal_D49-3331"><a href="#D49data.Nominal_D49-3331"><span class="linenos">3331</span></a>		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Nominal_D4x</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
                             <div id="D49data.save_D49_correl" class="classattr">
                                         <input id="D49data.save_D49_correl-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -12357,6 +13036,11 @@ reference frame.</p>
                 <dd id="D49data.Nominal_d18O_VPDB" class="variable"><a href="#D4xdata.Nominal_d18O_VPDB">Nominal_d18O_VPDB</a></dd>
                 <dd id="D49data.d13C_STANDARDIZATION_METHOD" class="variable"><a href="#D4xdata.d13C_STANDARDIZATION_METHOD">d13C_STANDARDIZATION_METHOD</a></dd>
                 <dd id="D49data.d18O_STANDARDIZATION_METHOD" class="variable"><a href="#D4xdata.d18O_STANDARDIZATION_METHOD">d18O_STANDARDIZATION_METHOD</a></dd>
+                <dd id="D49data.verbose" class="variable"><a href="#D4xdata.verbose">verbose</a></dd>
+                <dd id="D49data.prefix" class="variable"><a href="#D4xdata.prefix">prefix</a></dd>
+                <dd id="D49data.logfile" class="variable"><a href="#D4xdata.logfile">logfile</a></dd>
+                <dd id="D49data.Nf" class="variable"><a href="#D4xdata.Nf">Nf</a></dd>
+                <dd id="D49data.repeatability" class="variable"><a href="#D4xdata.repeatability">repeatability</a></dd>
                 <dd id="D49data.make_verbal" class="function"><a href="#D4xdata.make_verbal">make_verbal</a></dd>
                 <dd id="D49data.msg" class="function"><a href="#D4xdata.msg">msg</a></dd>
                 <dd id="D49data.vmsg" class="function"><a href="#D4xdata.vmsg">vmsg</a></dd>

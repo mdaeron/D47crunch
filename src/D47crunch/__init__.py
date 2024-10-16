@@ -9,9 +9,9 @@ from low-level data out of a dual-inlet mass spectrometer to final, â€œabsoluteâ
 The **tutorial** section takes you through a series of simple steps to import/process data and print out the results.
 The **how-to** section provides instructions applicable to various specific tasks.
 
-.. include:: ../docs/tutorial.md
-.. include:: ../docs/howto.md
-.. include:: ../docs/cli.md
+.. include:: ../../docpages/tutorial.md
+.. include:: ../../docpages/howto.md
+.. include:: ../../docpages/cli.md
 
 # 4. API Documentation
 '''
@@ -472,13 +472,13 @@ def virtual_data(
 	anchors and unknowns for a bunch of sessions:
 
 	```py
-	.. include:: ../code_examples/virtual_data/example.py
+	.. include:: ../../code_examples/virtual_data/example.py
 	```
 	
 	This should output something like:
 	
 	```
-	.. include:: ../code_examples/virtual_data/output.txt
+	.. include:: ../../code_examples/virtual_data/output.txt
 	```
 	'''
 	
