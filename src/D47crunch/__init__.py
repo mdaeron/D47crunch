@@ -150,8 +150,14 @@ def smart_type(x):
 		return int(y)
 	return y
 
+class _Defaults():
+	def __init__(self):
+		pass
 
-def pretty_table(x, header = 1, hsep = '  ', vsep = '–', align = '<'):
+D47crunch_defaults = _Defaults()
+D47crunch_defaults.PRETTY_TABLE_VSEP = '—'
+
+def pretty_table(x, header = 1, hsep = '  ', vsep = None, align = '<'):
 	'''
 	Reads a list of lists of strings and outputs an ascii table
 
@@ -166,20 +172,46 @@ def pretty_table(x, header = 1, hsep = '  ', vsep = '–', align = '<'):
 	**Example**
 
 	```py
-	x = [['A', 'B', 'C'], ['1', '1.9999', 'foo'], ['10', 'x', 'bar']]
-	print(pretty_table(x))
+	print(pretty_table([
+		['A', 'B', 'C'],
+		['1', '1.9999', 'foo'],
+		['10', 'x', 'bar'],
+	]))
 	```
 	yields:	
 	```
-	--  ------  ---
+	——  ——————  ———
 	A        B    C
-	--  ------  ---
+	——  ——————  ———
 	1   1.9999  foo
 	10       x  bar
-	--  ------  ---
+	——  ——————  ———
 	```
+
+	To change the default `vsep` globally, redefine `D47crunch_defaults.PRETTY_TABLE_VSEP`:
 	
+	```py
+	D47crunch_defaults.PRETTY_TABLE_VSEP = '='
+	print(pretty_table([
+		['A', 'B', 'C'],
+		['1', '1.9999', 'foo'],
+		['10', 'x', 'bar'],
+	]))
+	```
+	yields:	
+	```
+	==  ======  ===
+	A        B    C
+	==  ======  ===
+	1   1.9999  foo
+	10       x  bar
+	==  ======  ===
+	```
 	'''
+	
+	if vsep is None:
+		vsep = D47crunch_defaults.PRETTY_TABLE_VSEP
+	
 	txt = []
 	widths = [np.max([len(e) for e in c]) for c in zip(*x)]
 
