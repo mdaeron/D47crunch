@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.4.2
+
+* Change to MIT license
+
 ## v2.4.1
 *Released on 2024-09-10*
 

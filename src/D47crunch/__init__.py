@@ -13,16 +13,16 @@ The **how-to** section provides instructions applicable to various specific task
 .. include:: ../../docpages/howto.md
 .. include:: ../../docpages/cli.md
 
-# 4. API Documentation
+<h1>API Documentation</h1>
 '''
 
 __docformat__ = "restructuredtext"
 __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
-__copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
-__license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2024-09-10'
-__version__   = '2.4.1'
+__copyright__ = 'Copyright (c) Mathieu Daëron'
+__license__   = 'MIT License - https://opensource.org/licenses/MIT'
+__date__      = '2024-11-17'
+__version__   = '2.4.2'
 
 import os
 import numpy as np
