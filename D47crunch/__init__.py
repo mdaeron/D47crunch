@@ -2869,8 +2869,6 @@ class D4xdata(list):
 		if not os.path.exists(dir):
 			os.makedirs(dir)
 		if filename is None:
-			return fig
-		elif filename == '':
 			filename = f'D{self._4x}_residuals.pdf'
 		ppl.savefig(f'{dir}/{filename}', dpi = dpi)
 		ppl.close(fig)
