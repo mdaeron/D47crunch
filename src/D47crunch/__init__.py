@@ -377,7 +377,7 @@ def simulate_single_analysis(
 		if sample in Nominal_d13C_VPDB:
 			d13C_VPDB = Nominal_d13C_VPDB[sample]
 		else:
-			raise KeyError(f"Sample {sample} is missing d13C_VDP value, and it is not defined in Nominal_d13C_VDP.")
+			raise KeyError(f"Sample {sample} is missing d13C_VPDB value, and it is not defined in Nominal_d13C_VDP.")
 
 	if d18O_VPDB is None:
 		if sample in Nominal_d18O_VPDB:
