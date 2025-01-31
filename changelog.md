@@ -2,7 +2,7 @@
 
 ## v2.4.2
 
-* Change to MIT license
+* Switch to MIT license
 * Add `D47crunch_defaults` to store global default values
 * Add `D47crunch_defaults.PRETTY_TABLE_VSEP` to customize `pretty_table()` globally
 
