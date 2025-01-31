@@ -377,7 +377,7 @@ def simulate_single_analysis(
 		if sample in Nominal_d13C_VPDB:
 			d13C_VPDB = Nominal_d13C_VPDB[sample]
 		else:
-			raise KeyError(f"Sample {sample} is missing d13C_VPDB value, and it is not defined in Nominal_d13C_VDP.")
+			raise KeyError(f"Sample {sample} is missing d13C_VPDB value, and it is not defined in Nominal_d13C_VPDB.")
 
 	if d18O_VPDB is None:
 		if sample in Nominal_d18O_VPDB:
@@ -3404,7 +3404,7 @@ def _cli(
 	See [b]https://mdaeron.github.io/D47crunch/#3-command-line-interface-cli[/b] for more details.
 	
 	Reads raw data from an input file, optionally excluding some samples and/or analyses, thean standardizes
-	the data based either on the default [b]d13C_VDPB[/b], [b]d18O_VPDB[/b], [b]D47[/b], and [b]D48[/b] anchors or on different
+	the data based either on the default [b]d13C_VPDB[/b], [b]d18O_VPDB[/b], [b]D47[/b], and [b]D48[/b] anchors or on different
 	user-specified anchors. A new directory (named `output` by default) is created to store the results and
 	the following sequence is applied:
 	
