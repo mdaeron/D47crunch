@@ -13,16 +13,16 @@ The **how-to** section provides instructions applicable to various specific task
 .. include:: ../../docpages/howto.md
 .. include:: ../../docpages/cli.md
 
-# 4. API Documentation
+<h1>API Documentation</h1>
 '''
 
 __docformat__ = "restructuredtext"
 __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
-__copyright__ = 'Copyright (c) 2024 Mathieu Daëron'
-__license__   = 'Modified BSD License - https://opensource.org/licenses/BSD-3-Clause'
-__date__      = '2024-09-10'
-__version__   = '2.4.1'
+__copyright__ = 'Copyright (c) Mathieu Daëron'
+__license__   = 'MIT License - https://opensource.org/licenses/MIT'
+__date__      = '2024-11-17'
+__version__   = '2.4.2'
 
 import os
 import numpy as np
@@ -150,8 +150,14 @@ def smart_type(x):
 		return int(y)
 	return y
 
+class _Defaults():
+	def __init__(self):
+		pass
 
-def pretty_table(x, header = 1, hsep = '  ', vsep = '–', align = '<'):
+D47crunch_defaults = _Defaults()
+D47crunch_defaults.PRETTY_TABLE_VSEP = '—'
+
+def pretty_table(x, header = 1, hsep = '  ', vsep = None, align = '<'):
 	'''
 	Reads a list of lists of strings and outputs an ascii table
 
@@ -166,20 +172,46 @@ def pretty_table(x, header = 1, hsep = '  ', vsep = '–', align = '<'):
 	**Example**
 
 	```py
-	x = [['A', 'B', 'C'], ['1', '1.9999', 'foo'], ['10', 'x', 'bar']]
-	print(pretty_table(x))
+	print(pretty_table([
+		['A', 'B', 'C'],
+		['1', '1.9999', 'foo'],
+		['10', 'x', 'bar'],
+	]))
 	```
 	yields:	
 	```
-	--  ------  ---
+	——  ——————  ———
 	A        B    C
-	--  ------  ---
+	——  ——————  ———
 	1   1.9999  foo
 	10       x  bar
-	--  ------  ---
+	——  ——————  ———
 	```
+
+	To change the default `vsep` globally, redefine `D47crunch_defaults.PRETTY_TABLE_VSEP`:
 	
+	```py
+	D47crunch_defaults.PRETTY_TABLE_VSEP = '='
+	print(pretty_table([
+		['A', 'B', 'C'],
+		['1', '1.9999', 'foo'],
+		['10', 'x', 'bar'],
+	]))
+	```
+	yields:	
+	```
+	==  ======  ===
+	A        B    C
+	==  ======  ===
+	1   1.9999  foo
+	10       x  bar
+	==  ======  ===
+	```
 	'''
+	
+	if vsep is None:
+		vsep = D47crunch_defaults.PRETTY_TABLE_VSEP
+	
 	txt = []
 	widths = [np.max([len(e) for e in c]) for c in zip(*x)]
 
@@ -345,7 +377,7 @@ def simulate_single_analysis(
 		if sample in Nominal_d13C_VPDB:
 			d13C_VPDB = Nominal_d13C_VPDB[sample]
 		else:
-			raise KeyError(f"Sample {sample} is missing d13C_VDP value, and it is not defined in Nominal_d13C_VDP.")
+			raise KeyError(f"Sample {sample} is missing d13C_VPDB value, and it is not defined in Nominal_d13C_VPDB.")
 
 	if d18O_VPDB is None:
 		if sample in Nominal_d18O_VPDB:
