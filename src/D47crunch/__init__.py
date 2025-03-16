@@ -21,7 +21,7 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2024-11-17'
+__date__      = '2025-03-16'
 __version__   = '2.4.2'
 
 import os
@@ -518,6 +518,7 @@ def virtual_data(
 
 	from numpy import random as nprandom
 	if seed:
+		nprandom.seed(seed)
 		rng = nprandom.default_rng(seed)
 	else:
 		rng = nprandom.default_rng()
