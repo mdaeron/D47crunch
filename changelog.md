@@ -2,6 +2,8 @@
 
 ## v2.4.2
 
+*Released on 2025-03-16*
+
 * Switch to MIT license
 * Add `D47crunch_defaults` to store global default values
 * Add `D47crunch_defaults.PRETTY_TABLE_VSEP` to customize `pretty_table()` globally
