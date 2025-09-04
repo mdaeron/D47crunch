@@ -21,8 +21,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2025-03-16'
-__version__   = '2.4.2'
+__date__      = '2025-09-04'
+__version__   = '2.4.3'
 
 import os
 import numpy as np
@@ -39,8 +39,9 @@ from datetime import datetime as dt
 from functools import wraps
 from colorsys import hls_to_rgb
 from matplotlib import rcParams
+from typer import rich_utils
 
-typer.rich_utils.STYLE_HELPTEXT = ''
+rich_utils.STYLE_HELPTEXT = ''
 
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = 'Helvetica'
