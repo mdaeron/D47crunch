@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.4.4
+
+*Released on 2025-10-05*
+
+* Add `save_to_file` option to `D4xdata._save_D4x_correl()`.
+
 ## v2.4.3
 
 *Released on 2025-09-04*

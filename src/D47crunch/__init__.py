@@ -21,8 +21,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2025-09-04'
-__version__   = '2.4.3'
+__date__      = '2025-12-05'
+__version__   = '2.4.4'
 
 import os
 import numpy as np
@@ -3154,6 +3154,7 @@ class D4xdata(list):
 		filename = None,
 		D4x_precision = 4,
 		correl_precision = 4,
+		save_to_file = True,
 		):
 		'''
 		Save D4x values along with their SE and correlation matrix.
@@ -3165,6 +3166,8 @@ class D4xdata(list):
 		+ `filename`: the name to the csv file to write to (by default: `D4x_correl.csv`)
 		+ `D4x_precision`: the precision to use when writing `D4x` and `D4x_SE` values (by default: 4)
 		+ `correl_precision`: the precision to use when writing correlation factor values (by default: 4)
+		+ `save_to_file`: whether to write the output to a file factor values (by default: True). If `False`,
+		returns the output as a string
 		'''
 		if samples is None:
 			samples = sorted([s for s in self.unknowns])
@@ -3176,14 +3179,15 @@ class D4xdata(list):
 			for s2 in samples:
 				out[k+1] += [f'{self.sample_D4x_correl(s,s2):.4f}']
 		
-		if not os.path.exists(dir):
-			os.makedirs(dir)
-		if filename is None:
-			filename = f'D{self._4x}_correl.csv'
-		with open(f'{dir}/{filename}', 'w') as fid:
-			fid.write(make_csv(out))
-		
-		
+		if save_to_file:
+			if not os.path.exists(dir):
+				os.makedirs(dir)
+			if filename is None:
+				filename = f'D{self._4x}_correl.csv'
+			with open(f'{dir}/{filename}', 'w') as fid:
+				fid.write(make_csv(out))
+		else:
+			return make_csv(out)
 		
 
 class D47data(D4xdata):
