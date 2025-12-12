@@ -21,8 +21,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2025-12-05'
-__version__   = '2.4.4'
+__date__      = '2025-12-12'
+__version__   = '2.4.5'
 
 import os
 import numpy as np
@@ -2714,7 +2714,7 @@ class D4xdata(list):
 		+ `histbins`: specify bin edges for the histogram
 		+ `dir`: the directory in which to save the plot
 		+ `highlight`: a list of samples to highlight
-		+ `colors`: a dict of `{<sample>: <color>}` for all samples
+		+ `colors`: a dict of `{<sample>: (r, g, b)}` for all samples
 		+ `figsize`: (width, height) of figure
 		+ `dpi`: resolution for PNG output
 		+ `yspan`: factor controlling the range of y values shown in plot
@@ -2915,6 +2915,99 @@ class D4xdata(list):
 		Legacy function with warning message pointing to `virtual_data()`
 		'''
 		raise DeprecationWarning('D4xdata.simulate is deprecated and has been replaced by virtual_data()')
+
+	def plot_anchor_residuals(
+		self,
+		dir = 'output',
+		filename = '',
+		figsize = None,
+		subplots_adjust = (0.05, 0.1, 0.95, 0.98, .25, .25),
+		dpi = 100,
+		colors = None,
+		):
+		'''
+		Plot a summary of the residuals for all anchors, intended to help detect systematic bias.
+		
+		**Parameters**
+
+		+ `dir`: the directory in which to save the plot
+		+ `filename`: the file name to save to.
+		+ `dpi`: resolution for PNG output
+		+ `figsize`: (width, height) of figure
+		+ `subplots_adjust`: passed to the figure
+		+ `dpi`: resolution for PNG output
+		+ `colors`: a dict of `{<sample>: (r, g, b)}` for all samples
+		'''
+
+		from scipy.stats import gaussian_kde
+
+		# Colors
+		N = len(self.anchors)
+		if colors is None:
+			if N == 3:
+				colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0)])}
+			elif N == 4:
+				colors = {a: c for a,c in zip(self.anchors, [(0,0,1), (1,0,0), (0,2/3,0), (.75,0,.75)])}
+			else:
+				colors = {a: hls_to_rgb(k/N, .4, 1) for k,a in enumerate(self.anchors)}
+
+		if figsize is None:
+			figsize = (4, 1.5*N+1)
+		fig = ppl.figure(figsize = figsize)
+		ppl.subplots_adjust(*subplots_adjust)
+		axs = {}
+		X = np.array([r[f'D{self._4x}_residual'] for a in self.anchors for r in self.anchors[a]['data']])*1000
+		sigma = ((X**2).sum()/(len(X)-len(self.anchors)))**0.5
+		D = max(np.abs(X))
+
+		for k,a in enumerate(self.anchors):
+			color = colors[a]
+			axs[a] = ppl.subplot(N, 1, 1+k)
+			axs[a].text(
+				0.02, 1-0.05, a,
+				va = 'top',
+				ha = 'left',
+				weight = 'bold',
+				size = 9,
+				color = [_*0.75 for _ in color],
+				transform = axs[a].transAxes,
+			)
+			X = np.array([r[f'D{self._4x}_residual'] for r in self.anchors[a]['data']])*1000
+			axs[a].axvline(0, lw = 0.5, color = color)
+			axs[a].plot(X, X*0, 'o', mew = 0.7, mec = (*color,.5), mfc = (*color, 0), ms = 7, clip_on = False)
+
+			xi = np.linspace(-3*D, 3*D, 601)
+			yi = gaussian_kde(X).evaluate(xi)
+			ppl.fill_between(xi, yi, yi*0, fc = (*color, .15), lw = 1, ec = color)
+			
+			axs[a].errorbar(
+				X.mean(), yi.max()*.2, None, 1.96*sigma/len(X)**0.5,
+				ecolor = color,
+				marker = 's',
+				ls = 'None',
+				mec = color,
+				mew = 1,
+				mfc = 'w',
+				ms = 8,
+				elinewidth = 1,
+				capsize = 4,
+				capthick = 1,
+			)
+			
+			axs[a].axis([xi[0], xi[-1], 0, yi.max()*1.05])
+			ppl.yticks([])
+
+		ppl.xlabel(f'$Δ_{{{self._4x}}}$ residuals (ppm)')		
+
+		if not os.path.exists(dir):
+			os.makedirs(dir)
+		if filename is None:
+			return fig
+		elif filename == '':
+			filename = f'D{self._4x}_anchor_residuals.pdf'
+		ppl.savefig(f'{dir}/{filename}', dpi = dpi)
+		ppl.close(fig)
+		
 
 	def plot_distribution_of_analyses(
 		self,

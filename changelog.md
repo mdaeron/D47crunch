@@ -1,8 +1,16 @@
 # Changelog
 
+
+
+## v2.4.5
+
+*Released on 2025-12-12*
+
+* Add `D4xdata.plot_anchor_residuals()`.
+
 ## v2.4.4
 
-*Released on 2025-10-05*
+*Released on 2025-12-05*
 
 * Add `save_to_file` option to `D4xdata._save_D4x_correl()`.
 
