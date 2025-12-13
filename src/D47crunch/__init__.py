@@ -21,8 +21,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2025-12-12'
-__version__   = '2.4.5'
+__date__      = '2025-12-13'
+__version__   = '2.5.0'
 
 import os
 import numpy as np
@@ -1128,21 +1128,38 @@ class D4xdata(list):
 
 
 	@make_verbal
-	def wg(self, samples = None, a18_acid = None):
+	def wg(self,
+		samples = None,
+		session_groups = None,
+	):
 		'''
-		Compute bulk composition of the working gas for each session based on
-		the carbonate standards defined in both `self.Nominal_d13C_VPDB` and
+		Compute bulk composition of the working gas for each session based (by default)
+		on the carbonate standards defined in both `self.Nominal_d13C_VPDB` and
 		`self.Nominal_d18O_VPDB`.
+
+		**Parameters**
+
+		+ `samples`: A list of samples specifying the subset of samples (defined in both
+		`self.Nominal_d13C_VPDB` and `self.Nominal_d18O_VPDB`) which will be considered
+		when computing the working gas. By default, use all samples defined both in
+		`self.Nominal_d13C_VPDB` and `self.Nominal_d18O_VPDB`.
+		+ `session_groups`: a list of lists of sessions
+		(e.g., `[['session1', 'session2'], ['session3', 'session4', 'session5']]`)
+		specifying which sessions groups, if any, have the exact same WG composition.
+		If set to `'all'`, force all sessions to have the same WG composition (use with
+		caution and on short time scales, since the WG may drift slowly a long time scales).
 		'''
 
 		self.msg('Computing WG composition:')
 
-		if a18_acid is None:
-			a18_acid = self.ALPHA_18O_ACID_REACTION
+		a18_acid = self.ALPHA_18O_ACID_REACTION
+		
 		if samples is None:
 			samples = [s for s in self.Nominal_d13C_VPDB if s in self.Nominal_d18O_VPDB]
-
-		assert a18_acid, f'Acid fractionation factor should not be zero.'
+		if session_groups is None:
+			session_groups = [[s] for s in self.sessions]
+		elif session_groups == 'all':
+			session_groups = [[s for s in self.sessions]]
 
 		samples = [s for s in samples if s in self.Nominal_d13C_VPDB and s in self.Nominal_d18O_VPDB]
 		R45R46_standards = {}
@@ -1170,10 +1187,9 @@ class D4xdata(list):
 			R46_s = (C628_s + C637_s + C727_s) / C626_s
 			R45R46_standards[sample] = (R45_s, R46_s)
 		
-		for s in self.sessions:
-			db = [r for r in self.sessions[s]['data'] if r['Sample'] in samples]
-			assert db, f'No sample from {samples} found in session "{s}".'
-# 			dbsamples = sorted({r['Sample'] for r in db})
+		for sg in session_groups:
+			db = [r for s in sg for r in self.sessions[s]['data'] if r['Sample'] in samples]
+			assert db, f'No sample from {samples} found in session group {sg}.'
 
 			X = [r['d45'] for r in db]
 			Y = [R45R46_standards[r['Sample']][0] for r in db]
@@ -1209,13 +1225,14 @@ class D4xdata(list):
 
 			d13Cwg_VPDB, d18Owg_VSMOW = self.compute_bulk_delta(R45_wg, R46_wg)
 
-			self.msg(f'Session {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}')
-
-			self.sessions[s]['d13Cwg_VPDB'] = d13Cwg_VPDB
-			self.sessions[s]['d18Owg_VSMOW'] = d18Owg_VSMOW
-			for r in self.sessions[s]['data']:
-				r['d13Cwg_VPDB'] = d13Cwg_VPDB
-				r['d18Owg_VSMOW'] = d18Owg_VSMOW
+			for s in sg:
+				self.msg(f'Sessions {s} WG:   δ13C_VPDB = {d13Cwg_VPDB:.3f}   δ18O_VSMOW = {d18Owg_VSMOW:.3f}')
+	
+				self.sessions[s]['d13Cwg_VPDB'] = d13Cwg_VPDB
+				self.sessions[s]['d18Owg_VSMOW'] = d18Owg_VSMOW
+				for r in self.sessions[s]['data']:
+					r['d13Cwg_VPDB'] = d13Cwg_VPDB
+					r['d18Owg_VSMOW'] = d18Owg_VSMOW
 
 
 	def compute_bulk_delta(self, R45, R46, D17O = 0):

@@ -2,6 +2,13 @@
 
 
 
+## v2.5.0
+
+*Released on 2025-12-13*
+
+* Add `session_groups` option to `D4xdata.wg()`.
+* Remove `a18_acid` option to `D4xdata.wg()`.
+
 ## v2.4.5
 
 *Released on 2025-12-12*
