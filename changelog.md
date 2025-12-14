@@ -2,6 +2,12 @@
 
 
 
+## v2.5.1
+
+*Released on 2025-12-14*
+
+* No longer rely on `scipy.stats.gaussian_kde()` and change computation of `sigma` in `D4xdata.plot_anchor_residuals()`.
+
 ## v2.5.0
 
 *Released on 2025-12-13*

@@ -21,8 +21,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2025-12-13'
-__version__   = '2.5.0'
+__date__      = '2025-12-14'
+__version__   = '2.5.1'
 
 import os
 import numpy as np
