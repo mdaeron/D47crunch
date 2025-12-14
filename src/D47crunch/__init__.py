@@ -2956,8 +2956,6 @@ class D4xdata(list):
 		+ `colors`: a dict of `{<sample>: (r, g, b)}` for all samples
 		'''
 
-		from scipy.stats import gaussian_kde
-
 		# Colors
 		N = len(self.anchors)
 		if colors is None:
@@ -2974,7 +2972,7 @@ class D4xdata(list):
 		ppl.subplots_adjust(*subplots_adjust)
 		axs = {}
 		X = np.array([r[f'D{self._4x}_residual'] for a in self.anchors for r in self.anchors[a]['data']])*1000
-		sigma = ((X**2).sum()/(len(X)-len(self.anchors)))**0.5
+		sigma = self.repeatability['r_D47a'] * 1000
 		D = max(np.abs(X))
 
 		for k,a in enumerate(self.anchors):
@@ -2994,7 +2992,7 @@ class D4xdata(list):
 			axs[a].plot(X, X*0, 'o', mew = 0.7, mec = (*color,.5), mfc = (*color, 0), ms = 7, clip_on = False)
 
 			xi = np.linspace(-3*D, 3*D, 601)
-			yi = gaussian_kde(X).evaluate(xi)
+			yi = np.array([np.exp(-0.5 * ((xi - x)/sigma)**2) for x in X]).sum(0)
 			ppl.fill_between(xi, yi, yi*0, fc = (*color, .15), lw = 1, ec = color)
 			
 			axs[a].errorbar(
