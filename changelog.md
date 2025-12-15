@@ -1,6 +1,10 @@
 # Changelog
 
+## v2.5.2
 
+*Released on 2025-12-15*
+
+* Fixed bug whereby `D47crunch.table_of_samples()`  was jumbling the order of samples (https://github.com/mdaeron/D47crunch/issues/23)
 
 ## v2.5.1
 

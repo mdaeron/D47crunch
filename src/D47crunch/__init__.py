@@ -21,8 +21,8 @@ __author__    = 'Mathieu Daëron'
 __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2025-12-14'
-__version__   = '2.5.1'
+__date__      = '2025-12-15'
+__version__   = '2.5.2'
 
 import os
 import numpy as np
@@ -619,9 +619,22 @@ def table_of_samples(
 				output = output
 				)
 		else:
+			samples = (
+				sorted([a for a in data47.anchors if a in data48.anchors])
+				+ sorted([a for a in data47.anchors if a not in data48.anchors])
+				+ sorted([a for a in data48.anchors if a not in data47.anchors])
+				+ sorted([a for a in data47.unknowns if a in data48.unknowns])
+			)
+
 			out47 = data47.table_of_samples(save_to_file = False, print_out = False, output = 'raw')
 			out48 = data48.table_of_samples(save_to_file = False, print_out = False, output = 'raw')
-			out = transpose_table(transpose_table(out47) + transpose_table(out48)[4:])
+			
+			out47 = {l[0]: l for l in out47}
+			out48 = {l[0]: l for l in out48}
+
+			out = [out47['Sample'] + out48['Sample'][4:]]
+			for s in samples:
+				out.append(out47[s] + out48[s][4:])
 
 			if save_to_file:
 				if not os.path.exists(dir):
