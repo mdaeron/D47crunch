@@ -22,7 +22,7 @@ __contact__   = 'daeron@lsce.ipsl.fr'
 __copyright__ = 'Copyright (c) Mathieu Daëron'
 __license__   = 'MIT License - https://opensource.org/licenses/MIT'
 __date__      = '2025-12-15'
-__version__   = '2.5.2'
+__version__   = '2.5.3'
 
 import os
 import numpy as np
@@ -788,7 +788,7 @@ def table_of_analyses(
 				if not os.path.exists(dir):
 					os.makedirs(dir)
 				if filename is None:
-					filename = f'D47D48_sessions.csv'
+					filename = f'D47D48_analyses.csv'
 				with open(f'{dir}/{filename}', 'w') as fid:
 					fid.write(make_csv(out))
 			if print_out:
