@@ -2734,6 +2734,7 @@ class D4xdata(list):
 		figsize = None,
 		dpi = 100,
 		yspan = None,
+		savefig = True,
 		):
 		'''
 		Plot residuals of each analysis as a function of time (actually, as a function of
@@ -2749,6 +2750,8 @@ class D4xdata(list):
 		+ `dpi`: resolution for PNG output
 		+ `yspan`: factor controlling the range of y values shown in plot
 		  (by default: `yspan = 1.5 if kde else 1.0`)
+		+ `savefig`: whether to export the figure to a file (the figure is then closed);
+		  if `False`, return the `Figure()` instance instead of closing it.
 		'''
 		
 		from matplotlib import ticker
@@ -2930,14 +2933,17 @@ class D4xdata(list):
 
 		ax1.axis([None, None, ymin, ymax])
 
-		if not os.path.exists(dir):
-			os.makedirs(dir)
-		if filename is None:
+		if savefig:
+			if not os.path.exists(dir):
+				os.makedirs(dir)
+			if filename is None:
+				return fig
+			elif filename == '':
+				filename = f'D{self._4x}_residuals.pdf'
+			ppl.savefig(f'{dir}/{filename}', dpi = dpi)
+			ppl.close(fig)
+		else:
 			return fig
-		elif filename == '':
-			filename = f'D{self._4x}_residuals.pdf'
-		ppl.savefig(f'{dir}/{filename}', dpi = dpi)
-		ppl.close(fig)
 				
 
 	def simulate(self, *args, **kwargs):
