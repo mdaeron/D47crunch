@@ -3,7 +3,7 @@ name = "D47crunch"
 authors = [{name = "Mathieu Daëron", email = "mathieu@daeron.fr"}]
 dynamic = ["version", "description"]
 readme = "readme.md"
-license = {file = "LICENSE"}
+license = "MIT"
 classifiers = ["License :: OSI Approved :: MIT License"]
 requires-python = ">= 3.12"
 dependencies = [
