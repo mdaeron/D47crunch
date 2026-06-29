@@ -16,13 +16,7 @@ The **how-to** section provides instructions applicable to various specific task
 <h1>API Documentation</h1>
 '''
 
-__docformat__ = "restructuredtext"
-__author__    = 'Mathieu Daëron'
-__contact__   = 'daeron@lsce.ipsl.fr'
-__copyright__ = 'Copyright (c) Mathieu Daëron'
-__license__   = 'MIT License - https://opensource.org/licenses/MIT'
-__date__      = '2025-12-15'
-__version__   = '2.5.3'
+from ._metadata import *
 
 import os
 import numpy as np
