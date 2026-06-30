@@ -1836,12 +1836,14 @@ class D4xdata(list):
 			if s in self.Nominal_D4x
 			and isinstance(self.Nominal_D4x[s], float)
 		}
+		self.strong_anchors = strong_anchors
 		weak_anchors = {
 			s: self.Nominal_D4x[s]
 			for s in self.samples
 			if s in self.Nominal_D4x
 			and isinstance(self.Nominal_D4x[s], tuple)
 		}
+		self.weak_anchors = weak_anchors
 		unknowns = {
 			s: (self.unknowns[s][f'D{self._4x}'], 1.)
 			for s in self.unknowns
@@ -1879,7 +1881,9 @@ class D4xdata(list):
 			sigma = pm.HalfNormal('sigma', sigma = 0.1)
 
 			D4x_vector = []
+			D4x_vector_idx = []
 			for sample in self.samples:
+				D4x_vector_idx.append(sample)
 				s = pf(sample)
 				if sample in strong_anchors:
 					D4x_vector.append(pt.constant(strong_anchors[sample], name = f"D4x_{s}"))
@@ -1887,6 +1891,7 @@ class D4xdata(list):
 					mu, sig = (weak_anchors | unknowns)[s]
 					D4x_vector.append(pm.Normal(f"D4x_{s}", mu = mu, sigma = sig))
 			D4x_vector = pm.Deterministic("D4x_vector", pt.stack(D4x_vector))
+			D4x_vector_idx = {v:k for k,v in enumerate(D4x_vector_idx)}
 
 			mu = (
 				a[session_idx] * D4x_vector[sample_idx]
@@ -1897,19 +1902,98 @@ class D4xdata(list):
 			D47raw_likelihood = pm.Normal("D47raw", mu = mu, sigma = sigma, observed = D47raw)
 
 			idata = pm.sample(
-				10_000,
+				2_000,
 				tune = 2_000,
 				target_accept = 0.98,
 			)
 
-		summary = az.summary(
+		self.bayes = {}
+		self.bayes['idata'] = idata
+		self.bayes['summary'] = az.summary(
 			idata,
 			round_to = 9,
 		)
-		print(summary)
+		self.bayes['samples'] = {}
+		for s in self.weak_anchors:
+			self.bayes['samples'][s] = dict(
+				prior = self.weak_anchors[s],
+				posterior = self.bayes['idata'].posterior['D4x_vector'][:,:,D4x_vector_idx[s]].values.reshape(-1),
+			)
+		for s in self.unknowns:
+			self.bayes['samples'][s] = dict(
+				prior = self.unknowns[s],
+				posterior = self.bayes['idata'].posterior['D4x_vector'][:,:,D4x_vector_idx[s]].values.reshape(-1),
+			)
 
 
 
+	def plot_least_squares_vs_bayesian_results(
+		self,
+		target = 'samples',
+		figsize = None,
+		columns = 1,
+		left_margin = 1,
+		right_margin = 1,
+		top_margin = 1,
+		bottom_margin = 1,
+		cell_width = 6,
+		cell_height = 1,
+		dir = 'ouput',
+		savefig = True
+	):
+
+		from scipy.stats import gaussian_kde
+
+		out = {}
+		samples = [s for s in self.weak_anchors] + [s for s in self.unknowns]
+		N = len(samples)
+		lines  = N//columns
+		if target == 'samples':
+			if figsize is None:
+				figsize = (
+					columns * cell_width + (columns + 1) * (left_margin + right_margin)/2,
+					lines * cell_height + (lines + 1) * (top_margin + bottom_margin)/2,
+				)
+			fig = ppl.figure(figsize = figsize)
+			ppl.subplots_adjust(
+				left_margin/figsize[0],
+				bottom_margin/figsize[1],
+				1 - right_margin/figsize[0],
+				1 - top_margin/figsize[1],
+				(left_margin + right_margin)/2/cell_width,
+				(top_margin + bottom_margin)/2/cell_height,
+			)
+			axs = [ppl.subplot(lines, columns, _+1) for _ in range(N)]
+			xmin, xmax = 1000, -1000
+			for sample in samples:
+				x = self.bayes['samples'][sample]['posterior']
+				x0 = x.min() - 0.02
+				x1 = x.max() + 0.02
+				xmin = min(xmin, x0)
+				xmax = max(xmax, x1)
+
+			for sample, ax in zip(samples, axs):
+				ppl.sca(ax)
+				ppl.xlabel(f'Δ{self._4x} [‰]')
+				ppl.yticks([])
+				ppl.title(sample)
+				xi = np.linspace(xmin, xmax, 1001)
+				x = self.bayes['samples'][sample]['posterior']
+				yi = gaussian_kde(x).evaluate(xi)
+				ax.fill_between(xi, yi, -yi, fc = (0,0,0,.15), lw = 1, ec = (.75,.75,.75,1), zorder = 4)
+				if sample in self.weak_anchors:
+					yi = yi.max() * np.exp(-0.5 * ((xi-self.weak_anchors[sample][0])/self.weak_anchors[sample][1])**2)
+					ax.fill_between(xi, yi, -yi, fc = (1,0,0,.15), lw = 1, ec = (1,.75,.75,1), zorder = 2)
+
+
+			for ax in axs:
+				ppl.sca(ax)
+				ppl.axis([xmin, xmax, None, None])
+
+
+			ppl.show()
+		out['fig'] = fig
+		return out
 
 	def standardization_error(self, session, d4x, D4x, t = 0):
 		'''
