@@ -1,4 +1,7 @@
-default: metadata doc
+default: bayes
+
+bayes:
+	uv run examples/bayes-example.py
 
 metadata:
 	uv run build-metadata.py

@@ -1,6 +1,6 @@
 [project]
 name = "D47crunch"
-version = "2.5.4b1"
+version = "3.0.0b1"
 description = "Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotope measurements"
 readme = "readme.md"
 license = "MIT"
@@ -17,6 +17,7 @@ dependencies = [
     "typer >=0.17",
     "rich",
     "typing-extensions>=4.15.0",
+    "pymc>=6.0",
 ]
 
 [project.urls]

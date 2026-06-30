@@ -813,6 +813,7 @@ def _fullcovar(minresult, epsilon = 0.01, named = False):
 	J = np.zeros((minresult.nvarys, len(minresult.params)))
 	X = np.array([minresult.params[p].value for p in minresult.var_names])
 	sX = np.array([minresult.params[p].stderr for p in minresult.var_names])
+	print(sX)
 
 	for j in range(minresult.nvarys):
 		x1 = [_ for _ in X]
@@ -1813,6 +1814,101 @@ class D4xdata(list):
 
 			if consolidate:
 				self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
+
+	def bayes(self):
+		'''
+		Compute absolute Δ4x values as when calling `standardize()`, but using bayesian methods
+		accounting for uncertainties in the nominal Δ4x values of anchors.
+		Requires successful prior execution of `standardize()`.
+		'''
+
+
+		import pymc as pm             # lazy import
+		import arviz as az            # lazy import
+		import pytensor.tensor as pt  # lazy import
+
+		d47 = np.array([_['d47'] for _ in self])
+		D47raw = np.array([_['D47raw'] for _ in self])
+
+		strong_anchors = {
+			s: self.Nominal_D4x[s]
+			for s in self.samples
+			if s in self.Nominal_D4x
+			and isinstance(self.Nominal_D4x[s], float)
+		}
+		weak_anchors = {
+			s: self.Nominal_D4x[s]
+			for s in self.samples
+			if s in self.Nominal_D4x
+			and isinstance(self.Nominal_D4x[s], tuple)
+		}
+		unknowns = {
+			s: (self.unknowns[s][f'D{self._4x}'], 1.)
+			for s in self.unknowns
+		}
+
+		session_search = {s:k for k,s in enumerate(self.sessions)} | {k:s for k,s in enumerate(self.sessions)}
+		session_idx = np.array([session_search[_['Session']] for _ in self])
+
+		sample_search = {s:k for k,s in enumerate(self.samples)} | {k:s for k,s in enumerate(self.samples)}
+		sample_idx = np.array([sample_search[_['Sample']] for _ in self])
+
+		mask_for_strong_anchors = np.array([
+			_['Sample'] in self.anchors
+			and isinstance(self.Nominal_D4x[_['Sample']], float)
+			for _ in self
+		])
+		mask_for_weak_anchors = np.array([
+			_['Sample'] in self.anchors
+			and isinstance(self.Nominal_D4x[_['Sample']], tuple)
+			for _ in self
+		])
+		mask_for_unknowns = np.array([
+			_['Sample'] in self.unknowns
+			for _ in self
+		])
+
+		n_sessions = len(self.sessions)
+		n_samples = len(self.samples)
+
+		with pm.Model() as model:
+
+			a = pm.Uniform('a', lower = 0.1, upper = 1.5, shape = n_sessions)
+			b = pm.Normal( 'b', mu = [self.sessions[session]['b'] for session in self.sessions], sigma = 0.1, shape = n_sessions)
+			c = pm.Normal( 'c', mu = [self.sessions[session]['c'] for session in self.sessions], sigma = 0.5, shape = n_sessions)
+			sigma = pm.HalfNormal('sigma', sigma = 0.1)
+
+			D4x_vector = []
+			for sample in self.samples:
+				s = pf(sample)
+				if sample in strong_anchors:
+					D4x_vector.append(pt.constant(strong_anchors[sample], name = f"D4x_{s}"))
+				else:
+					mu, sig = (weak_anchors | unknowns)[s]
+					D4x_vector.append(pm.Normal(f"D4x_{s}", mu = mu, sigma = sig))
+			D4x_vector = pm.Deterministic("D4x_vector", pt.stack(D4x_vector))
+
+			mu = (
+				a[session_idx] * D4x_vector[sample_idx]
+				+ b[session_idx] * d47
+				+ c[session_idx]
+			)
+
+			D47raw_likelihood = pm.Normal("D47raw", mu = mu, sigma = sigma, observed = D47raw)
+
+			idata = pm.sample(
+				10_000,
+				tune = 2_000,
+				target_accept = 0.98,
+			)
+
+		summary = az.summary(
+			idata,
+			round_to = 9,
+		)
+		print(summary)
+
+
 
 
 	def standardization_error(self, session, d4x, D4x, t = 0):
