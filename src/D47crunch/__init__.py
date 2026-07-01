@@ -1815,7 +1815,7 @@ class D4xdata(list):
 			if consolidate:
 				self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
 
-	def bayes(self):
+	def bayesian_standardization(self):
 		'''
 		Compute absolute Δ4x values as when calling `standardize()`, but using bayesian methods
 		accounting for uncertainties in the nominal Δ4x values of anchors.
@@ -1845,8 +1845,10 @@ class D4xdata(list):
 		}
 		self.weak_anchors = weak_anchors
 		unknowns = {
-			s: (self.unknowns[s][f'D{self._4x}'], 1.)
-			for s in self.unknowns
+			s: (self.samples[s][f'D{self._4x}'], 1.)
+			for s in self.samples
+			if s not in strong_anchors
+			and s not in weak_anchors
 		}
 
 		session_search = {s:k for k,s in enumerate(self.sessions)} | {k:s for k,s in enumerate(self.sessions)}
@@ -1866,8 +1868,10 @@ class D4xdata(list):
 			for _ in self
 		])
 		mask_for_unknowns = np.array([
-			_['Sample'] in self.unknowns
+			_['Sample'] in self.samples
 			for _ in self
+			if _['Sample'] not in strong_anchors
+			and _['Sample'] not in weak_anchors
 		])
 
 		n_sessions = len(self.sessions)
@@ -1888,10 +1892,13 @@ class D4xdata(list):
 				if sample in strong_anchors:
 					D4x_vector.append(pt.constant(strong_anchors[sample], name = f"D4x_{s}"))
 				else:
-					mu, sig = (weak_anchors | unknowns)[s]
+					mu, sig = (weak_anchors | unknowns)[sample]
+					print(sample, mu, sig)
 					D4x_vector.append(pm.Normal(f"D4x_{s}", mu = mu, sigma = sig))
 			D4x_vector = pm.Deterministic("D4x_vector", pt.stack(D4x_vector))
 			D4x_vector_idx = {v:k for k,v in enumerate(D4x_vector_idx)}
+			print(D4x_vector_idx)
+			print(D4x_vector)
 
 			mu = (
 				a[session_idx] * D4x_vector[sample_idx]
@@ -1902,7 +1909,7 @@ class D4xdata(list):
 			D47raw_likelihood = pm.Normal("D47raw", mu = mu, sigma = sigma, observed = D47raw)
 
 			idata = pm.sample(
-				2_000,
+				20_000,
 				tune = 2_000,
 				target_accept = 0.98,
 			)
@@ -1924,6 +1931,52 @@ class D4xdata(list):
 				prior = self.unknowns[s],
 				posterior = self.bayes['idata'].posterior['D4x_vector'][:,:,D4x_vector_idx[s]].values.reshape(-1),
 			)
+		ordered_list_of_sample_idx = [D4x_vector_idx[s] for s in self.bayes['samples']]
+		self.bayes['trace'] = np.array([self.bayes['idata'].posterior['D4x_vector'][:,:,k].values.reshape(-1) for k in ordered_list_of_sample_idx])
+		self.bayes['sample_cov'] = np.cov(self.bayes['trace'])
+		for k,s in enumerate(self.bayes['samples']):
+			self.bayes['samples'][s][f'D{self._4x}'] = float(self.bayes['samples'][s]['posterior'].mean())
+			self.bayes['samples'][s][f'SE_D{self._4x}'] = float(self.bayes['sample_cov'][k,k]**0.5)
+			self.bayes['samples'][s][f'95CL_D{self._4x}'] = float(
+				np.quantile(
+					np.abs(self.bayes['samples'][s]['posterior'] - self.bayes['samples'][s]['posterior'].mean()),
+					0.95,
+				)
+			)
+
+	def table_of_least_squares_vs_bayesian_results(
+		self,
+		dir = 'output',
+		filename = None,
+		save_to_file = True,
+		print_out = True,
+		output = None,
+	):
+		out = [['Sample','N', f'D{self._4x} (LS)','SE','95% CL', f'D{self._4x} (Bayes)','SE','95% CL']]
+		for sample in self.bayes['samples']:
+			out += [[
+				f"{sample}",
+				f"{self.samples[sample]['N']}",
+				f"{self.samples[sample][f'D{self._4x}']:.4f}",
+				'' if sample in self.anchors else f"{self.samples[sample][f'SE_D{self._4x}']:.4f}",
+				'' if sample in self.anchors else f"± {self.samples[sample][f'SE_D{self._4x}'] * self.t95:.4f}",
+				f"{self.bayes['samples'][sample][f'D{self._4x}']:.4f}",
+				f"{self.bayes['samples'][sample][f'SE_D{self._4x}']:.4f}",
+				f"± {self.bayes['samples'][sample][f'95CL_D{self._4x}']:.4f}",
+				]]
+		if save_to_file:
+			if not os.path.exists(dir):
+				os.makedirs(dir)
+			if filename is None:
+				filename = f'D{self._4x}_ls_vs_bayes.csv'
+			with open(f'{dir}/{filename}', 'w') as fid:
+				fid.write(make_csv(out))
+		if print_out:
+			print('\n'+pretty_table(out))
+		if output == 'raw':
+			return out
+		elif output == 'pretty':
+			return pretty_table(out)
 
 
 
@@ -1932,20 +1985,22 @@ class D4xdata(list):
 		target = 'samples',
 		figsize = None,
 		columns = 1,
-		left_margin = 1,
-		right_margin = 1,
-		top_margin = 1,
-		bottom_margin = 1,
+		left_margin = 0.2,
+		right_margin = 0.2,
+		top_margin = 0.5,
+		bottom_margin = 0.7,
 		cell_width = 6,
-		cell_height = 1,
-		dir = 'ouput',
-		savefig = True
+		cell_height = 0.5,
+		dir = 'output',
+		savefig = True,
+		filename = '',
+		dpi = 100,
 	):
 
 		from scipy.stats import gaussian_kde
+		from coloraide import Color
 
-		out = {}
-		samples = [s for s in self.weak_anchors] + [s for s in self.unknowns]
+		samples = [s for s in self.weak_anchors] + [s for s in self.unknowns if s not in self.weak_anchors]
 		N = len(samples)
 		lines  = N//columns
 		if target == 'samples':
@@ -1974,26 +2029,60 @@ class D4xdata(list):
 
 			for sample, ax in zip(samples, axs):
 				ppl.sca(ax)
-				ppl.xlabel(f'Δ{self._4x} [‰]')
 				ppl.yticks([])
 				ppl.title(sample)
 				xi = np.linspace(xmin, xmax, 1001)
 				x = self.bayes['samples'][sample]['posterior']
 				yi = gaussian_kde(x).evaluate(xi)
-				ax.fill_between(xi, yi, -yi, fc = (0,0,0,.15), lw = 1, ec = (.75,.75,.75,1), zorder = 4)
+				_color = Color('black')
+				kw = dict(
+					ec = Color(_color).mix('white', 0.5, space = 'srgb'),
+					fc = Color(_color).set('alpha', 0.1),
+					lw = 1,
+					zorder = 5,
+				)
+				ax.fill_between(xi, yi, -yi, **kw)
 				if sample in self.weak_anchors:
+					_color = Color('orangered')
+					kw = dict(
+						ec = Color(_color).mix('white', 0.4, space = 'srgb'),
+						fc = Color(_color).set('alpha', 0.1),
+						lw = 1,
+						zorder = 2,
+					)
 					yi = yi.max() * np.exp(-0.5 * ((xi-self.weak_anchors[sample][0])/self.weak_anchors[sample][1])**2)
-					ax.fill_between(xi, yi, -yi, fc = (1,0,0,.15), lw = 1, ec = (1,.75,.75,1), zorder = 2)
-
+					ax.fill_between(xi, yi, -yi, **kw)
+				elif sample in self.unknowns:
+					_color = Color('deepskyblue')
+					kw = dict(
+						ec = Color(_color).mix('white', 0.2, space = 'srgb'),
+						fc = Color(_color).set('alpha', 0.3),
+						lw = 1,
+						zorder = 4,
+					)
+					mu = self.samples[sample][f'D{self._4x}']
+					sigma = self.samples[sample][f'SE_D{self._4x}']
+					yi = yi.max() * np.exp(-0.5 * ((xi - mu)/sigma)**2)
+					ax.fill_between(xi, yi, -yi, **kw)
 
 			for ax in axs:
 				ppl.sca(ax)
+				ppl.grid(alpha = 0.2)
 				ppl.axis([xmin, xmax, None, None])
 
+			ppl.xlabel(f'Δ{self._4x} [‰]')
 
-			ppl.show()
-		out['fig'] = fig
-		return out
+			if savefig:
+				if not os.path.exists(dir):
+					os.makedirs(dir)
+				if filename is None:
+					return fig
+				elif filename == '':
+					filename = f'D{self._4x}_ls_vs_bayes.pdf'
+				ppl.savefig(f'{dir}/{filename}', dpi = dpi)
+				ppl.close(fig)
+			else:
+				return fig
 
 	def standardization_error(self, session, d4x, D4x, t = 0):
 		'''

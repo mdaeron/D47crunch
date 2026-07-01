@@ -109,6 +109,15 @@ wheels = [
 ]
 
 [[package]]
+name = "coloraide"
+version = "8.10"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/36/b2/ff53a8c7921197177a4011cc1079b2229678280afd7a8f652c6b46944af8/coloraide-8.10.tar.gz", hash = "sha256:0120503a297181d7236c378297b6ad98b0da4e11bd99fd2500778b8485557a9e", size = 22407815, upload-time = "2026-06-26T01:39:07.708Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1e/a7/94b95381ebcf3954cd726db7bc4e53cd414a830849ad47db870b2469627f/coloraide-8.10-py3-none-any.whl", hash = "sha256:8a55379769807ce50a1a5b3e973620708fd40b2552a016b89b7fa70e60dd58cc", size = 361350, upload-time = "2026-06-26T01:39:05.522Z" },
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 source = { registry = "https://pypi.org/simple" }
@@ -209,6 +218,7 @@ name = "d47crunch"
 version = "3.0.0b1"
 source = { editable = "." }
 dependencies = [
+    { name = "coloraide" },
     { name = "lmfit" },
     { name = "matplotlib" },
     { name = "numpy" },
@@ -226,6 +236,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "coloraide", specifier = ">=8.10" },
     { name = "lmfit", specifier = ">=1.0.2" },
     { name = "matplotlib", specifier = ">=3.4.2" },
     { name = "numpy", specifier = ">=1.21" },

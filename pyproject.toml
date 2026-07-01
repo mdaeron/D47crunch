@@ -18,6 +18,7 @@ dependencies = [
     "rich",
     "typing-extensions>=4.15.0",
     "pymc>=6.0",
+    "coloraide>=8.10",
 ]
 
 [project.urls]
