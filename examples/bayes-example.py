@@ -29,8 +29,7 @@ D.table_of_sessions(verbose = True, save_to_file = False)
 D.table_of_samples(verbose = True, save_to_file = False)
 # D.table_of_analyses(verbose = True, save_to_file = False)
 
-D.Nominal_D47['TAC-1'] = (0.700, 0.001)
-D.bayesian_standardization()
+D.bayesian_standardization(weak_anchors = {'TAC-1': (0.700, 0.02)})
 # print(D.bayes['summary'])
 
 D.plot_bayesian_sessions(dir = 'output/bayes')

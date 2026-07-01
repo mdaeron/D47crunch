@@ -1815,13 +1815,19 @@ class D4xdata(list):
 			if consolidate:
 				self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
 
-	def bayesian_standardization(self):
+	def bayesian_standardization(
+		self,
+		weak_anchors = {},
+	):
 		'''
 		Compute absolute Δ4x values as when calling `standardize()`, but using bayesian methods
 		accounting for uncertainties in the nominal Δ4x values of anchors.
 		Requires successful prior execution of `standardize()`.
-		'''
 
+		**Parameters**
+
+		+ `weak_anchors`: a dict with sample names as keys and tuples of (Δ47, SE_Δ47) as values
+		'''
 
 		import pymc as pm             # lazy import
 		import arviz as az            # lazy import
@@ -1834,16 +1840,11 @@ class D4xdata(list):
 			s: self.Nominal_D4x[s]
 			for s in self.samples
 			if s in self.Nominal_D4x
-			and isinstance(self.Nominal_D4x[s], float)
+			and s not in weak_anchors
 		}
 		self.strong_anchors = strong_anchors
-		weak_anchors = {
-			s: self.Nominal_D4x[s]
-			for s in self.samples
-			if s in self.Nominal_D4x
-			and isinstance(self.Nominal_D4x[s], tuple)
-		}
 		self.weak_anchors = weak_anchors
+
 		unknowns = {
 			s: (self.samples[s][f'D{self._4x}'], 1.)
 			for s in self.samples
@@ -2094,12 +2095,12 @@ class D4xdata(list):
 
 	def plot_single_bayesian_session(self,
 		session,
-		kw_plot_strong_anchors = dict(ls='None', marker='x', mec=(.5, 0, 0), mew = .75, ms = 4),
-		kw_plot_weak_anchors = dict(ls='None', marker='x', mec=(1, .25, 0), mew = .75, ms = 4),
+		kw_plot_strong_anchors = dict(ls='None', marker='x', mec=(.75, 0, 0), mew = .75, ms = 4),
+		kw_plot_weak_anchors = dict(ls='None', marker='x', mec=(1, 0, .25), mew = .75, ms = 4),
 		kw_plot_unknowns = dict(ls='None', marker='x', mec=(0, 0, .75), mew = .75, ms = 4),
-		kw_plot_strong_anchor_avg = dict(ls='-', marker='None', color=(.5, 0, 0), lw = .75),
-		kw_plot_weak_anchor_avg = dict(ls='-', marker='None', color=(1, .25, 0), lw = .75),
-		kw_plot_unknown_avg = dict(ls='-', marker='None', color=(0, 0, .75), lw = .75),
+		kw_plot_strong_anchor_avg = dict(ls='-', marker='None', color=(.75, 0, 0), lw = 2, alpha = 1/3),
+		kw_fill_weak_anchor_avg = dict(color=(1, 0, .25), lw = 0, alpha = 1/3),
+		kw_fill_unknown_avg = dict(color=(0, 0, .75), lw = 0, alpha = 1/3),
 		kw_contour_error = dict(colors = [[0, 0, 0]], alpha = .5, linewidths = 0.75),
 		xylimits = 'free', # | 'constant'
 		x_label = None,
@@ -2129,23 +2130,57 @@ class D4xdata(list):
 		unknowns_d       = [r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in unknowns]
 		unknowns_D       = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in unknowns]
 
-		strong_anchor_avg = (np.array([ np.array([
-				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
-				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
-				]) for sample in strong_anchors]).T,
-			np.array([ np.array([0, 0]) + self.Nominal_D4x[sample] for sample in strong_anchors]).T)
+		strong_anchor_avg = (
+			np.array([
+				[
+					np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 0.5,
+					np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 0.5,
+				]
+				for sample in strong_anchors
+			]).T,
+			np.array([
+				self.strong_anchors[sample] + np.array([0, 0])
+				for sample in strong_anchors
+			]).T
+		)
 
-		weak_anchor_avg = (np.array([ np.array([
-				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
-				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
-				]) for sample in weak_anchors]).T,
-			np.array([ np.array([0, 0]) + self.Nominal_D4x[sample][0] for sample in weak_anchors]).T)
+		weak_anchor_avg = (
+			np.array([
+				[
+					np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 0.5,
+					np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 0.5,
+					np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 0.5,
+					np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 0.5,
+					np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 0.5,
+				]
+				for sample in weak_anchors
+			]).T,
+			np.array([
+				self.bayes['samples'][sample][f'D{self._4x}']
+				+ np.array([-1, 1, 1, -1, -1])/2
+				* self.bayes['samples'][sample][f'95CL_D{self._4x}']
+				for sample in weak_anchors
+			]).T
+		)
 
-		unknown_avg = (np.array([ np.array([
-				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
-				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
-				]) for sample in unknowns]).T,
-			np.array([ np.array([0, 0]) + self.bayes['samples'][sample][f'D{self._4x}'] for sample in unknowns]).T)
+		unknown_avg = (
+			np.array([
+				[
+					np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 0.5,
+					np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 0.5,
+					np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 0.5,
+					np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 0.5,
+					np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 0.5,
+				]
+				for sample in self.unknowns if sample not in self.strong_anchors and sample not in self.weak_anchors
+			]).T,
+			np.array([
+				self.bayes['samples'][sample][f'D{self._4x}']
+				+ np.array([-1, 1, 1, -1, -1])
+				* self.bayes['samples'][sample][f'95CL_D{self._4x}']
+				for sample in self.unknowns if sample not in self.strong_anchors and sample not in self.weak_anchors
+			]).T
+		)
 
 		if fig == 'new':
 			out.fig = ppl.figure(figsize = (6,6))
@@ -2166,12 +2201,12 @@ class D4xdata(list):
 		out.strong_anchor_avg = ppl.plot(
 			*strong_anchor_avg,
 			**kw_plot_strong_anchor_avg)
-		out.weak_anchor_avg = ppl.plot(
+		out.weak_anchor_avg = ppl.fill(
 			*weak_anchor_avg,
-			**kw_plot_weak_anchor_avg)
-		out.unknown_avg = ppl.plot(
+			**kw_fill_weak_anchor_avg)
+		out.unknown_avg = ppl.fill(
 			*unknown_avg,
-			**kw_plot_unknown_avg)
+			**kw_fill_unknown_avg)
 
 		if xylimits == 'constant':
 			x = [r[f'd{self._4x}'] for r in self]
