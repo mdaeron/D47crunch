@@ -1,4 +1,4 @@
-from D47crunch import virtual_data, D47data
+from D47crunch import virtual_data, D47data, ppl
 
 args = dict(
 	samples = [
@@ -24,7 +24,7 @@ D = D47data(
 D.crunch()
 D.standardize()
 
-D.plot_sessions()
+D.plot_sessions(dir = 'output/ls')
 D.table_of_sessions(verbose = True, save_to_file = False)
 D.table_of_samples(verbose = True, save_to_file = False)
 # D.table_of_analyses(verbose = True, save_to_file = False)
@@ -33,5 +33,7 @@ D.Nominal_D47['TAC-1'] = (0.700, 0.001)
 D.bayesian_standardization()
 # print(D.bayes['summary'])
 
-D.table_of_least_squares_vs_bayesian_results()
-D.plot_least_squares_vs_bayesian_results()
+D.plot_bayesian_sessions(dir = 'output/bayes')
+
+# D.table_of_least_squares_vs_bayesian_results()
+# D.plot_least_squares_vs_bayesian_results()

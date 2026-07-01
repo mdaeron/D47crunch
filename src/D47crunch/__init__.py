@@ -1909,8 +1909,8 @@ class D4xdata(list):
 			D47raw_likelihood = pm.Normal("D47raw", mu = mu, sigma = sigma, observed = D47raw)
 
 			idata = pm.sample(
-				20_000,
-				tune = 2_000,
+				2_000,
+				tune = 1_000,
 				target_accept = 0.98,
 			)
 
@@ -1920,6 +1920,14 @@ class D4xdata(list):
 			idata,
 			round_to = 9,
 		)
+		self.bayes['sessions'] = {}
+		for session in self.sessions:
+			i = session_search[session]
+			self.bayes['sessions'][session] = {'a': {}, 'b': {}, 'c': {}}
+			for f in 'abc':
+				self.bayes['sessions'][session][f]['posterior'] = self.bayes['idata'].posterior[f][:,:,i].values.reshape(-1)
+				self.bayes['sessions'][session][f]['mean'] = float(self.bayes['sessions'][session][f]['posterior'].mean())
+
 		self.bayes['samples'] = {}
 		for s in self.weak_anchors:
 			self.bayes['samples'][s] = dict(
@@ -2083,6 +2091,174 @@ class D4xdata(list):
 				ppl.close(fig)
 			else:
 				return fig
+
+	def plot_single_bayesian_session(self,
+		session,
+		kw_plot_strong_anchors = dict(ls='None', marker='x', mec=(.5, 0, 0), mew = .75, ms = 4),
+		kw_plot_weak_anchors = dict(ls='None', marker='x', mec=(1, .25, 0), mew = .75, ms = 4),
+		kw_plot_unknowns = dict(ls='None', marker='x', mec=(0, 0, .75), mew = .75, ms = 4),
+		kw_plot_strong_anchor_avg = dict(ls='-', marker='None', color=(.5, 0, 0), lw = .75),
+		kw_plot_weak_anchor_avg = dict(ls='-', marker='None', color=(1, .25, 0), lw = .75),
+		kw_plot_unknown_avg = dict(ls='-', marker='None', color=(0, 0, .75), lw = .75),
+		kw_contour_error = dict(colors = [[0, 0, 0]], alpha = .5, linewidths = 0.75),
+		xylimits = 'free', # | 'constant'
+		x_label = None,
+		y_label = None,
+		error_contour_interval = 'auto',
+		fig = 'new',
+		):
+		'''
+		Generate plot for a single session after Bayesian standardization
+		'''
+		if x_label is None:
+			x_label = f'δ$_{{{self._4x}}}$ (‰)'
+		if y_label is None:
+			y_label = f'Δ$_{{{self._4x}}}$ (‰)'
+
+		out = _SessionPlot()
+
+		strong_anchors = [a for a in self.strong_anchors if [r for r in self.sessions[session]['data'] if r['Sample'] == a]]
+		weak_anchors   = [a for a in self.weak_anchors if [r for r in self.sessions[session]['data'] if r['Sample'] == a]]
+		unknowns       = [u for u in self.unknowns if [r for r in self.sessions[session]['data'] if r['Sample'] == u]]
+		unknowns       = [u for u in unknowns if u not in strong_anchors and u not in weak_anchors]
+
+		strong_anchors_d = [r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in strong_anchors]
+		strong_anchors_D = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in strong_anchors]
+		weak_anchors_d   = [r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in weak_anchors]
+		weak_anchors_D   = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in weak_anchors]
+		unknowns_d       = [r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in unknowns]
+		unknowns_D       = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in unknowns]
+
+		strong_anchor_avg = (np.array([ np.array([
+				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
+				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
+				]) for sample in strong_anchors]).T,
+			np.array([ np.array([0, 0]) + self.Nominal_D4x[sample] for sample in strong_anchors]).T)
+
+		weak_anchor_avg = (np.array([ np.array([
+				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
+				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
+				]) for sample in weak_anchors]).T,
+			np.array([ np.array([0, 0]) + self.Nominal_D4x[sample][0] for sample in weak_anchors]).T)
+
+		unknown_avg = (np.array([ np.array([
+				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
+				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
+				]) for sample in unknowns]).T,
+			np.array([ np.array([0, 0]) + self.bayes['samples'][sample][f'D{self._4x}'] for sample in unknowns]).T)
+
+		if fig == 'new':
+			out.fig = ppl.figure(figsize = (6,6))
+			ppl.subplots_adjust(.1,.1,.9,.9)
+
+		out.strong_anchor_analyses, = ppl.plot(
+			strong_anchors_d,
+			strong_anchors_D,
+			**kw_plot_strong_anchors)
+		out.weak_anchor_analyses, = ppl.plot(
+			weak_anchors_d,
+			weak_anchors_D,
+			**kw_plot_weak_anchors)
+		out.unknown_analyses, = ppl.plot(
+			unknowns_d,
+			unknowns_D,
+			**kw_plot_unknowns)
+		out.strong_anchor_avg = ppl.plot(
+			*strong_anchor_avg,
+			**kw_plot_strong_anchor_avg)
+		out.weak_anchor_avg = ppl.plot(
+			*weak_anchor_avg,
+			**kw_plot_weak_anchor_avg)
+		out.unknown_avg = ppl.plot(
+			*unknown_avg,
+			**kw_plot_unknown_avg)
+
+		if xylimits == 'constant':
+			x = [r[f'd{self._4x}'] for r in self]
+			y = [r[f'D{self._4x}'] for r in self]
+			x1, x2, y1, y2 = np.min(x), np.max(x), np.min(y), np.max(y)
+			w, h = x2-x1, y2-y1
+			x1 -= w/20
+			x2 += w/20
+			y1 -= h/20
+			y2 += h/20
+			ppl.axis([x1, x2, y1, y2])
+		elif xylimits == 'free':
+			x1, x2, y1, y2 = ppl.axis()
+		else:
+			x1, x2, y1, y2 = ppl.axis(xylimits)
+
+		if error_contour_interval != 'none':
+			xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
+			XI,YI = np.meshgrid(xi, yi)
+			# SI = np.array([[self.standardization_error(session, x, y) for x in xi] for y in yi])
+			_a = self.bayes['sessions'][session]['a']['posterior']
+			_b = self.bayes['sessions'][session]['b']['posterior']
+			_c = self.bayes['sessions'][session]['c']['posterior']
+			_ZI = _a.mean()*YI + _b.mean()*XI + _c.mean()
+			_YI = (_ZI[:,:,None] - _b*XI[:,:,None] - _c) / _a
+			SI = (_YI).std(axis = -1, ddof = 1)
+			if error_contour_interval == 'auto':
+				rng = np.max(SI) - np.min(SI)
+				if rng <= 0.01:
+					cinterval = 0.001
+				elif rng <= 0.03:
+					cinterval = 0.004
+				elif rng <= 0.1:
+					cinterval = 0.01
+				elif rng <= 0.3:
+					cinterval = 0.03
+				elif rng <= 1.:
+					cinterval = 0.1
+				else:
+					cinterval = 0.5
+			else:
+				cinterval = error_contour_interval
+
+			cval = np.arange(np.ceil(SI.min() / .001) * .001, np.ceil(SI.max() / .001 + 1) * .001, cinterval)
+			out.contour = ppl.contour(XI, YI, SI, cval, **kw_contour_error)
+			out.clabel = ppl.clabel(out.contour)
+			contour = (XI, YI, SI, cval, cinterval)
+
+		if fig == None:
+			return {
+			'anchors':anchors,
+			'unknowns':unknowns,
+			'anchors_d':anchors_d,
+			'anchors_D':anchors_D,
+			'unknowns_d':unknowns_d,
+			'unknowns_D':unknowns_D,
+			'anchor_avg':anchor_avg,
+			'unknown_avg':unknown_avg,
+			'contour':contour,
+			}
+
+		ppl.xlabel(x_label)
+		ppl.ylabel(y_label)
+		ppl.title(session, weight = 'bold')
+		ppl.grid(alpha = .2)
+		out.ax = ppl.gca()
+
+		return out
+
+	def plot_bayesian_sessions(self, dir = 'output', figsize = (8,8), filetype = 'pdf', dpi = 100):
+		'''
+		Generate Bayesian session plots and save them to disk.
+
+		**Parameters**
+
+		+ `dir`: the directory in which to save the plots
+		+ `figsize`: the width and height (in inches) of each plot
+		+ `filetype`: 'pdf' or 'png'
+		+ `dpi`: resolution for PNG output
+		'''
+		if not os.path.exists(dir):
+			os.makedirs(dir)
+
+		for session in self.sessions:
+			sp = self.plot_single_bayesian_session(session, xylimits = 'constant')
+			ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.{filetype}', **({'dpi': dpi} if filetype.lower() == 'png' else {}))
+			ppl.close(sp.fig)
 
 	def standardization_error(self, session, d4x, D4x, t = 0):
 		'''
