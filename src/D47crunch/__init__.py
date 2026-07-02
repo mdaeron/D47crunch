@@ -1852,10 +1852,12 @@ class D4xdata(list):
 			and s not in weak_anchors
 		}
 
-		session_search = {s:k for k,s in enumerate(self.sessions)} | {k:s for k,s in enumerate(self.sessions)}
+		sessions = [s for s in self.sessions]
+		session_search = {s:k for k,s in enumerate(sessions)} | {k:s for k,s in enumerate(sessions)}
 		session_idx = np.array([session_search[_['Session']] for _ in self])
 
-		sample_search = {s:k for k,s in enumerate(self.samples)} | {k:s for k,s in enumerate(self.samples)}
+		samples = [s for s in self.samples]
+		sample_search = {s:k for k,s in enumerate(samples)} | {k:s for k,s in enumerate(samples)}
 		sample_idx = np.array([sample_search[_['Sample']] for _ in self])
 
 		mask_for_strong_anchors = np.array([
@@ -1875,39 +1877,38 @@ class D4xdata(list):
 			and _['Sample'] not in weak_anchors
 		])
 
-		n_sessions = len(self.sessions)
-		n_samples = len(self.samples)
+		n_sessions = len(sessions)
+		n_samples = len(samples)
 
-		with pm.Model() as model:
+		with pm.Model(coords = {'sessions': sessions, 'samples': samples}) as model:
 
-			a = pm.Uniform('a', lower = 0.1, upper = 1.5, shape = n_sessions)
-			b = pm.Normal( 'b', mu = [self.sessions[session]['b'] for session in self.sessions], sigma = 0.1, shape = n_sessions)
-			c = pm.Normal( 'c', mu = [self.sessions[session]['c'] for session in self.sessions], sigma = 0.5, shape = n_sessions)
+			a = pm.Uniform('a', lower = 0.1, upper = 1.5, shape = n_sessions, dims = 'sessions')
+			b = pm.Normal( 'b', mu = [self.sessions[session]['b'] for session in self.sessions], sigma = 0.1, shape = n_sessions, dims = 'sessions')
+			c = pm.Normal( 'c', mu = [self.sessions[session]['c'] for session in self.sessions], sigma = 0.5, shape = n_sessions, dims = 'sessions')
 			sigma = pm.HalfNormal('sigma', sigma = 0.1)
+			D4x_wg = pm.Deterministic(f"D{self._4x}_wg", -c/a)
 
-			D4x_vector = []
-			D4x_vector_idx = []
+			D4x = []
+			D4x_idx = []
 			for sample in self.samples:
-				D4x_vector_idx.append(sample)
+				D4x_idx.append(sample)
 				s = pf(sample)
 				if sample in strong_anchors:
-					D4x_vector.append(pt.constant(strong_anchors[sample], name = f"D4x_{s}"))
+					D4x.append(pt.constant(strong_anchors[sample], name = f"D4x_{s}"))
 				else:
 					mu, sig = (weak_anchors | unknowns)[sample]
 					print(sample, mu, sig)
-					D4x_vector.append(pm.Normal(f"D4x_{s}", mu = mu, sigma = sig))
-			D4x_vector = pm.Deterministic("D4x_vector", pt.stack(D4x_vector))
-			D4x_vector_idx = {v:k for k,v in enumerate(D4x_vector_idx)}
-			print(D4x_vector_idx)
-			print(D4x_vector)
+					D4x.append(pm.Normal(f"D4x_{s}", mu = mu, sigma = sig))
+			D4x = pm.Deterministic(f'D{self._4x}', pt.stack(D4x), dims = 'samples')
+			D4x_idx = {v:k for k,v in enumerate(D4x_idx)}
 
 			mu = (
-				a[session_idx] * D4x_vector[sample_idx]
+				a[session_idx] * D4x[sample_idx]
 				+ b[session_idx] * d47
 				+ c[session_idx]
 			)
 
-			D47raw_likelihood = pm.Normal("D47raw", mu = mu, sigma = sigma, observed = D47raw)
+			D47raw_likelihood = pm.Normal("D47raw", mu = mu, sigma = sigma * a[session_idx], observed = D47raw)
 
 			idata = pm.sample(
 				2_000,
@@ -1919,6 +1920,7 @@ class D4xdata(list):
 		self.bayes['idata'] = idata
 		self.bayes['summary'] = az.summary(
 			idata,
+			var_names = ['sigma', 'a', 'b', 'c', f'D{self._4x}'],
 			round_to = 9,
 		)
 		self.bayes['sessions'] = {}
@@ -1933,15 +1935,15 @@ class D4xdata(list):
 		for s in self.weak_anchors:
 			self.bayes['samples'][s] = dict(
 				prior = self.weak_anchors[s],
-				posterior = self.bayes['idata'].posterior['D4x_vector'][:,:,D4x_vector_idx[s]].values.reshape(-1),
+				posterior = self.bayes['idata'].posterior[f'D{self._4x}'][:,:,D4x_idx[s]].values.reshape(-1),
 			)
 		for s in self.unknowns:
 			self.bayes['samples'][s] = dict(
 				prior = self.unknowns[s],
-				posterior = self.bayes['idata'].posterior['D4x_vector'][:,:,D4x_vector_idx[s]].values.reshape(-1),
+				posterior = self.bayes['idata'].posterior[f'D{self._4x}'][:,:,D4x_idx[s]].values.reshape(-1),
 			)
-		ordered_list_of_sample_idx = [D4x_vector_idx[s] for s in self.bayes['samples']]
-		self.bayes['trace'] = np.array([self.bayes['idata'].posterior['D4x_vector'][:,:,k].values.reshape(-1) for k in ordered_list_of_sample_idx])
+		ordered_list_of_sample_idx = [D4x_idx[s] for s in self.bayes['samples']]
+		self.bayes['trace'] = np.array([self.bayes['idata'].posterior[f'D{self._4x}'][:,:,k].values.reshape(-1) for k in ordered_list_of_sample_idx])
 		self.bayes['sample_cov'] = np.cov(self.bayes['trace'])
 		for k,s in enumerate(self.bayes['samples']):
 			self.bayes['samples'][s][f'D{self._4x}'] = float(self.bayes['samples'][s]['posterior'].mean())
