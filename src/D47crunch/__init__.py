@@ -1818,6 +1818,14 @@ class D4xdata(list):
 	def bayesian_standardization(
 		self,
 		weak_anchors = {},
+		constraints = {},
+		mcmc_sample_kw = {},
+		default_mcmc_sample_kw = {
+			'draws': 2000,
+			'tune': 1000,
+			'random_seed': None,
+			'target_accept': 0.95,
+		},
 	):
 		'''
 		Compute absolute Δ4x values as when calling `standardize()`, but using bayesian methods
@@ -1827,15 +1835,42 @@ class D4xdata(list):
 		**Parameters**
 
 		+ `weak_anchors`: a dict with sample names as keys and tuples of (Δ47, SE_Δ47) as values
+		+ `constraints`: a dict specifying exact algebraic relationships between elements of
+		  `a`, `b`, `c`, or `D4x`, keyed by the constrained element and valued by an expression
+		  string defining it, e.g.:
+
+		    constraints = {
+		        "c['Session_02']": "c['Session_01'] / a['Session_01'] * a['Session_02']",
+		        "D47['Sample_02']": "D47['Sample_01'] + 0.987",
+		    }
+
+		Each key/value may reference elements of `a`, `b`, `c`, or `D{4x}` by session/sample
+		  label (e.g. `a['Session_01']`) or by integer position (e.g. `a[0]`). Allowed functions
+		  in expressions: `sqrt`, `exp`, `log`, `Abs`.
 		'''
 
-		import pymc as pm             # lazy import
-		import arviz as az            # lazy import
-		import pytensor.tensor as pt  # lazy import
+		# lazy imports:
+		import re
+		import warnings
+		import pymc as pm
+		import arviz as az
+		import sympy as sp
+		import pytensor.tensor as pt
+		from sympy.parsing.sympy_parser import parse_expr, standard_transformations
 
-		d47 = np.array([_['d47'] for _ in self])
-		D47raw = np.array([_['D47raw'] for _ in self])
+		_d4x_ = f'd{self._4x}' # 'd47' or 'd48' or 'd49'
+		_D4x_ = f'D{self._4x}' # 'D47' or 'D48' or 'D49'
 
+		# arrays of δ4x and Δ4x values
+		d4x = np.array([_[_d4x_] for _ in self])
+		D4x_raw = np.array([_[f'{_D4x_}raw'] for _ in self])
+
+		# weak anchors = anchors specified as method argument
+		# stored as dict of {sample: (D4x mu, D4x sigma)}
+		self.weak_anchors = weak_anchors
+
+		# strong anchors = anchors not in weak_anchors
+		# stored as dict of {sample: D4x value}
 		strong_anchors = {
 			s: self.Nominal_D4x[s]
 			for s in self.samples
@@ -1843,86 +1878,356 @@ class D4xdata(list):
 			and s not in weak_anchors
 		}
 		self.strong_anchors = strong_anchors
-		self.weak_anchors = weak_anchors
 
+		# unknowns = samples not in strong nor weak_anchors
 		unknowns = {
 			s: (self.samples[s][f'D{self._4x}'], 1.)
 			for s in self.samples
-			if s not in strong_anchors
-			and s not in weak_anchors
+			if s not in (strong_anchors | weak_anchors)
 		}
 
+		# list of sessions:
 		sessions = [s for s in self.sessions]
+		n_sessions = len(sessions)
+		# bidirectional session search:
 		session_search = {s:k for k,s in enumerate(sessions)} | {k:s for k,s in enumerate(sessions)}
+		# session index for all analyses:
 		session_idx = np.array([session_search[_['Session']] for _ in self])
 
+		# list of samples:
 		samples = [s for s in self.samples]
+		n_samples = len(samples)
+		# bidirectional sample search:
 		sample_search = {s:k for k,s in enumerate(samples)} | {k:s for k,s in enumerate(samples)}
+		# sample index for all analyses:
 		sample_idx = np.array([sample_search[_['Sample']] for _ in self])
 
-		mask_for_strong_anchors = np.array([
-			_['Sample'] in self.anchors
-			and isinstance(self.Nominal_D4x[_['Sample']], float)
-			for _ in self
-		])
-		mask_for_weak_anchors = np.array([
-			_['Sample'] in self.anchors
-			and isinstance(self.Nominal_D4x[_['Sample']], tuple)
-			for _ in self
-		])
-		mask_for_unknowns = np.array([
-			_['Sample'] in self.samples
-			for _ in self
-			if _['Sample'] not in strong_anchors
-			and _['Sample'] not in weak_anchors
-		])
+		#### HELPERS FOR PARSING CONSTRAINTS ####
 
-		n_sessions = len(sessions)
-		n_samples = len(samples)
+		# regex pattern, matches a[0], a['Session_01'], a["Session_01"]...
+		_INDEX_PATTERN = re.compile(r"(\w+)\[(?:'([^']+)'|\"([^\"]+)\"|(\d+))\]")
+
+		# functions users are allowed to reference in constraint expressions
+		_ALLOWED_FUNCS = {
+			# 'sqrt': pt.sqrt,
+			# 'exp': pt.exp,
+			# 'log': pt.log,
+			# 'abs': pt.abs,
+		}
+
+		# which coordinate each constrainable variable is indexed along
+		variable_dim = {
+			'a': 'sessions',
+			'b': 'sessions',
+			'c': 'sessions',
+			_D4x_: 'samples',
+		}
+
+		# lookup tables for each coordinate
+		# {coord -> {label -> index}}
+		label_to_pos = {
+			'sessions': {s: k for k, s in enumerate(sessions)},
+			'samples': {s: k for k, s in enumerate(samples)},
+		}
+
+		def _resolve_ref(
+			base_name,
+			label_or_index,
+		):
+			'''Translate and validate a parsed base_name + label/index into (base_name, index)'''
+
+			if base_name not in variable_dim:
+				raise ValueError(f"Constraints: unknown variable '{base_name}'. Must be one of {sorted(variable_dim)}.")
+
+			dim = variable_dim[base_name]
+
+			if label_or_index.isdigit():
+				pos = int(label_or_index)
+				if not (0 <= pos < len(label_to_pos[dim])):
+					raise ValueError(f"Constraints: index {pos} out of range for '{base_name}' (dim '{dim}').")
+			else:
+				if label_or_index not in label_to_pos[dim]:
+					raise ValueError(f"Constraints: label '{label_or_index}' not found in dim '{dim}' (variable '{base_name}').")
+				pos = label_to_pos[dim][label_or_index]
+			return base_name, pos
+
+		def _parse_single_ref(ref_str):
+			'''Parse a standalone reference string, e.g. "c['Session_02']", used for constraint keys.'''
+			match = _INDEX_PATTERN.fullmatch(ref_str.strip())
+			if not match:
+				raise ValueError(f"Constraints: invalid reference syntax '{ref_str}' (expected e.g. \"a['Session_01']\" or \"b[1]\")")
+
+			base_name = match.group(1)
+
+			# pick out whichever of the three alternative index-formats actually matched,
+			# since the regex has three mutually exclusive capture groups for the bracket content.
+			label_or_index = match.group(2) or match.group(3) or match.group(4)
+
+			return _resolve_ref(base_name, label_or_index)
+
+		def _safe_parse(expr_str):
+			'''Parse an algebraic expression string into sympy, without exposing Python builtins.'''
+			return parse_expr(
+				expr_str,
+				transformations = standard_transformations,
+				global_dict = {},
+				local_dict = {},
+			)
+
+		def _preprocess_expression(expr_str):
+			'''Replace every 'name[...]' reference in expr_str with a safe placeholder symbol.
+			Returns (rewritten_string, {placeholder: (base_name, position)}).'''
+
+			ref_map = {}
+
+			def _replace(match):
+
+				base_name = match.group(1)
+				label_or_index = match.group(2) or match.group(3) or match.group(4) # see explanation above
+
+				# translate and validate parsed base_name + label/index into (base_name, index):
+				base_name, pos = _resolve_ref(base_name, label_or_index)
+
+				placeholder = f'{base_name}__{pos}'
+
+				# update ref_map
+				ref_map[placeholder] = (base_name, pos)
+
+				# update ref_map
+				return placeholder
+
+			rewritten = _INDEX_PATTERN.sub(_replace, expr_str)
+
+			return rewritten, ref_map
+
+		#### PARSE ALL CONSTRAINTS ####
+
+		parsed_constraints = {}
+		# Target format = {
+		#     (base_name, pos) -> {
+		#         'expr': sympy expr,
+		#         'symbols': [...],
+		#         'ref_map': {...}
+		#     }
+		# }
+
+		for target_str, expr_str in constraints.items():
+
+			target = _parse_single_ref(target_str) # -> (base_name, pos)
+
+			# Raise error if target is a strong anchor
+			if target[0] == _D4x_ and samples[target[1]] in strong_anchors:
+				raise ValueError(
+					f"Constraints: '{target_str}' cannot be constrained because '{samples[target[1]]}' is a strong anchor with a fixed nominal value."
+				)
+
+			# Raise error if target has already been constrained
+			if target in parsed_constraints:
+				raise ValueError(f"Constraints: '{target_str}' cannot be the target of more than one constraint.")
+
+			# Preprocess the constraint expression
+			rewritten_expr, ref_map = _preprocess_expression(expr_str)
+
+			# Parse the preprocessed expression
+			try:
+				sympy_expr = _safe_parse(rewritten_expr)
+			except Exception as e:
+				raise ValueError(f"Constraints: could not parse expression '{expr_str}' for target '{target_str}' ({e}).")
+
+			# Check that no symbol remains undefined
+			free_symbol_names = sorted(str(s) for s in sympy_expr.free_symbols)
+			unresolved = [n for n in free_symbol_names if n not in ref_map]
+			if unresolved:
+				raise ValueError(f"Constraints: unrecognized term(s) {unresolved} in expression '{expr_str}'.")
+
+			# Update parsed_constraints
+			parsed_constraints[target] = {
+				'expr': sympy_expr,
+				'symbols': free_symbol_names,
+				'ref_map': ref_map,
+			}
+
+		# Make a note of all constrained keys
+		constrained_keys = set(parsed_constraints)
+
+		# lookup table for which positions of a given variable name are constrained:
+		def _constrained_positions(base_name):
+			'''Positions of `base_name` that are the target of a constraint.'''
+			return {pos for (b, pos) in constrained_keys if b == base_name}
+
+		#### TOPOLOGICALLY ORDER CONSTRAINTS (DEPENDENCIES RESOLVED BEFORE DEPENDENTS) ####
+
+		resolved_order = []
+		visiting = set()
+
+		def _visit(key, chain):
+			'''Depth-first traversal building a dependency-respecting resolution order; raises on cycles.'''
+			if key in resolved_order:
+				return
+			if key in visiting:
+				cycle = ' -> '.join(f'{b}[{samples[p] if b == _D4x_ else sessions[p]}]' for b, p in chain + [key])
+				raise ValueError(f'constraints: circular dependency detected ({cycle})')
+			visiting.add(key)
+			for symbol_name in parsed_constraints[key]['symbols']:
+				dep = parsed_constraints[key]['ref_map'][symbol_name]
+				if dep in constrained_keys:
+					_visit(dep, chain + [key])
+			visiting.discard(key)
+			resolved_order.append(key)
+
+		for key in constrained_keys:
+			_visit(key, [])
+		# at this point, resolved_order should be populated in the correct order
+
+		#### GENERIC BUILDER FOR PARTIALLY-FREE VECTORS (USED FOR a, b, c) ####
+
+		def _build_vector(base_name, dist_fn, size, dims, **dist_kwargs):
+			'''
+			Build `size` slots for `base_name`. Positions not targeted by a constraint are
+			drawn from dist_fn; constrained positions are left as None, to be filled in
+			later once their defining expression can be evaluated.
+			Returns (free_rv_or_None, slots).
+			'''
+			constrained_positions = _constrained_positions(base_name)
+			free_positions = [i for i in range(size) if i not in constrained_positions]
+
+			# subset any per-position kwarg (e.g. `mu`) down to the free positions only
+			free_kwargs = {}
+			for key, value in dist_kwargs.items():
+				if hasattr(value, '__len__') and len(value) == size:
+					free_kwargs[key] = [value[i] for i in free_positions]
+				else:
+					free_kwargs[key] = value
+
+			free_name = base_name if not constrained_positions else f'{base_name}_free'
+			free_dims = dims if not constrained_positions else None
+
+			slots = [None] * size
+			free_rv = None
+			if free_positions:
+				free_rv = dist_fn(free_name, shape = len(free_positions), dims = free_dims, **free_kwargs)
+				for pos_in_free, pos in enumerate(free_positions):
+					slots[pos] = free_rv[pos_in_free]
+
+			return free_rv, slots
+
+		def _finalize_vector(base_name, free_rv, slots, dims):
+			'''Register the completed vector: a Deterministic if any position was constraint-derived,
+			otherwise the free RV itself (unchanged from the non-constrained code path).'''
+			if _constrained_positions(base_name):
+				return pm.Deterministic(base_name, pt.stack(slots), dims = dims)
+			return free_rv
+
+		#### MODEL ####
 
 		with pm.Model(coords = {'sessions': sessions, 'samples': samples}) as model:
 
-			a = pm.Uniform('a', lower = 0.1, upper = 1.5, shape = n_sessions, dims = 'sessions')
-			b = pm.Normal( 'b', mu = [self.sessions[session]['b'] for session in self.sessions], sigma = 0.1, shape = n_sessions, dims = 'sessions')
-			c = pm.Normal( 'c', mu = [self.sessions[session]['c'] for session in self.sessions], sigma = 0.5, shape = n_sessions, dims = 'sessions')
-			sigma = pm.HalfNormal('sigma', sigma = 0.1)
-			D4x_wg = pm.Deterministic(f"D{self._4x}_wg", -c/a)
+			a_free, a_slots = _build_vector(
+				base_name = 'a',
+				dist_fn = pm.Uniform,
+				size = n_sessions,
+				dims = 'sessions',
+				lower = 0.1,
+				upper = 1.5,
+			)
 
-			D4x = []
-			D4x_idx = []
-			for sample in self.samples:
-				D4x_idx.append(sample)
+			b_free, b_slots = _build_vector(
+				base_name = 'b',
+				dist_fn = pm.Normal,
+				size = n_sessions,
+				dims = 'sessions',
+				mu = [self.sessions[session]['b'] for session in self.sessions],
+				sigma = 0.1,
+			)
+
+			c_free, c_slots = _build_vector(
+				base_name = 'c',
+				dist_fn = pm.Normal,
+				size = n_sessions,
+				dims = 'sessions',
+				mu = [self.sessions[session]['c'] for session in self.sessions],
+				sigma = 0.5,
+			)
+
+			sigma = pm.HalfNormal('sigma', sigma = 0.1)
+
+			# D4x: constants for strong anchors, free Normals for the rest,
+			# except positions targeted by a constraint, left as None for now
+			D4x_slots = [None] * n_samples
+
+			for i, sample in enumerate(samples):
+				if (_D4x_, i) in parsed_constraints:
+					continue   # filled in during constraint resolution below
 				s = pf(sample)
 				if sample in strong_anchors:
-					D4x.append(pt.constant(strong_anchors[sample], name = f"D4x_{s}"))
+					D4x_slots[i] = pt.constant(strong_anchors[sample], name = f'D4x_{s}')
 				else:
 					mu, sig = (weak_anchors | unknowns)[sample]
-					print(sample, mu, sig)
-					D4x.append(pm.Normal(f"D4x_{s}", mu = mu, sigma = sig))
-			D4x = pm.Deterministic(f'D{self._4x}', pt.stack(D4x), dims = 'samples')
-			D4x_idx = {v:k for k,v in enumerate(D4x_idx)}
+					D4x_slots[i] = pm.Normal(f'D4x_{s}', mu = mu, sigma = sig)
 
+			# Resolve constrained positions in the correct dependency order
+			slots_by_var = {'a': a_slots, 'b': b_slots, 'c': c_slots, _D4x_: D4x_slots}
+
+			for base_name, pos in resolved_order:
+				info = parsed_constraints[(base_name, pos)]
+				symbol_objs = [sp.Symbol(n) for n in info['symbols']]
+				numeric_func = sp.lambdify(symbol_objs, info['expr'], modules = [_ALLOWED_FUNCS, 'numpy'])
+
+				arg_values = []
+				for symbol_name in info['symbols']:
+					dep_base, dep_pos = info['ref_map'][symbol_name]
+					value = slots_by_var[dep_base][dep_pos]
+					if value is None:
+						raise ValueError(
+							f'constraints: dependency {dep_base}[{dep_pos}] (needed for {base_name}[{pos}]) was not yet resolved (internal ordering error)'
+						)
+					arg_values.append(value)
+
+				slots_by_var[base_name][pos] = numeric_func(*arg_values)
+
+			# Finalize a, b, c (Deterministic if constrained, free RV otherwise)
+			a = _finalize_vector('a', a_free, a_slots, 'sessions')
+			b = _finalize_vector('b', b_free, b_slots, 'sessions')
+			c = _finalize_vector('c', c_free, c_slots, 'sessions')
+
+			# Finalize D4x (Deterministic if constrained, free RV otherwise)
+			D4x = pm.Deterministic(_D4x_, pt.stack(D4x_slots), dims = 'samples')
+			D4x_idx = {v: k for k, v in enumerate(samples)}
+
+			# Convenience variable (WG composition, computed from a,c)
+			D4x_wg = pm.Deterministic(f'D{self._4x}_wg', -c/a)
+
+			# Build predicted raw D4x values (observations)
 			mu = (
 				a[session_idx] * D4x[sample_idx]
-				+ b[session_idx] * d47
+				+ b[session_idx] * d4x
 				+ c[session_idx]
 			)
 
-			D47raw_likelihood = pm.Normal("D47raw", mu = mu, sigma = sigma * a[session_idx], observed = D47raw)
+			D4xraw_likelihood = pm.Normal('D4xraw', mu = mu, sigma = sigma * a[session_idx], observed = D4x_raw)
 
 			idata = pm.sample(
-				2_000,
-				tune = 1_000,
-				target_accept = 0.98,
+				**(default_mcmc_sample_kw | mcmc_sample_kw)
 			)
 
 		self.bayes = {}
 		self.bayes['idata'] = idata
-		self.bayes['summary'] = az.summary(
-			idata,
-			var_names = ['sigma', 'a', 'b', 'c', f'D{self._4x}'],
-			round_to = 9,
-		)
+		with warnings.catch_warnings():
+			warnings.filterwarnings(
+				'ignore',
+				category = RuntimeWarning,
+				message = 'invalid value encountered in scalar divide',
+			)
+
+			self.bayes['summary'] = az.summary(
+				idata,
+				var_names = ['sigma', 'a', 'b', 'c', f'D{self._4x}'],
+				round_to = 9,
+				ci_kind = 'eti',
+				ci_prob=0.95,
+				# coords={'samples': [s for s in samples if s not in strong_anchors]}
+			)
+
 		self.bayes['sessions'] = {}
 		for session in self.sessions:
 			i = session_search[session]
@@ -1930,6 +2235,12 @@ class D4xdata(list):
 			for f in 'abc':
 				self.bayes['sessions'][session][f]['posterior'] = self.bayes['idata'].posterior[f][:,:,i].values.reshape(-1)
 				self.bayes['sessions'][session][f]['mean'] = float(self.bayes['sessions'][session][f]['posterior'].mean())
+				self.bayes['sessions'][session][f]['95CL'] = float(
+					np.quantile(
+						np.abs(self.bayes['sessions'][session][f]['posterior'] - self.bayes['sessions'][session][f]['mean']),
+						0.95,
+					)
+				)
 
 		self.bayes['samples'] = {}
 		for s in self.weak_anchors:
@@ -1950,7 +2261,7 @@ class D4xdata(list):
 			self.bayes['samples'][s][f'SE_D{self._4x}'] = float(self.bayes['sample_cov'][k,k]**0.5)
 			self.bayes['samples'][s][f'95CL_D{self._4x}'] = float(
 				np.quantile(
-					np.abs(self.bayes['samples'][s]['posterior'] - self.bayes['samples'][s]['posterior'].mean()),
+					np.abs(self.bayes['samples'][s]['posterior'] - self.bayes['samples'][s][f'D{self._4x}']),
 					0.95,
 				)
 			)
