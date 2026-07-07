@@ -1589,15 +1589,46 @@ class D4xdata(list):
 		consolidate_tables = False,
 		consolidate_plots = False,
 		constraints = {},
+		weak_anchors = {},
+		mcmc_sample_kw = {},
 		):
 		'''
 		Compute absolute Δ4x values for all replicate analyses and for sample averages.
-		If `method` argument is set to `'pooled'`, the standardization processes all sessions
-		in a single step, assuming that all samples (anchors and unknowns alike) are homogeneous,
-		i.e. that their true Δ4x value does not change between sessions,
-		([Daëron, 2021](https://doi.org/10.1029/2020GC009592)). If `method` argument is set to
-		`'indep_sessions'`, the standardization processes each session independently, based only
-		on anchors analyses.
+
+		**Parameters**
+
+		+ `method`:
+			- `'pooled'`: processes all sessions in a single step, assuming that all samples
+				(anchors and unknowns alike) are homogeneous, i.e. that their true Δ4x values do
+				not change between sessions ([Daëron, 2021](https://doi.org/10.1029/2020GC009592)).
+			- `'bayes'`: use Bayesian approach to standardization, which accounts for anchors with
+				uncertain nominal Δ4x values. See "Bayesian requirements" below.
+			- `'indep_sessions'`: processes each session independently, based only on anchor analyses.
+
+		> [!CAUTION]
+		> `method = 'indep_sessions'` will eventually be deprecated.
+
+		> [!NOTE]
+		> **Bayesian requirements**
+		>
+		> One does not simply  ~~walk into Mordor~~  call `standardize(method = 'bayes')` without meeting
+		> the following requirements:
+		> 1. call `standardize(method = 'pooled')`
+		> 2. specify `weak_anchors` as a dict of `{sample: (mu, sigma)}` items, with `(mu, sigma)`
+		> 	being the mean and 1-σ uncertainty of the nominal Δ4x value of sample `sample`. Example:
+		> 	`weak_anchors = {'ETH-4': (0.4511, 0.0011), 'TAC-1': (0.7, 0.02)}` (NB: these are
+		> 	made-up values for `TAC-1` for now).
+		> 3. specify `mcmc_sample_kw` as a dict of parameters to be passed on to `pymc.sample()`, e.g.,
+		> 	`{'draws': 2000, 'random_seed': 1234}`.
+		> 4. call `standardize()` again:
+		> ```py
+		> standardize(
+		> 	method = 'bayes',
+		> 	weak_anchors = {'ETH-4': (0.4511, 0.0011), 'TAC-1': (0.7, 0.02)},
+		> 	mcmc_sample_kw = {'draws': 2000, 'random_seed': 1234},
+		> )
+		> ```
+
 		'''
 
 		self.standardization_method = method
@@ -1718,6 +1749,13 @@ class D4xdata(list):
 			return result
 
 
+		elif method == 'bayes':
+			self._bayesian_standardization(
+				weak_anchors = weak_anchors,
+				constraints = constraints,
+				mcmc_sample_kw = mcmc_sample_kw,
+			)
+
 		elif method == 'indep_sessions':
 
 			if weighted_sessions:
@@ -1815,7 +1853,7 @@ class D4xdata(list):
 			if consolidate:
 				self.consolidate(tables = consolidate_tables, plots = consolidate_plots)
 
-	def bayesian_standardization(
+	def _bayesian_standardization(
 		self,
 		weak_anchors = {},
 		constraints = {},
@@ -1845,8 +1883,7 @@ class D4xdata(list):
 		    }
 
 		Each key/value may reference elements of `a`, `b`, `c`, or `D{4x}` by session/sample
-		  label (e.g. `a['Session_01']`) or by integer position (e.g. `a[0]`). Allowed functions
-		  in expressions: `sqrt`, `exp`, `log`, `Abs`.
+		label (e.g. `a['Session_01']`) or by integer position (e.g. `a[0]`).
 		'''
 
 		# lazy imports:
