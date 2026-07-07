@@ -1,7 +1,7 @@
 default: bayes
 
 bayes:
-	cd examples; uv run bayes-example.py
+	cd examples; uv run bayes-demo.py
 
 metadata:
 	uv run build-metadata.py

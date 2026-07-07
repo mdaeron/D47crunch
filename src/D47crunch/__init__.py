@@ -1915,6 +1915,12 @@ class D4xdata(list):
 			# 'abs': pt.abs,
 		}
 
+		# base namespace: sympy's own names (Symbol, Integer, Rational, etc.), with
+		# Python builtins stripped out so eval'd expressions can't reach __import__ etc.
+		_SYMPY_NAMESPACE = {}
+		exec("from sympy import *", _SYMPY_NAMESPACE)
+		_SYMPY_NAMESPACE.pop("__builtins__", None)
+
 		# which coordinate each constrainable variable is indexed along
 		variable_dim = {
 			'a': 'sessions',
@@ -1970,7 +1976,7 @@ class D4xdata(list):
 			return parse_expr(
 				expr_str,
 				transformations = standard_transformations,
-				global_dict = {},
+				global_dict = _SYMPY_NAMESPACE,
 				local_dict = {},
 			)
 
@@ -2221,7 +2227,7 @@ class D4xdata(list):
 
 			self.bayes['summary'] = az.summary(
 				idata,
-				var_names = ['sigma', 'a', 'b', 'c', f'D{self._4x}'],
+				var_names = ['sigma', 'a', 'b', 'c', f'D{self._4x}_wg', f'D{self._4x}'],
 				round_to = 9,
 				ci_kind = 'eti',
 				ci_prob=0.95,
@@ -2311,6 +2317,7 @@ class D4xdata(list):
 		right_margin = 0.2,
 		top_margin = 0.5,
 		bottom_margin = 0.7,
+		bayes_on_top = True,
 		cell_width = 6,
 		cell_height = 0.5,
 		dir = 'output',
@@ -2363,7 +2370,12 @@ class D4xdata(list):
 					lw = 1,
 					zorder = 5,
 				)
-				ax.fill_between(xi, yi, -yi, **kw)
+				ax.fill_between(
+					xi,
+					yi*(1 if bayes_on_top else 0),
+					yi*(0 if bayes_on_top else -1),
+					**kw,
+				)
 				if sample in self.weak_anchors:
 					_color = Color('orangered')
 					kw = dict(
@@ -2373,7 +2385,12 @@ class D4xdata(list):
 						zorder = 2,
 					)
 					yi = yi.max() * np.exp(-0.5 * ((xi-self.weak_anchors[sample][0])/self.weak_anchors[sample][1])**2)
-					ax.fill_between(xi, yi, -yi, **kw)
+					ax.fill_between(
+						xi,
+						yi*(0 if bayes_on_top else 1),
+						yi*(-1 if bayes_on_top else 0),
+						**kw,
+					)
 				elif sample in self.unknowns:
 					_color = Color('deepskyblue')
 					kw = dict(
@@ -2385,7 +2402,12 @@ class D4xdata(list):
 					mu = self.samples[sample][f'D{self._4x}']
 					sigma = self.samples[sample][f'SE_D{self._4x}']
 					yi = yi.max() * np.exp(-0.5 * ((xi - mu)/sigma)**2)
-					ax.fill_between(xi, yi, -yi, **kw)
+					ax.fill_between(
+						xi,
+						yi*(0 if bayes_on_top else 1),
+						yi*(-1 if bayes_on_top else 0),
+						**kw,
+					)
 
 			for ax in axs:
 				ppl.sca(ax)
