@@ -21,6 +21,7 @@ from ._metadata import *
 import os
 import numpy as np
 import typer
+import uncertainties
 from typing_extensions import Annotated
 from statistics import stdev
 from scipy.stats import t as tstudent
@@ -1604,6 +1605,50 @@ class D4xdata(list):
 			- `'bayes'`: use Bayesian approach to standardization, which accounts for anchors with
 				uncertain nominal Δ4x values. See "Bayesian requirements" below.
 			- `'indep_sessions'`: processes each session independently, based only on anchor analyses.
+		+ `weighted_sessions` (not implemented for `method = 'bayes'`):
+			grouping of sessions (e.g., `[['S1', 'S2'], ['S3', 'S4', 'S5']]`) assumed
+			to share the same pooled reproducibility of Δ4x measurements. This is intended for cases where
+			different datasets with different intrumental performance levels (e.g., from different mass
+			spectrometers) are to be combined.
+		+ `consolidate`: Whether to collect information about samples, sessions and repeatabilities after standardization.
+			Not to be changed unless you know exactly what you're doing.
+		+ `consolidate_tables`: Whether to ouput tables during `D4xdata.consolidate()`.
+		+ `consolidate_plots`: Whether to ouput session plots during `D4xdata.consolidate()`.
+		+ `constraints`:specify additional mathematical constraints linking the standardization parameters
+			(session parameters and/or unknown samples' Δ4x values). Currently, the format for these constraints
+			depends on the `method` parameter:
+			- `method = 'pooled'`: a dict of `{param: expr}` items, where `param` is the name of the parameter
+				(normalized using `pf()`) and `expr` is a mathematical expression used to compute `param` exactly.
+				Internally impremented by the `lmfit` package.
+			- `method = 'bayes'`: also a dict of `{param: expr}` items, but using a different, bracket-based notation
+				for fit parameters (and without `pf()` normalization). Internally impremented by the `sympy` package.
+			- Below are examples for the two cases above:
+
+		```py
+		# POOLED METHOD
+		D4xdata.standardize(
+		  method = 'pooled',
+		  constraints = {
+		    # ensure that Session_01 and Session_02 share the same WG D4x value:
+		    'c_Session_02': 'c_Session_01 / a_Session_01 * a_Session_02',
+		    # Force the correct scaling between 25 °C equilibrated and 1000 °C heated gases:
+		    'D4x_EG_25C' : 'D4x_HG_1000C + 0.893',
+		  }
+		)
+
+		# BAYES METHOD
+		D4xdata.standardize(
+		  method = 'bayes',
+		  constraints = {
+		    # ensure that Session_01 and Session_02 share the same WG D4x value:
+		    "c['Session_02']": "c['Session_01'] / a['Session_01'] * a['Session_02']",
+		    # Force the correct scaling between 25 °C equilibrated and 1000 °C heated gases:
+		    "D47['EG_25C']" : "D47['HG_1000C'] + 0.893",
+		  }
+		)
+		}
+		```
+
 
 		> [!CAUTION]
 		> `method = 'indep_sessions'` will eventually be deprecated.
@@ -1918,7 +1963,7 @@ class D4xdata(list):
 
 		# unknowns = samples not in strong nor weak_anchors
 		unknowns = {
-			s: (self.samples[s][f'D{self._4x}'], 1.)
+			s: (0.5, 2.)
 			for s in self.samples
 			if s not in (strong_anchors | weak_anchors)
 		}
@@ -2179,7 +2224,7 @@ class D4xdata(list):
 				dist_fn = pm.Normal,
 				size = n_sessions,
 				dims = 'sessions',
-				mu = [self.sessions[session]['b'] for session in self.sessions],
+				mu = [0. for session in self.sessions],
 				sigma = 0.1,
 			)
 
@@ -2188,8 +2233,8 @@ class D4xdata(list):
 				dist_fn = pm.Normal,
 				size = n_sessions,
 				dims = 'sessions',
-				mu = [self.sessions[session]['c'] for session in self.sessions],
-				sigma = 0.5,
+				mu = [0.9 for session in self.sessions],
+				sigma = 2,
 			)
 
 			sigma = pm.HalfNormal('sigma', sigma = 0.1)
@@ -2247,14 +2292,17 @@ class D4xdata(list):
 				+ c[session_idx]
 			)
 
-			D4xraw_likelihood = pm.Normal('D4xraw', mu = mu, sigma = sigma * a[session_idx], observed = D4x_raw)
+			pm.Normal('D4xraw', mu = mu, sigma = sigma * a[session_idx], observed = D4x_raw)
 
 			idata = pm.sample(
 				**(default_mcmc_sample_kw | mcmc_sample_kw)
 			)
 
+		_posterior = idata.posterior
+
 		self.bayes = {}
 		self.bayes['idata'] = idata
+
 		with warnings.catch_warnings():
 			warnings.filterwarnings(
 				'ignore',
@@ -2273,40 +2321,51 @@ class D4xdata(list):
 
 		self.bayes['sessions'] = {}
 		for session in self.sessions:
-			i = session_search[session]
-			self.bayes['sessions'][session] = {'a': {}, 'b': {}, 'c': {}}
-			for f in 'abc':
-				self.bayes['sessions'][session][f]['posterior'] = self.bayes['idata'].posterior[f][:,:,i].values.reshape(-1)
-				self.bayes['sessions'][session][f]['mean'] = float(self.bayes['sessions'][session][f]['posterior'].mean())
-				self.bayes['sessions'][session][f]['95CL'] = float(
-					np.quantile(
-						np.abs(self.bayes['sessions'][session][f]['posterior'] - self.bayes['sessions'][session][f]['mean']),
-						0.95,
-					)
+
+			params = ['a', 'b', 'c']
+			session_index = session_search[session]
+
+			draws = np.array([_posterior[p][:,:,session_index].values.reshape(-1) for p in params])
+			uparams = uncertainties.correlated_values(
+				draws.mean(1),
+				np.cov(draws),
+			)
+
+			self.bayes['sessions'][session] = {_: {} for _ in params}
+			for p_index, p in enumerate(params):
+				self.bayes['sessions'][session][p]['posterior'] = draws[p_index,:]
+				self.bayes['sessions'][session][p]['ufloat'] = uparams[p_index]
+				self.bayes['sessions'][session][p]['95CL'] = float(
+					np.quantile(np.abs(draws[p_index,:] - draws[p_index,:].mean()), 0.95)
 				)
 
+		D4x = f'D{self._4x}'
 		self.bayes['samples'] = {}
 		for s in self.weak_anchors:
 			self.bayes['samples'][s] = dict(
 				prior = self.weak_anchors[s],
-				posterior = self.bayes['idata'].posterior[f'D{self._4x}'][:,:,D4x_idx[s]].values.reshape(-1),
+				posterior = _posterior[D4x][:,:,D4x_idx[s]].values.reshape(-1),
 			)
+
 		for s in self.unknowns:
 			self.bayes['samples'][s] = dict(
-				prior = self.unknowns[s],
-				posterior = self.bayes['idata'].posterior[f'D{self._4x}'][:,:,D4x_idx[s]].values.reshape(-1),
+				posterior = _posterior[D4x][:,:,D4x_idx[s]].values.reshape(-1),
 			)
-		ordered_list_of_sample_idx = [D4x_idx[s] for s in self.bayes['samples']]
-		self.bayes['trace'] = np.array([self.bayes['idata'].posterior[f'D{self._4x}'][:,:,k].values.reshape(-1) for k in ordered_list_of_sample_idx])
-		self.bayes['sample_cov'] = np.cov(self.bayes['trace'])
-		for k,s in enumerate(self.bayes['samples']):
-			self.bayes['samples'][s][f'D{self._4x}'] = float(self.bayes['samples'][s]['posterior'].mean())
-			self.bayes['samples'][s][f'SE_D{self._4x}'] = float(self.bayes['sample_cov'][k,k]**0.5)
-			self.bayes['samples'][s][f'95CL_D{self._4x}'] = float(
-				np.quantile(
-					np.abs(self.bayes['samples'][s]['posterior'] - self.bayes['samples'][s][f'D{self._4x}']),
-					0.95,
-				)
+
+		samples = [s for s in self.bayes['samples']]
+		sample_index = [D4x_idx[s] for s in samples]
+
+		draws = np.array([_posterior[D4x][:,:,i].values.reshape(-1) for i in sample_index])
+		print(draws.shape)
+		uD4x = uncertainties.correlated_values(
+			draws.mean(1),
+			np.cov(draws),
+		)
+		for k,s in enumerate(samples):
+			self.bayes['samples'][s]['posterior'] = draws[k,:]
+			self.bayes['samples'][s]['ufloat'] = uD4x[k]
+			self.bayes['samples'][s]['95CL'] = float(
+				np.quantile(np.abs(draws[k,:] - draws[k,:].mean()), 0.95)
 			)
 
 	def table_of_least_squares_vs_bayesian_results(

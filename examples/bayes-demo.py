@@ -11,13 +11,25 @@ args = dict(
 			D47 = 0.700,
 			D48 = 0.3,
 		),
-		dict(Sample = 'FOO', N = 3,
+		dict(Sample = 'FOO-1', N = 3,
 			d13C_VPDB = -5.,
 			d18O_VPDB = -10.,
 			D47 = 0.3,
 			D48 = 0.15,
 		),
-		dict(Sample = 'BAR', N = 3,
+		dict(Sample = 'BAR-1', N = 3,
+			d13C_VPDB = 0.,
+			d18O_VPDB = -2.,
+			D47 = 0.6,
+			D48 = 0.2,
+		),
+		dict(Sample = 'BAR-2', N = 3,
+			d13C_VPDB = 0.,
+			d18O_VPDB = -2.,
+			D47 = 0.6,
+			D48 = 0.2,
+		),
+		dict(Sample = 'BAR-3', N = 3,
 			d13C_VPDB = 0.,
 			d18O_VPDB = -2.,
 			D47 = 0.6,
@@ -35,26 +47,27 @@ D = D47data(
 )
 
 D.crunch()
-D.standardize()
+# D.standardize()
 
-D.plot_sessions(dir = 'output/ls')
-D.table_of_sessions(verbose = True, save_to_file = False)
-D.table_of_samples(verbose = True, save_to_file = False)
+# D.plot_sessions(dir = 'output/ls')
+# D.table_of_sessions(verbose = True, save_to_file = False)
+# D.table_of_samples(verbose = True, save_to_file = False)
 
-D.bayesian_standardization(
+D.standardize(
+	method = 'bayes',
 	weak_anchors = {'TAC-1': (0.700, 0.02)},
 	constraints = {
 		# two different ways to specify that WG bulk composition remains constant:
 		"c['Session_02']": "c['Session_01'] / a['Session_01'] * a['Session_02']",
 		"c[2]": "c[0] / a[0] * a[2]",
 		# also specify a known D47 offset between FOO and BAR:
-		"D47['FOO']": "D47['BAR'] - 0.3",
+		"D47['FOO-1']": "D47['BAR-1'] - 0.3",
 	},
 )
 
 print(D.bayes['summary'])
 
-D.plot_bayesian_sessions(dir = 'output/bayes')
+# D.plot_bayesian_sessions(dir = 'output/bayes')
 
-D.table_of_least_squares_vs_bayesian_results(dir = 'output/bayes')
-D.plot_least_squares_vs_bayesian_results(dir = 'output/bayes')
+# D.table_of_least_squares_vs_bayesian_results(dir = 'output/bayes')
+# D.plot_least_squares_vs_bayesian_results(dir = 'output/bayes')
