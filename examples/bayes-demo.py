@@ -47,11 +47,12 @@ D = D47data(
 )
 
 D.crunch()
-# D.standardize()
+D.standardize()
 
-# D.plot_sessions(dir = 'output/ls')
-# D.table_of_sessions(verbose = True, save_to_file = False)
-# D.table_of_samples(verbose = True, save_to_file = False)
+exit()
+D.plot_sessions(dir = 'output/ls')
+D.table_of_sessions(verbose = True, save_to_file = False)
+D.table_of_samples(verbose = True, save_to_file = False)
 
 D.standardize(
 	method = 'bayes',
@@ -66,6 +67,8 @@ D.standardize(
 )
 
 print(D.bayes['summary'])
+
+D.plot_sessions(dir = 'output/bayes')
 
 # D.plot_bayesian_sessions(dir = 'output/bayes')
 
