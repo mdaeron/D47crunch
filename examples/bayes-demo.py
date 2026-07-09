@@ -2,9 +2,9 @@ from D47crunch import virtual_data, D47data
 
 args = dict(
 	samples = [
-		dict(Sample = 'ETH-1', N = 4),
-		dict(Sample = 'ETH-2', N = 4),
-		dict(Sample = 'ETH-3', N = 1),
+		dict(Sample = 'ETH-1', N = 2),
+		dict(Sample = 'ETH-2', N = 2),
+		dict(Sample = 'ETH-3', N = 2),
 		dict(Sample = 'TAC-1', N = 4,
 			d13C_VPDB = 6.5,
 			d18O_VPDB = 2.0,
@@ -43,13 +43,15 @@ args = dict(
 D = D47data(
 	virtual_data(session = 'Session_01', **args, seed = 12)
 	+ virtual_data(session = 'Session_02', **args, seed = 123)
-	+ virtual_data(session = 'Session_03', **args, seed = 1234)
+	+ virtual_data(session = 'Session_03', **args, seed = 1234),
+	verbose = True,
 )
 
 D.crunch()
-D.standardize()
+D.standardize(
+	method = 'pooled',
+)
 
-exit()
 D.plot_sessions(dir = 'output/ls')
 D.table_of_sessions(verbose = True, save_to_file = False)
 D.table_of_samples(verbose = True, save_to_file = False)
@@ -65,8 +67,6 @@ D.standardize(
 		"D47['FOO-1']": "D47['BAR-1'] - 0.3",
 	},
 )
-
-print(D.bayes['summary'])
 
 D.plot_sessions(dir = 'output/bayes')
 
