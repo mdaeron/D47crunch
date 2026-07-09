@@ -52,9 +52,9 @@ D.standardize(
 	method = 'pooled',
 )
 
-D.plot_sessions(dir = 'output/ls')
-D.table_of_sessions(verbose = True, save_to_file = False)
-D.table_of_samples(verbose = True, save_to_file = False)
+D.plot_sessions(dir = 'output/pooled')
+D.table_of_sessions(verbose = True, save_to_file = True, dir = 'output/pooled')
+D.table_of_samples(verbose = True, save_to_file = True, dir = 'output/pooled')
 
 D.standardize(
 	method = 'bayes',
@@ -69,8 +69,8 @@ D.standardize(
 )
 
 D.plot_sessions(dir = 'output/bayes')
+D.table_of_sessions(verbose = True, save_to_file = True, dir = 'output/bayes')
+D.table_of_samples(verbose = True, save_to_file = True, dir = 'output/bayes')
 
-# D.plot_bayesian_sessions(dir = 'output/bayes')
-
-# D.table_of_least_squares_vs_bayesian_results(dir = 'output/bayes')
-# D.plot_least_squares_vs_bayesian_results(dir = 'output/bayes')
+D.table_of_least_squares_vs_bayesian_results(dir = 'output/bayes')
+D.plot_least_squares_vs_bayesian_results(dir = 'output/bayes')

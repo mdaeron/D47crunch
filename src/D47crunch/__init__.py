@@ -1055,6 +1055,7 @@ class D4xdata(list):
 			for s in sorted({r['Session'] for r in self})
 			}
 		for s in self.sessions:
+			self.sessions[s]['N'] = len(self.sessions[s]['data'])
 			self.sessions[s]['scrambling_drift'] = False
 			self.sessions[s]['slope_drift'] = False
 			self.sessions[s]['wg_drift'] = False
@@ -2368,6 +2369,9 @@ class D4xdata(list):
 
 		D4x = f'D{self._4x}'
 		self.standardization['bayes']['samples'] = {}
+		for s in self.strong_anchors:
+			self.standardization['bayes']['samples'][s] = {}
+
 		for s in self.weak_anchors:
 			self.standardization['bayes']['samples'][s] = dict(
 				prior = self.weak_anchors[s],
@@ -2388,11 +2392,15 @@ class D4xdata(list):
 			np.cov(draws),
 		)
 		for k,s in enumerate(samples):
-			self.standardization['bayes']['samples'][s]['posterior'] = draws[k,:]
+			if sample not in self.strong_anchors:
+				self.standardization['bayes']['samples'][s]['posterior'] = draws[k,:]
 			self.standardization['bayes']['samples'][s]['ufloat'] = uD4x[k]
-			self.standardization['bayes']['samples'][s]['95CL'] = float(
-				np.quantile(np.abs(draws[k,:] - draws[k,:].mean()), 0.95)
-			)
+			if sample in self.strong_anchors:
+				self.standardization['bayes']['samples'][s]['95CL'] = 0.
+			else:
+				self.standardization['bayes']['samples'][s]['95CL'] = float(
+					np.quantile(np.abs(draws[k,:] - draws[k,:].mean()), 0.95)
+				)
 
 		for r in self:
 			s = r["Session"]
@@ -2412,18 +2420,21 @@ class D4xdata(list):
 		print_out = True,
 		output = None,
 	):
-		out = [['Sample','N', f'D{self._4x} (LS)','SE','95% CL', f'D{self._4x} (Bayes)','SE','95% CL']]
-		for sample in self.bayes['samples']:
+		out = [['Sample','N', f'D{self._4x} (LS)','SE','95% CL', f'D{self._4x} (Bayes)','SE','95% CL', 'difference']]
+		pooled = self.standardization['pooled']['samples']
+		bayes = self.standardization['bayes']['samples']
+		for sample in self.standardization['bayes']['samples']:
 			out += [[
 				f"{sample}",
 				f"{self.samples[sample]['N']}",
-				f"{self.samples[sample][f'D{self._4x}']:.4f}",
-				'' if sample in self.anchors else f"{self.samples[sample][f'SE_D{self._4x}']:.4f}",
-				'' if sample in self.anchors else f"± {self.samples[sample][f'SE_D{self._4x}'] * self.t95:.4f}",
-				f"{self.bayes['samples'][sample][f'D{self._4x}']:.4f}",
-				f"{self.bayes['samples'][sample][f'SE_D{self._4x}']:.4f}",
-				f"± {self.bayes['samples'][sample][f'95CL_D{self._4x}']:.4f}",
-				]]
+				f"{pooled[sample][f'D{self._4x}']:.4f}",
+				'' if sample in self.anchors else f"{pooled[sample][f'SE_D{self._4x}']:.4f}",
+				'' if sample in self.anchors else f"± {pooled[sample][f'SE_D{self._4x}'] * self.standardization['pooled']['t95']:.4f}",
+				f"{bayes[sample]['ufloat'].n:.4f}",
+				f"{bayes[sample]['ufloat'].s:.4f}",
+				f"± {bayes[sample]['95CL']:.4f}",
+				f"{round(bayes[sample]['ufloat'].n - pooled[sample][f'D{self._4x}'], 4) + 0.0:.4f}",
+			]]
 		if save_to_file:
 			if not os.path.exists(dir):
 				os.makedirs(dir)
@@ -2456,6 +2467,9 @@ class D4xdata(list):
 		savefig = True,
 		filename = '',
 		dpi = 100,
+		weak_anchor_color = (1, 0.25, 0),
+		ls_color = (0.5, 0.5, 0.5),
+		bayes_color = (0, 0.75, 1),
 	):
 
 		from scipy.stats import gaussian_kde
@@ -2482,7 +2496,7 @@ class D4xdata(list):
 			axs = [ppl.subplot(lines, columns, _+1) for _ in range(N)]
 			xmin, xmax = 1000, -1000
 			for sample in samples:
-				x = self.bayes['samples'][sample]['posterior']
+				x = self.standardization['bayes']['samples'][sample]['posterior']
 				x0 = x.min() - 0.02
 				x1 = x.max() + 0.02
 				xmin = min(xmin, x0)
@@ -2491,14 +2505,14 @@ class D4xdata(list):
 			for sample, ax in zip(samples, axs):
 				ppl.sca(ax)
 				ppl.yticks([])
-				ppl.title(sample)
+				ppl.title(sample, weight = 'bold', size = 10)
 				xi = np.linspace(xmin, xmax, 1001)
-				x = self.bayes['samples'][sample]['posterior']
+				x = self.standardization['bayes']['samples'][sample]['posterior']
 				yi = gaussian_kde(x).evaluate(xi)
-				_color = Color('black')
+				_color = Color('srgb', bayes_color)
 				kw = dict(
-					ec = Color(_color).mix('white', 0.5, space = 'srgb'),
-					fc = Color(_color).set('alpha', 0.1),
+					ec = Color(_color).mix('white', 0.2, space = 'srgb'),
+					fc = Color(_color).set('alpha', 0.3),
 					lw = 1,
 					zorder = 5,
 				)
@@ -2508,26 +2522,51 @@ class D4xdata(list):
 					yi*(0 if bayes_on_top else -1),
 					**kw,
 				)
+				xm = self.standardization['bayes']['samples'][sample]['ufloat'].n
+				ha = 'left' if (xm - xmin) > (xmax - xm) else 'right'
+				x = xmin if (xm - xmin) > (xmax - xm) else xmax
+				ax.text(
+					x,
+					0,
+					'  Bayesian posterior\n' if ha == 'left' else 'Bayesian posterior  \n',
+					ha = ha,
+					va = 'center',
+					color = _color,
+					linespacing = 1.9,
+				)
+
 				if sample in self.weak_anchors:
-					_color = Color('orangered')
+					_color = Color('srgb', weak_anchor_color)
 					kw = dict(
-						ec = Color(_color).mix('white', 0.4, space = 'srgb'),
-						fc = Color(_color).set('alpha', 0.1),
+						ec = Color(_color).mix('white', 0.3, space = 'srgb'),
+						fc = Color(_color).set('alpha', 0.15),
 						lw = 1,
 						zorder = 2,
 					)
 					yi = yi.max() * np.exp(-0.5 * ((xi-self.weak_anchors[sample][0])/self.weak_anchors[sample][1])**2)
 					ax.fill_between(
 						xi,
-						yi*(0 if bayes_on_top else 1),
-						yi*(-1 if bayes_on_top else 0),
+						yi*(1 if bayes_on_top else 0),
+						yi*(0 if bayes_on_top else -1),
 						**kw,
 					)
-				elif sample in self.unknowns:
-					_color = Color('deepskyblue')
+					xm = self.weak_anchors[sample][0]
+					ha = 'left' if (xm - xmin) > (xmax - xm) else 'right'
+					x = xmin if (xm - xmin) > (xmax - xm) else xmax
+					ax.text(
+						x,
+						0,
+						' '*33 + '(and prior)\n' if ha == 'left' else '(and prior)' + ' '*33 + '\n',
+						ha = ha,
+						va = 'center',
+						color = _color,
+						linespacing = 1.9,
+					)
+				if sample in self.unknowns:
+					_color = Color('srgb', ls_color)
 					kw = dict(
-						ec = Color(_color).mix('white', 0.2, space = 'srgb'),
-						fc = Color(_color).set('alpha', 0.3),
+						ec = Color(_color).mix('white', 0.5, space = 'srgb'),
+						fc = Color(_color).set('alpha', 0.2),
 						lw = 1,
 						zorder = 4,
 					)
@@ -2539,6 +2578,18 @@ class D4xdata(list):
 						yi*(0 if bayes_on_top else 1),
 						yi*(-1 if bayes_on_top else 0),
 						**kw,
+					)
+					xm = self.standardization['pooled']['samples'][sample][f'D{self._4x}']
+					ha = 'left' if (xm - xmin) > (xmax - xm) else 'right'
+					x = xmin if (xm - xmin) > (xmax - xm) else xmax
+					ax.text(
+						x,
+						0,
+						'\n  Least squares' if ha == 'left' else '\nLeast squares  ',
+						ha = ha,
+						va = 'center',
+						color = _color,
+						linespacing = 1.9,
 					)
 
 			for ax in axs:
@@ -2623,9 +2674,9 @@ class D4xdata(list):
 				for sample in weak_anchors
 			]).T,
 			np.array([
-				self.bayes['samples'][sample]['ufloat'].n
+				self.standardization['bayes']['samples'][sample]['ufloat'].n
 				+ np.array([-1, 1, 1, -1, -1])/2
-				* self.bayes['samples'][sample]['95CL']
+				* self.standardization['bayes']['samples'][sample]['95CL']
 				for sample in weak_anchors
 			]).T
 		)
@@ -2642,9 +2693,9 @@ class D4xdata(list):
 				for sample in self.unknowns if sample not in self.strong_anchors and sample not in self.weak_anchors
 			]).T,
 			np.array([
-				self.bayes['samples'][sample]['ufloat'].n
+				self.standardization['bayes']['samples'][sample]['ufloat'].n
 				+ np.array([-1, 1, 1, -1, -1])
-				* self.bayes['samples'][sample]['95CL']
+				* self.standardization['bayes']['samples'][sample]['95CL']
 				for sample in self.unknowns if sample not in self.strong_anchors and sample not in self.weak_anchors
 			]).T
 		)
@@ -2694,9 +2745,9 @@ class D4xdata(list):
 			xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
 			XI,YI = np.meshgrid(xi, yi)
 			# SI = np.array([[self.standardization_error(session, x, y) for x in xi] for y in yi])
-			_a = self.bayes['sessions'][session]['a']['posterior']
-			_b = self.bayes['sessions'][session]['b']['posterior']
-			_c = self.bayes['sessions'][session]['c']['posterior']
+			_a = self.standardization['bayes']['sessions'][session]['a']['posterior']
+			_b = self.standardization['bayes']['sessions'][session]['b']['posterior']
+			_c = self.standardization['bayes']['sessions'][session]['c']['posterior']
 			_ZI = _a.mean()*YI + _b.mean()*XI + _c.mean()
 			_YI = (_ZI[:,:,None] - _b*XI[:,:,None] - _c) / _a
 			SI = (_YI).std(axis = -1, ddof = 1)
@@ -2876,34 +2927,65 @@ class D4xdata(list):
 			out[-1] += ['c2 ± SE']
 		for session in self.sessions:
 			_ss_ = self.standardization[target]['sessions'][session]
-			out += [[
-				session,
-				f"{_ss_['Na']}",
-				f"{_ss_['Nu']}",
-				f"{self.sessions[session]['d13Cwg_VPDB']:.3f}",
-				f"{self.sessions[session]['d18Owg_VSMOW']:.3f}",
-				f"{self.sessions[session]['r_d13C_VPDB']:.4f}",
-				f"{self.sessions[session]['r_d18O_VSMOW']:.4f}",
-				f"{self.sessions[session][f'r_D{self._4x}']:.4f}",
-				f"{_ss_['a']:.3f} ± {_ss_['SE_a']:.3f}",
-				f"{1e3*_ss_['b']:.3f} ± {1e3*_ss_['SE_b']:.3f}",
-				f"{_ss_['c']:.3f} ± {_ss_['SE_c']:.3f}",
-				]]
-			if include_a2:
-				if self.sessions[session]['scrambling_drift']:
-					out[-1] += [f"{_ss_['a2']:.1e} ± {_ss_['SE_a2']:.1e}"]
-				else:
-					out[-1] += ['']
-			if include_b2:
-				if self.sessions[session]['slope_drift']:
-					out[-1] += [f"{_ss_['b2']:.1e} ± {_ss_['SE_b2']:.1e}"]
-				else:
-					out[-1] += ['']
-			if include_c2:
-				if self.sessions[session]['wg_drift']:
-					out[-1] += [f"{_ss_['c2']:.1e} ± {_ss_['SE_c2']:.1e}"]
-				else:
-					out[-1] += ['']
+			match target:
+				case 'pooled':
+					out += [[
+						session,
+						f"{_ss_['Na']}",
+						f"{_ss_['Nu']}",
+						f"{self.sessions[session]['d13Cwg_VPDB']:.3f}",
+						f"{self.sessions[session]['d18Owg_VSMOW']:.3f}",
+						f"{self.sessions[session]['r_d13C_VPDB']:.4f}",
+						f"{self.sessions[session]['r_d18O_VSMOW']:.4f}",
+						f"{self.sessions[session][f'r_D{self._4x}']:.4f}",
+						f"{_ss_['a']:.3f} ± {_ss_['SE_a']:.3f}",
+						f"{1e3*_ss_['b']:.3f} ± {1e3*_ss_['SE_b']:.3f}",
+						f"{_ss_['c']:.3f} ± {_ss_['SE_c']:.3f}",
+						]]
+					if include_a2:
+						if self.sessions[session]['scrambling_drift']:
+							out[-1] += [f"{_ss_['a2']:.1e} ± {_ss_['SE_a2']:.1e}"]
+						else:
+							out[-1] += ['']
+					if include_b2:
+						if self.sessions[session]['slope_drift']:
+							out[-1] += [f"{_ss_['b2']:.1e} ± {_ss_['SE_b2']:.1e}"]
+						else:
+							out[-1] += ['']
+					if include_c2:
+						if self.sessions[session]['wg_drift']:
+							out[-1] += [f"{_ss_['c2']:.1e} ± {_ss_['SE_c2']:.1e}"]
+						else:
+							out[-1] += ['']
+				case 'bayes':
+					out += [[
+						session,
+						f"{_ss_['Na']}",
+						f"{_ss_['Nu']}",
+						f"{self.sessions[session]['d13Cwg_VPDB']:.3f}",
+						f"{self.sessions[session]['d18Owg_VSMOW']:.3f}",
+						f"{self.sessions[session]['r_d13C_VPDB']:.4f}",
+						f"{self.sessions[session]['r_d18O_VSMOW']:.4f}",
+						f"{self.sessions[session][f'r_D{self._4x}']:.4f}",
+						f"{_ss_['a']['ufloat'].n:.3f} ± {_ss_['a']['ufloat'].s:.3f}",
+						f"{1e3*_ss_['b']['ufloat'].n:.3f} ± {1e3*_ss_['b']['ufloat'].s:.3f}",
+						f"{_ss_['c']['ufloat'].n:.3f} ± {_ss_['c']['ufloat'].s:.3f}",
+						]]
+					if include_a2:
+						if self.sessions[session]['scrambling_drift']:
+							out[-1] += [f"{_ss_['a2']['ufloat'].n:.1e} ± {_ss_['a2']['ufloat'].s:.1e}"]
+						else:
+							out[-1] += ['']
+					if include_b2:
+						if self.sessions[session]['slope_drift']:
+							out[-1] += [f"{_ss_['b2']['ufloat'].n:.1e} ± {_ss_['b2']['ufloat'].s:.1e}"]
+						else:
+							out[-1] += ['']
+					if include_c2:
+						if self.sessions[session]['wg_drift']:
+							out[-1] += [f"{_ss_['c2']['ufloat'].n:.1e} ± {_ss_['c2']['ufloat'].s:.1e}"]
+						else:
+							out[-1] += ['']
 
 		if save_to_file:
 			if not os.path.exists(dir):
@@ -3070,7 +3152,27 @@ class D4xdata(list):
 		_ss_ = self.standardization[target]['samples']
 		match target:
 			case 'bayes':
-				raise NotImplementedError
+				for sample in self.strong_anchors:
+					out += [[
+						f"{sample}",
+						f"{self.samples[sample]['N']}",
+						f"{self.samples[sample]['d13C_VPDB']:.2f}",
+						f"{self.samples[sample]['d18O_VSMOW']:.2f}",
+						f"{_ss_[sample]['ufloat'].n:.4f}",'','',
+						f"{self.samples[sample][f'SD_D{self._4x}']:.4f}" if self.samples[sample]['N'] > 1 else '', ''
+						]]
+				for sample in self.unknowns:
+					out += [[
+						f"{sample}",
+						f"{self.samples[sample]['N']}",
+						f"{self.samples[sample]['d13C_VPDB']:.2f}",
+						f"{self.samples[sample]['d18O_VSMOW']:.2f}",
+						f"{_ss_[sample]['ufloat'].n:.4f}",
+						f"{_ss_[sample]['ufloat'].s:.4f}",
+						f"± {_ss_[sample]['95CL']:.4f}",
+						f"{self.samples[sample][f'SD_D{self._4x}']:.4f}" if self.samples[sample]['N'] > 1 else '',
+						# f"{self.samples[sample]['p_Levene']:.3f}" if self.samples[sample]['N'] > 2 else ''
+						]]
 			case 'pooled':
 				for sample in self.anchors:
 					out += [[
@@ -3228,11 +3330,11 @@ class D4xdata(list):
 
 				for sample in list(self.samples):
 
-					self.samples[sample][f'D{self._4x}'] = self.bayes['samples'][sample]['ufloat'].n
-					self.samples[sample][f'SE_D{self._4x}'] = self.bayes['samples'][sample]['ufloat'].s
+					self.samples[sample][f'D{self._4x}'] = self.standardization['bayes']['samples'][sample]['ufloat'].n
+					self.samples[sample][f'SE_D{self._4x}'] = self.standardization['bayes']['samples'][sample]['ufloat'].s
 
-					self.standardization[target]['samples'][sample][f'D{self._4x}'] = self.bayes['samples'][sample]['ufloat'].n
-					self.standardization[target]['samples'][sample][f'SE_D{self._4x}'] = self.bayes['samples'][sample]['ufloat'].s
+					self.standardization[target]['samples'][sample][f'D{self._4x}'] = self.standardization['bayes']['samples'][sample]['ufloat'].n
+					self.standardization[target]['samples'][sample][f'SE_D{self._4x}'] = self.standardization['bayes']['samples'][sample]['ufloat'].s
 
 				for r in self:
 					r[f'D{self._4x}_residual'] = r[f'D{self._4x}'] - self.standardization[target]['samples'][r['Sample']][f'D{self._4x}']
