@@ -302,8 +302,8 @@ def simulate_single_analysis(
 	D47 = None, D48 = None, D49 = 0., D17O = 0.,
 	a47 = 1., b47 = 0., c47 = -0.9,
 	a48 = 1., b48 = 0., c48 = -0.45,
-	Nominal_D47 = None,
-	Nominal_D48 = None,
+	D47_RMs = None,
+	D48_RMs = None,
 	Nominal_d13C_VPDB = None,
 	Nominal_d18O_VPDB = None,
 	ALPHA_18O_ACID_REACTION = None,
@@ -325,7 +325,7 @@ def simulate_single_analysis(
 	+ `d13C_VPDB`, `d18O_VPDB`: bulk composition of the carbonate sample
 	+ `D47`, `D48`, `D49`, `D17O`: clumped-isotope and oxygen-17 anomalies
 		of the carbonate sample
-	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ47 and
+	+ `D47_RMs`, `D48_RMs`: where to lookup Δ47 and
 		Δ48 values if `D47` or `D48` are not specified
 	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ13C and
 		δ18O values if `d13C_VPDB` or `d18O_VPDB` are not specified
@@ -363,11 +363,11 @@ def simulate_single_analysis(
 
 	R17_VPDB = R17_VSMOW * (R18_VPDB / R18_VSMOW) ** LAMBDA_17
 
-	if Nominal_D47 is None:
-		Nominal_D47 = D47data().Nominal_D47
+	if D47_RMs is None:
+		D47_RMs = D47data().RMs
 
-	if Nominal_D48 is None:
-		Nominal_D48 = D48data().Nominal_D48
+	if D48_RMs is None:
+		D48_RMs = D48data().RMs
 
 	if d13C_VPDB is None:
 		if sample in Nominal_d13C_VPDB:
@@ -382,16 +382,16 @@ def simulate_single_analysis(
 			raise KeyError(f"Sample {sample} is missing d18O_VPDB value, and it is not defined in Nominal_d18O_VPDB.")
 
 	if D47 is None:
-		if sample in Nominal_D47:
-			D47 = Nominal_D47[sample]
+		if sample in D47_RMs:
+			D47 = D47_RMs[sample]
 		else:
-			raise KeyError(f"Sample {sample} is missing D47 value, and it is not defined in Nominal_D47.")
+			raise KeyError(f"Sample {sample} is missing D47 value, and it is not defined in D47_RMs.")
 
 	if D48 is None:
-		if sample in Nominal_D48:
-			D48 = Nominal_D48[sample]
+		if sample in D48_RMs:
+			D48 = D48_RMs[sample]
 		else:
-			raise KeyError(f"Sample {sample} is missing D48 value, and it is not defined in Nominal_D48.")
+			raise KeyError(f"Sample {sample} is missing D48 value, and it is not defined in D48_RMs.")
 
 	X = D4xdata()
 	X.R13_VPDB = R13_VPDB
@@ -449,7 +449,7 @@ def virtual_data(
 	rD47 = 0.015, rD48 = 0.045,
 	d13Cwg_VPDB = None, d18Owg_VSMOW = None,
 	session = None,
-	Nominal_D47 = None, Nominal_D48 = None,
+	D47_RMs = None, D48_RMs = None,
 	Nominal_d13C_VPDB = None, Nominal_d18O_VPDB = None,
 	ALPHA_18O_ACID_REACTION = None,
 	R13_VPDB = None,
@@ -483,7 +483,7 @@ def virtual_data(
 	+ `d13Cwg_VPDB`, `d18Owg_VSMOW`: bulk composition of the working gas
 		(by default equal to the `simulate_single_analysis` default values)
 	+ `session`: name of the session (no name by default)
-	+ `Nominal_D47`, `Nominal_D48`: where to lookup Δ47 and Δ48 values
+	+ `D47_RMs`, `D48_RMs`: where to lookup Δ47 and Δ48 values
 		if `D47` or `D48` are not specified (by default equal to the `simulate_single_analysis` defaults)
 	+ `Nominal_d13C_VPDB`, `Nominal_d18O_VPDB`: where to lookup δ13C and
 		δ18O values if `d13C_VPDB` or `d18O_VPDB` are not specified
@@ -539,7 +539,7 @@ def virtual_data(
 			**{var: kwargs[var]
 				for var in [
 					'd13Cwg_VPDB', 'd18Owg_VSMOW', 'ALPHA_18O_ACID_REACTION',
-					'Nominal_D47', 'Nominal_D48', 'Nominal_d13C_VPDB', 'Nominal_d18O_VPDB',
+					'D47_RMs', 'D48_RMs', 'Nominal_d13C_VPDB', 'Nominal_d18O_VPDB',
 					'R13_VPDB', 'R17_VSMOW', 'R18_VSMOW', 'LAMBDA_17', 'R18_VPDB',
 					'a47', 'b47', 'c47', 'a48', 'b48', 'c48',
 					]
@@ -988,6 +988,26 @@ class D4xdata(list):
 		self.standardization = {}
 		self.refresh(session = session)
 
+	@property
+	def fixed_RMs(self):
+		return {
+			k: v for k,v in self.RMs.items()
+			if not isinstance(v, tuple)
+		}
+
+	@property
+	def loose_RMs(self):
+		return {
+			k: v for k,v in self.RMs.items()
+			if isinstance(v, tuple)
+		}
+
+	@property
+	def nominal_RMs(self):
+		return {
+			k: v[0] if isinstance(v, tuple) else v
+			for k,v in self.RMs.items()
+		}
 
 	def make_verbal(oldfun):
 		'''
@@ -1071,8 +1091,8 @@ class D4xdata(list):
 			s: {'data': [r for r in self if r['Sample'] == s]}
 			for s in sorted({r['Sample'] for r in self})
 			}
-		self.anchors = {s: self.samples[s] for s in self.samples if s in self.Nominal_D4x}
-		self.unknowns = {s: self.samples[s] for s in self.samples if s not in self.Nominal_D4x}
+		self.anchors = {s: self.samples[s] for s in self.samples if s in self.RMs}
+		self.unknowns = {s: self.samples[s] for s in self.samples if s not in self.RMs}
 
 
 	def read(self, filename, sep = '', session = ''):
@@ -1678,7 +1698,7 @@ class D4xdata(list):
 						X = D47data([r for r in self if r['Session'] in session_group])
 					elif self._4x == '48':
 						X = D48data([r for r in self if r['Session'] in session_group])
-					X.Nominal_D4x = self.Nominal_D4x.copy()
+					X.RMs = self.RMs.copy()
 					X.refresh()
 					result = X.standardize(method = 'pooled', weighted_sessions = [], consolidate = False)
 					w = np.sqrt(result.redchi)
@@ -1726,14 +1746,14 @@ class D4xdata(list):
 				for r in self:
 					session = pf(r['Session'])
 					sample = pf(r['Sample'])
-					if r['Sample'] in self.Nominal_D4x:
+					if r['Sample'] in self.RMs:
 						R += [ (
 							r[f'D{self._4x}raw'] - (
-								p[f'a_{session}'] * self.Nominal_D4x[r['Sample']]
+								p[f'a_{session}'] * self.RMs[r['Sample']]
 								+ p[f'b_{session}'] * r[f'd{self._4x}']
 								+	p[f'c_{session}']
 								+ r['t'] * (
-									p[f'a2_{session}'] * self.Nominal_D4x[r['Sample']]
+									p[f'a2_{session}'] * self.RMs[r['Sample']]
 									+ p[f'b2_{session}'] * r[f'd{self._4x}']
 									+	p[f'c2_{session}']
 									)
@@ -1820,7 +1840,7 @@ class D4xdata(list):
 # 			if weighted_sessions:
 # 				for session_group in weighted_sessions:
 # 					X = D4xdata([r for r in self if r['Session'] in session_group], mass = self._4x)
-# 					X.Nominal_D4x = self.Nominal_D4x.copy()
+# 					X.RMs = self.RMs.copy()
 # 					X.refresh()
 # 					# This is only done to assign r['wD47raw'] for r in X:
 # 					X.standardize(method = method, weighted_sessions = [], consolidate = False)
@@ -1839,10 +1859,10 @@ class D4xdata(list):
 
 # 				A = np.array([
 # 					[
-# 						self.Nominal_D4x[r['Sample']] / r[f'wD{self._4x}raw'],
+# 						self.RMs[r['Sample']] / r[f'wD{self._4x}raw'],
 # 						r[f'd{self._4x}'] / r[f'wD{self._4x}raw'],
 # 						1 / r[f'wD{self._4x}raw'],
-# 						self.Nominal_D4x[r['Sample']] * r['t'] / r[f'wD{self._4x}raw'],
+# 						self.RMs[r['Sample']] * r['t'] / r[f'wD{self._4x}raw'],
 # 						r[f'd{self._4x}'] * r['t'] / r[f'wD{self._4x}raw'],
 # 						r['t'] / r[f'wD{self._4x}raw']
 # 						]
@@ -1968,9 +1988,9 @@ class D4xdata(list):
 		# strong anchors = anchors not in weak_anchors
 		# stored as dict of {sample: D4x value}
 		strong_anchors = {
-			s: self.Nominal_D4x[s]
+			s: self.RMs[s]
 			for s in self.samples
-			if s in self.Nominal_D4x
+			if s in self.RMs
 			and s not in weak_anchors
 		}
 		self.strong_anchors = strong_anchors
@@ -3260,7 +3280,7 @@ class D4xdata(list):
 
 		For each anchor sample:
 
-		+ `D47` or `D48`: the nominal Δ4x value for this anchor, specified by `self.Nominal_D4x`
+		+ `D47` or `D48`: the nominal Δ4x value for this anchor, specified by `self.RMs`
 		+ `SE_D47` or `SE_D48`: set to zero by definition
 
 		For each unknown sample:
@@ -3297,7 +3317,7 @@ class D4xdata(list):
 				for sample in self.anchors:
 					if sample not in self.standardization[target]['samples']:
 						self.standardization[target]['samples'][sample] = {}
-					X, sX = self.Nominal_D4x[sample], 0
+					X, sX = self.RMs[sample], 0
 
 					self.samples[sample][f'D{self._4x}'] = X
 					self.samples[sample][f'SE_D{self._4x}'] = sX
@@ -3704,7 +3724,7 @@ class D4xdata(list):
 				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
 				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
 				]) for sample in anchors]).T,
-			np.array([ np.array([0, 0]) + self.Nominal_D4x[sample] for sample in anchors]).T)
+			np.array([ np.array([0, 0]) + self.RMs[sample] for sample in anchors]).T)
 		unknown_avg = (np.array([ np.array([
 				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
 				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
@@ -4393,14 +4413,14 @@ class D47data(D4xdata):
 	usually comprising more than one analytical session.
 	'''
 
-	Nominal_D4x = {
+	RMs = {
 		'ETH-1':   0.2052,
 		'ETH-2':   0.2085,
 		'ETH-3':   0.6132,
-		'ETH-4':   0.4511,
-		'IAEA-C1': 0.3018,
-		'IAEA-C2': 0.6409,
-		'MERCK':   0.5135,
+		'ETH-4':   (0.4511, 0.0011),
+		'IAEA-C1': (0.3018, 0.0011),
+		'IAEA-C2': (0.6409, 0.0018),
+		'MERCK':   (0.5135, 0.0024),
 		} # I-CDES (Bernasconi et al., 2021)
 	'''
 	Nominal Δ47 values assigned to the Δ47 anchor samples, used by
@@ -4422,15 +4442,15 @@ class D47data(D4xdata):
 	'''
 
 
-	@property
-	def Nominal_D47(self):
-		return self.Nominal_D4x
+	# @property
+	# def Nominal_D47(self):
+	# 	return self.RMs
 
 
-	@Nominal_D47.setter
-	def Nominal_D47(self, new):
-		self.Nominal_D4x = dict(**new)
-		self.refresh()
+	# @Nominal_D47.setter
+	# def Nominal_D47(self, new):
+	# 	self.RMs = dict(**new)
+	# 	self.refresh()
 
 
 	def __init__(self, l = [], **kwargs):
@@ -4471,10 +4491,10 @@ class D47data(D4xdata):
 					assert r['Sample'] not in foo, f'`Teq` is inconsistently specified for sample `{r["Sample"]}`.'
 
 		if priority == 'replace':
-			self.Nominal_D47 = {}
+			self.RMs = {}
 		for s in foo:
-			if priority != 'old' or s not in self.Nominal_D47:
-				self.Nominal_D47[s] = foo[s]
+			if priority != 'old' or s not in self.RMs:
+				self.RMs[s] = foo[s]
 
 	def save_D47_correl(self, *args, **kwargs):
 		return self._save_D4x_correl(*args, **kwargs)
@@ -4488,7 +4508,7 @@ class D48data(D4xdata):
 	usually comprising more than one analytical session.
 	'''
 
-	Nominal_D4x = {
+	RMs = {
 		'ETH-1':  0.138,
 		'ETH-2':  0.138,
 		'ETH-3':  0.270,
@@ -4514,18 +4534,6 @@ class D48data(D4xdata):
 	```
 	'''
 
-
-	@property
-	def Nominal_D48(self):
-		return self.Nominal_D4x
-
-
-	@Nominal_D48.setter
-	def Nominal_D48(self, new):
-		self.Nominal_D4x = dict(**new)
-		self.refresh()
-
-
 	def __init__(self, l = [], **kwargs):
 		'''
 		**Parameters:** same as `D4xdata.__init__()`
@@ -4544,7 +4552,7 @@ class D49data(D4xdata):
 	usually comprising more than one analytical session.
 	'''
 
-	Nominal_D4x = {"1000C": 0.0, "25C": 2.228}  # Wang 2004
+	RMs = {"1000C": 0.0, "25C": 2.228}  # Wang 2004
 	'''
 	Nominal Δ49 values assigned to the Δ49 anchor samples, used by
 	`D49data.standardize()` to normalize unknown samples to an absolute Δ49
@@ -4560,14 +4568,14 @@ class D49data(D4xdata):
 	```
 	'''
 
-	@property
-	def Nominal_D49(self):
-		return self.Nominal_D4x
+	# @property
+	# def Nominal_D49(self):
+	# 	return self.RMs
 
-	@Nominal_D49.setter
-	def Nominal_D49(self, new):
-		self.Nominal_D4x = dict(**new)
-		self.refresh()
+	# @Nominal_D49.setter
+	# def Nominal_D49(self, new):
+	# 	self.RMs = dict(**new)
+	# 	self.refresh()
 
 	def __init__(self, l=[], **kwargs):
 		'''
@@ -4678,7 +4686,7 @@ def _cli(
 				if 'd18O_VPDB' in _
 				}
 		if len([_ for _ in anchors if 'D47' in _]):
-			data.Nominal_D4x = {
+			data.RMs = {
 				_['Sample']: _['D47']
 				for _ in anchors
 				if 'D47' in _
@@ -4721,7 +4729,7 @@ def _cli(
 					if 'd18O_VPDB' in _
 					}
 			if len([_ for _ in anchors if 'D48' in _]):
-				data2.Nominal_D4x = {
+				data2.RMs = {
 					_['Sample']: _['D48']
 					for _ in anchors
 					if 'D48' in _

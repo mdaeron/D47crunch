@@ -1,3 +1,5 @@
+from rich.pretty import pprint
+
 from D47crunch import virtual_data, D47data
 
 args = dict(
@@ -74,3 +76,5 @@ D.table_of_samples(verbose = True, save_to_file = True, dir = 'output/bayes')
 
 D.table_of_least_squares_vs_bayesian_results(dir = 'output/bayes')
 D.plot_least_squares_vs_bayesian_results(dir = 'output/bayes')
+
+pprint(D[::5])

@@ -14,3 +14,6 @@ diff:
 
 publish:
 	uv run flit publish
+
+test:
+	uv run pytest tests -s
