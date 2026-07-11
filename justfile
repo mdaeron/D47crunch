@@ -1,4 +1,7 @@
-default: bayes
+default: start
+
+start:
+	open src/D47crunch/__init__.py
 
 bayes:
 	cd examples; uv run bayes-demo.py
