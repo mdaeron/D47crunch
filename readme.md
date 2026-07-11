@@ -13,7 +13,17 @@ This also provides a command-line interface making it possible to process a mult
 The upcoming version 3 of D47crunch will break backwards-compatibility. This is motivated by the need to accomodate different standardization approaches (least squares "pooled" standardization vs Bayesian standardization allowing for reference materials having nominal Δ4x values with non-zero uncertainties).
 
 > **Note**
-The new Bayesian standardization approach introduced in the upcoming version 3 of D47crunch works well, to the first order, but has not been extensively tested yet.
+The new Bayesian standardization approach introduced in the upcoming version 3 of D47crunch works well, to the first order, but has not been extensively tested yet. To test this upcoming version without affecting your existing Python setup, use `uv` and start with the demo code available [here](https://github.com/mdaeron/D47crunch/tree/bayes/examples).
+
+```
+mkdir testD47crunch   # create new working directory
+cd testD47crunch      # enter the working directory
+uv init               # initialize a new uv project
+uv add mylib==3.0.0a1 # install the new version of D47crunch
+uv run bayes-demo.py  # run the demo code
+```
+
+
 
 ## Documentation
 
