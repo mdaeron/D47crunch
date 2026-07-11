@@ -9,6 +9,12 @@ Python library for processing and standardizing carbonate clumped-isotope analys
 
 This also provides a command-line interface making it possible to process a multi-session Δ<sub>47</sub> (and potentially Δ<sub>48</sub>, Δ<sub>49</sub>) dataset by simply calling `D47crunch rawdata.csv`. See the [CLI documentation](https://mdaeron.github.io/D47crunch/#3-command-line-interface-cli) for more options.
 
+> **Warning**
+The upcoming version 3 of D47crunch will break backwards-compatibility. This is motivated by the need to accomodate different standardization approaches (least squares "pooled" standardization vs Bayesian standardization allowing for reference materials having nominal Δ4x values with non-zero uncertainties).
+
+> **Note**
+The new Bayesian standardization approach introduced in the upcoming version 3 of D47crunch works well, to the first order, but has not been extensively tested yet.
+
 ## Documentation
 
 For the full API and a short tutorial, see [https://mdaeron.github.io/D47crunch].
