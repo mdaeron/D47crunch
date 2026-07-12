@@ -16,7 +16,7 @@ diff:
 	git diff --stat -- ':!*.png' ':!*.html' ':!*.pdf' ':!*.csv'
 
 publish:
-	uv run flit publish
+	uv build && uv publish
 
 test:
 	uv run pytest tests -s
