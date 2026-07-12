@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.0.0a1
+
+* Remove `indep_sessions` standardization method
+* Add `bayes` standardization method
+* Extensively refactor how standardization results are stored in `D4xdata`
+* Updated plotting functions to fit the refactored structure
+
 ## v2.5.3
 
 *Released on 2025-12-15*
