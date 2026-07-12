@@ -1687,9 +1687,6 @@ class D4xdata(list):
 		```
 		'''
 
-		self.standardization[method] = {}
-		self.standardization['latest'] = method
-
 		self.assign_timestamps()
 
 		if method == 'pooled':
@@ -1718,6 +1715,7 @@ class D4xdata(list):
 		consolidate_tables = False,
 		consolidate_plots = False,
 	):
+
 		if weighted_sessions:
 			for session_group in weighted_sessions:
 				if self._4x == '47':
@@ -1810,6 +1808,9 @@ class D4xdata(list):
 
 		# sanity check
 		assert np.isclose(result.h.sum(), len(result.var_names))
+
+		self.standardization['pooled'] = dict(method = 'pooled')
+		self.standardization['latest'] = self.standardization['pooled']
 
 		self.standardization['pooled']['Nf'] = result.nfree
 		self.standardization['pooled']['t95'] = tstudent.ppf(1 - 0.05/2, result.nfree)
@@ -2239,8 +2240,8 @@ class D4xdata(list):
 
 		_posterior = idata.posterior
 
-		self.standardization['bayes'] = {}
-		self.standardization['latest'] = 'bayes'
+		self.standardization['bayes'] = dict(method = 'bayes')
+		self.standardization['latest'] = self.standardization['bayes']
 
 		self.standardization['bayes']['idata'] = idata
 
@@ -2800,7 +2801,7 @@ class D4xdata(list):
 		out += [[f'Repeatability of Δ{self._4x} (unknowns)', f"{1000 * self.repeatability[f'r_D{self._4x}u']:.1f} ppm"]]
 		out += [[f'Repeatability of Δ{self._4x} (all)', f"{1000 * self.repeatability[f'r_D{self._4x}']:.1f} ppm"]]
 		out += [['Model degrees of freedom', f"{self.Nf}"]]
-		out += [['Student\'s 95% t-factor', f"{self.t95:.2f}"]]
+		out += [['Student\'s 95% t-factor', f"{self.standardization['latest']['t95']:.2f}"]]
 		out += [['Standardization method', self.standardization_method]]
 
 		if save_to_file:
@@ -3139,7 +3140,7 @@ class D4xdata(list):
 
 	def _resolve_target(self, target):
 		if target == 'latest':
-			return self.standardization['latest']
+			return self.standardization['latest']['method']
 		return target
 
 	def plot_sessions(
@@ -3496,7 +3497,7 @@ class D4xdata(list):
 
 		if key in ['D47', 'D48', 'D49']:
 
-			stdz_method = self.standardization['latest']
+			stdz_method = self.standardization['latest']['method']
 			stdz = self.standardization[stdz_method]
 
 			match stdz_method:
@@ -3753,6 +3754,8 @@ class D4xdata(list):
 
 		from matplotlib import ticker
 
+		half_span_95CL = self.repeatability[f'r_D{self._4x}']*1000*self.standardization['latest']['t95']
+
 		if yspan is None:
 			if kde:
 				yspan = 1.5
@@ -3832,10 +3835,10 @@ class D4xdata(list):
 		x_sessions[session] = (x1+x2)/2
 
 		ppl.axhspan(-self.repeatability[f'r_D{self._4x}']*1000, self.repeatability[f'r_D{self._4x}']*1000, color = 'k', alpha = .05, lw = 1)
-		ppl.axhspan(-self.repeatability[f'r_D{self._4x}']*1000*self.t95, self.repeatability[f'r_D{self._4x}']*1000*self.t95, color = 'k', alpha = .05, lw = 1)
+		ppl.axhspan(-half_span_95CL, half_span_95CL, color = 'k', alpha = .05, lw = 1)
 		if not (hist or kde):
 			ppl.text(len(self), self.repeatability[f'r_D{self._4x}']*1000, f"   SD = {self.repeatability[f'r_D{self._4x}']*1000:.1f} ppm", size = 9, alpha = 1, va = 'center')
-			ppl.text(len(self), self.repeatability[f'r_D{self._4x}']*1000*self.t95, f"   95% CL = ± {self.repeatability[f'r_D{self._4x}']*1000*self.t95:.1f} ppm", size = 9, alpha = 1, va = 'center')
+			ppl.text(len(self), half_span_95CL, f"   95% CL = ± {half_span_95CL:.1f} ppm", size = 9, alpha = 1, va = 'center')
 
 		xmin, xmax, ymin, ymax = ppl.axis()
 		if yspan != 1:
@@ -3913,7 +3916,7 @@ class D4xdata(list):
 					bins = np.linspace(-9e3*self.repeatability[f'r_D{self._4x}'], 9e3*self.repeatability[f'r_D{self._4x}'], int(18/binwidth+1)),
 					)
 			ppl.text(0, 0,
-				f"   SD = {self.repeatability[f'r_D{self._4x}']*1000:.1f} ppm\n   95% CL = ± {self.repeatability[f'r_D{self._4x}']*1000*self.t95:.1f} ppm",
+				f"   SD = {self.repeatability[f'r_D{self._4x}']*1000:.1f} ppm\n   95% CL = ± {half_span_95CL:.1f} ppm",
 				size = 7.5,
 				alpha = 1,
 				va = 'center',
