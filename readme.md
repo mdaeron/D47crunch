@@ -15,7 +15,7 @@ The upcoming version 3 of D47crunch will break backwards-compatibility. This is 
 > **Note**
 The new Bayesian standardization approach introduced in the upcoming version 3 of D47crunch works well, to the first order, but has not been extensively tested yet. To test this upcoming version without affecting your existing Python setup, use `uv` and start with the demo code available [here](https://github.com/mdaeron/D47crunch/tree/bayes/examples).
 
-```py
+```sh
 mkdir testD47crunch     # create new working directory
 cd testD47crunch        # enter the working directory
 uv init                 # initialize a new uv project
