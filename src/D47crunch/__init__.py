@@ -16,12 +16,12 @@ The **how-to** section provides instructions applicable to various specific task
 <h1>API Documentation</h1>
 '''
 
-from rich.pretty import pprint
 from ._metadata import *
 
 import os
 import numpy as np
 import typer
+import warnings
 import uncertainties
 from typing_extensions import Annotated
 from statistics import stdev
@@ -1804,21 +1804,24 @@ class D4xdata(list):
 		result.Q, _ = np.linalg.qr(result.J)                 # QR decomposition of J
 		result.h = np.einsum('ij,ij->i', result.Q, result.Q) # leverage h matrix, aligned row-for-row with result.residual
 
-
-
 		# sanity check
 		assert np.isclose(result.h.sum(), len(result.var_names))
 
 		self.standardization['pooled'] = dict(method = 'pooled')
-		self.standardization['latest'] = self.standardization['pooled']
+		S = self.standardization['pooled']
+		self.standardization['latest'] = S
 
-		self.standardization['pooled']['Nf'] = result.nfree
-		self.standardization['pooled']['t95'] = tstudent.ppf(1 - 0.05/2, result.nfree)
+		S['lmfit'] = result
+		S['Nf'] = result.nfree
+		S['t95'] = tstudent.ppf(1 - 0.05/2, result.nfree)
+
 		new_names, new_covar, new_se = _fullcovar(result)[:3]
-		self.standardization['pooled']['var_names'] = new_names
-		self.standardization['pooled']['covar'] = new_covar
-		self.standardization['pooled']['lmfit'] = result
-		self.standardization['pooled']['samples'] = {}
+
+		uparams = uncertainties.correlated_values(
+			[result.params.valuesdict()[k] for k in new_names],
+			new_covar,
+		)
+		S['uparams'] = {k: v for k,v in zip(new_names, uparams)}
 
 		for r in self:
 			s = pf(r["Session"])
@@ -1830,25 +1833,36 @@ class D4xdata(list):
 			c2 = result.params.valuesdict()[f'c2_{s}']
 			r[f'D{self._4x}'] = (r[f'D{self._4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
 
-		self.standardization['pooled']['sessions'] = {}
+		S['samples'] = {}
+		_D4x_ = f'D{self._4x}'
+		for sample in self.samples:
+			S['samples'][sample] = {}
+			if sample in self.bare_RMs:
+				with warnings.catch_warnings():
+					warnings.filterwarnings("ignore", message="Using UFloat objects with std_dev==0")
+					S['samples'][sample][_D4x_] = uncertainties.ufloat(self.bare_RMs[sample], 0)
+			else:
+				S['samples'][sample][_D4x_] = S['uparams'][f'{_D4x_}_{pf(sample)}']
+			S['samples'][sample][f'95CL_{_D4x_}'] = S['samples'][sample][_D4x_].s * S['t95']
+
+		S['sessions'] = {}
 		for session in self.sessions:
-			self.standardization['pooled']['sessions'][session] = {'Np': 3}
+			S['sessions'][session] = {'Np': 3}
 			for k in ['scrambling', 'slope', 'wg']:
 				if self.sessions[session][f'{k}_drift']:
-					self.standardization['pooled']['sessions'][session]['Np'] += 1
+					S['sessions'][session]['Np'] += 1
+
+			for k in ['a', 'b', 'c', 'a2', 'b2', 'c2']:
+				S['sessions'][session][k] = S['uparams'][f'{k}_{pf(session)}']
+
+			S['sessions'][session]['CM'] = uncertainties.covariance_matrix([
+				S['sessions'][session][k]
+				for k in ['a', 'b', 'c', 'a2', 'b2', 'c2']
+			])
+
 
 		if consolidate:
 			self.consolidate(target = 'pooled', tables = consolidate_tables, plots = consolidate_plots)
-
-		for session in self.sessions:
-			for k in ['Na', 'Nu']:
-				self.standardization['pooled']['sessions'][session][k] = self.sessions[session][k]
-
-		_D4x_ = f'D{self._4x}'
-		for sample in self.samples:
-			for k in [_D4x_, f'SE_{_D4x_}']:
-				self.standardization['pooled']['samples'][sample][k] = self.samples[sample][k]
-			self.standardization['pooled']['samples'][sample][f'95CL_{_D4x_}'] = self.samples[sample][f'SE_{_D4x_}'] * self.standardization['pooled']['t95']
 
 		return result
 
@@ -1887,7 +1901,6 @@ class D4xdata(list):
 
 		# lazy imports:
 		import re
-		import warnings
 		import pymc as pm
 		import arviz as az
 		import sympy as sp
@@ -2261,7 +2274,9 @@ class D4xdata(list):
 				# coords={'samples': [s for s in samples if s not in fixed_anchors]}
 			)
 
+		# populate self.standardization['bayes']['sessions']
 		self.standardization['bayes']['sessions'] = {}
+		S = self.standardization['bayes']['sessions']
 
 		for session in self.sessions:
 
@@ -2274,43 +2289,30 @@ class D4xdata(list):
 				np.cov(draws),
 			)
 
-			self.standardization['bayes']['sessions'][session] = {_: {} for _ in params}
-
-			self.standardization['bayes']['sessions'][session]['Na'] = len([
-				r for r in self.sessions[session]['data']
-				if r['Sample'] in (self.fixed_RMs | self.loose_RMs)
-			])
-			self.standardization['bayes']['sessions'][session]['Nu'] = (
-				self.sessions[session]['N'] - self.standardization['bayes']['sessions'][session]['Na']
-			)
+			S[session] = {}
 
 			for p_index, p in enumerate(params):
-				self.standardization['bayes']['sessions'][session][p]['posterior'] = draws[p_index,:]
-				self.standardization['bayes']['sessions'][session][p]['ufloat'] = uparams[p_index]
-				self.standardization['bayes']['sessions'][session][p]['95CL'] = float(
-					np.quantile(np.abs(draws[p_index,:] - draws[p_index,:].mean()), 0.95)
+				S[session][p] = uparams[p_index]
+				S[session][f'pdf_{p}'] = draws[p_index,:]
+				S[session][f'95CL_{p}'] = float(
+					np.quantile(np.abs(draws[p_index,:] - uparams[p_index].n), 0.95)
 				)
 
-			self.standardization['bayes']['sessions'][session]['Np'] = 3
+			S[session]['Np'] = 3
 
+		# populate self.standardization['bayes']['samples']
 		D4x = f'D{self._4x}'
 		self.standardization['bayes']['samples'] = {}
+		S = self.standardization['bayes']['samples']
+
 		for s in self.fixed_anchors:
-			self.standardization['bayes']['samples'][s] = {}
+			S[s] = {}
 
-		for s in self.loose_anchors:
-			self.standardization['bayes']['samples'][s] = dict(
-				prior = self.loose_anchors[s],
-				posterior = _posterior[D4x].sel(samples = s).values.reshape(-1),
-			)
-
-		for s in self.unknowns:
-			self.standardization['bayes']['samples'][s] = dict(
-				posterior = _posterior[D4x].sel(samples = s).values.reshape(-1),
-			)
+		for s in (self.loose_anchors | self.unknowns):
+			S[s] = {f'pdf_{D4x}': _posterior[D4x].sel(samples = s).values.reshape(-1)}
 
 		# Caution: we are redefining samples here. Why? Do we really need to?
-		samples = [s for s in self.standardization['bayes']['samples']]
+		samples = [s for s in S]
 		sample_index = [D4x_idx[s] for s in samples]
 
 		draws = np.array([_posterior[D4x][:,:,i].values.reshape(-1) for i in sample_index])
@@ -2319,26 +2321,25 @@ class D4xdata(list):
 			np.cov(draws),
 		)
 		for k,s in enumerate(samples):
-			self.standardization['bayes']['samples'][s]['ufloat'] = uD4x[k]
-			if sample not in self.fixed_RMs:
-				self.standardization['bayes']['samples'][s]['posterior'] = draws[k,:]
+			S[s][D4x] = uD4x[k]
 			if sample in self.fixed_RMs:
-				self.standardization['bayes']['samples'][s]['95CL'] = 0.
+				S[s][f'95CL_{D4x}'] = 0.
 			else:
-				self.standardization['bayes']['samples'][s]['95CL'] = float(
+				S[s][f'95CL_{D4x}'] = float(
 					np.quantile(np.abs(draws[k,:] - draws[k,:].mean()), 0.95)
 				)
 
 		for r in self:
 			s = r["Session"]
-			a = self.standardization['bayes']['sessions'][s]['a']['ufloat'].n
-			b = self.standardization['bayes']['sessions'][s]['b']['ufloat'].n
-			c = self.standardization['bayes']['sessions'][s]['c']['ufloat'].n
+			a = self.standardization['bayes']['sessions'][s]['a'].n
+			b = self.standardization['bayes']['sessions'][s]['b'].n
+			c = self.standardization['bayes']['sessions'][s]['c'].n
 			a2 = 0.
 			b2 = 0.
 			c2 = 0.
-			r[f'D{self._4x}'] = (r[f'D{self._4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
+			r[D4x] = (r[f'{D4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
 
+	@make_verbal
 	def table_of_least_squares_vs_bayesian_results(
 		self,
 		dir = 'output',
@@ -2347,6 +2348,7 @@ class D4xdata(list):
 		print_out = True,
 		output = None,
 	):
+		D4x = f'D{self._4x}'
 		out = [['Sample','N', f'D{self._4x} (LS)','SE','95% CL', f'D{self._4x} (Bayes)','SE','95% CL', 'difference']]
 		pooled = self.standardization['pooled']['samples']
 		bayes = self.standardization['bayes']['samples']
@@ -2354,13 +2356,13 @@ class D4xdata(list):
 			out += [[
 				f"{sample}",
 				f"{self.samples[sample]['N']}",
-				f"{pooled[sample][f'D{self._4x}']:.4f}",
-				'' if sample in self.anchors else f"{pooled[sample][f'SE_D{self._4x}']:.4f}",
-				'' if sample in self.anchors else f"± {pooled[sample][f'SE_D{self._4x}'] * self.standardization['pooled']['t95']:.4f}",
-				f"{bayes[sample]['ufloat'].n:.4f}",
-				f"{bayes[sample]['ufloat'].s:.4f}",
-				f"± {bayes[sample]['95CL']:.4f}",
-				f"{round(bayes[sample]['ufloat'].n - pooled[sample][f'D{self._4x}'], 4) + 0.0:.4f}",
+				f"{pooled[sample][D4x].n:.4f}",
+				f"{pooled[sample][D4x].s:.4f}" if sample in self.unknowns else '',
+				f"± {pooled[sample][f'95CL_{D4x}']:.4f}" if sample in self.unknowns else '',
+				f"{bayes[sample][D4x].n:.4f}",
+				f"{bayes[sample][D4x].s:.4f}" if sample not in self.fixed_RMs else '',
+				f"± {bayes[sample][f'95CL_{D4x}']:.4f}" if sample not in self.fixed_RMs else '',
+				f"{round(bayes[sample][D4x].n - pooled[sample][D4x].n, 4) + 0.0:.4f}",
 			]]
 		if save_to_file:
 			if not os.path.exists(dir):
@@ -2370,7 +2372,7 @@ class D4xdata(list):
 			with open(f'{dir}/{filename}', 'w') as fid:
 				fid.write(make_csv(out))
 		if print_out:
-			print('\n'+pretty_table(out))
+			self.msg('\n'+pretty_table(out))
 		if output == 'raw':
 			return out
 		elif output == 'pretty':
@@ -2423,7 +2425,7 @@ class D4xdata(list):
 			axs = [ppl.subplot(lines, columns, _+1) for _ in range(N)]
 			xmin, xmax = 1000, -1000
 			for sample in samples:
-				x = self.standardization['bayes']['samples'][sample]['posterior']
+				x = self.standardization['bayes']['samples'][sample][f'pdf_D{self._4x}']
 				x0 = x.min() - 0.02
 				x1 = x.max() + 0.02
 				xmin = min(xmin, x0)
@@ -2434,7 +2436,7 @@ class D4xdata(list):
 				ppl.yticks([])
 				ppl.title(sample, weight = 'bold', size = 10)
 				xi = np.linspace(xmin, xmax, 1001)
-				x = self.standardization['bayes']['samples'][sample]['posterior']
+				x = self.standardization['bayes']['samples'][sample][f'pdf_D{self._4x}']
 				yi = gaussian_kde(x).evaluate(xi)
 				_color = Color('srgb', bayes_color)
 				kw = dict(
@@ -2449,7 +2451,7 @@ class D4xdata(list):
 					yi*(0 if bayes_on_top else -1),
 					**kw,
 				)
-				xm = self.standardization['bayes']['samples'][sample]['ufloat'].n
+				xm = self.standardization['bayes']['samples'][sample][f'D{self._4x}'].n
 				ha = 'left' if (xm - xmin) > (xmax - xm) else 'right'
 				x = xmin if (xm - xmin) > (xmax - xm) else xmax
 				ax.text(
@@ -2506,7 +2508,7 @@ class D4xdata(list):
 						yi*(-1 if bayes_on_top else 0),
 						**kw,
 					)
-					xm = self.standardization['pooled']['samples'][sample][f'D{self._4x}']
+					xm = self.standardization['pooled']['samples'][sample][f'D{self._4x}'].n
 					ha = 'left' if (xm - xmin) > (xmax - xm) else 'right'
 					x = xmin if (xm - xmin) > (xmax - xm) else xmax
 					ax.text(
@@ -2600,9 +2602,9 @@ class D4xdata(list):
 				for sample in weak_anchors
 			]).T,
 			np.array([
-				self.standardization['bayes']['samples'][sample]['ufloat'].n
+				self.standardization['bayes']['samples'][sample][f'D{self._4x}'].n
 				+ np.array([-1, 1, 1, -1, -1])/2
-				* self.standardization['bayes']['samples'][sample]['95CL']
+				* self.standardization['bayes']['samples'][sample][f'95CL_D{self._4x}']
 				for sample in weak_anchors
 			]).T
 		)
@@ -2619,9 +2621,9 @@ class D4xdata(list):
 				for sample in unknowns
 			]).T,
 			np.array([
-				self.standardization['bayes']['samples'][sample]['ufloat'].n
+				self.standardization['bayes']['samples'][sample][f'D{self._4x}'].n
 				+ np.array([-1, 1, 1, -1, -1])
-				* self.standardization['bayes']['samples'][sample]['95CL']
+				* self.standardization['bayes']['samples'][sample][f'95CL_D{self._4x}']
 				for sample in unknowns
 			]).T
 		)
@@ -2671,9 +2673,9 @@ class D4xdata(list):
 			xi, yi = np.linspace(x1, x2), np.linspace(y1, y2)
 			XI,YI = np.meshgrid(xi, yi)
 			# SI = np.array([[self.standardization_error(session, x, y) for x in xi] for y in yi])
-			_a = self.standardization['bayes']['sessions'][session]['a']['posterior']
-			_b = self.standardization['bayes']['sessions'][session]['b']['posterior']
-			_c = self.standardization['bayes']['sessions'][session]['c']['posterior']
+			_a = self.standardization['bayes']['sessions'][session]['pdf_a']
+			_b = self.standardization['bayes']['sessions'][session]['pdf_b']
+			_c = self.standardization['bayes']['sessions'][session]['pdf_c']
 			_ZI = _a.mean()*YI + _b.mean()*XI + _c.mean()
 			_YI = (_ZI[:,:,None] - _b*XI[:,:,None] - _c) / _a
 			SI = (_YI).std(axis = -1, ddof = 1)
@@ -2748,31 +2750,18 @@ class D4xdata(list):
 		target = self._resolve_target(target)
 		stdz = self.standardization[target]
 
-		match target:
-			case 'pooled':
-				a = stdz['sessions'][session]['a']
-				b = stdz['sessions'][session]['b']
-				c = stdz['sessions'][session]['c']
-				a2 = stdz['sessions'][session]['a2']
-				b2 = stdz['sessions'][session]['b2']
-				c2 = stdz['sessions'][session]['c2']
-				CM = stdz['sessions'][session]['CM']
+		a = stdz['sessions'][session]['a']
+		b = stdz['sessions'][session]['b']
+		c = stdz['sessions'][session]['c']
+		a2 = stdz['sessions'][session]['a2']
+		b2 = stdz['sessions'][session]['b2']
+		c2 = stdz['sessions'][session]['c2']
 
-				x, y = D4x, d4x
-				z = a * x + b * y + c + a2 * x * t + b2 * y * t + c2 * t
-		# 		x = (z - b*y - b2*y*t - c - c2*t) / (a+a2*t)
-				dxdy = -(b+b2*t) / (a+a2*t)
-				dxdz = 1. / (a+a2*t)
-				dxda = -x / (a+a2*t)
-				dxdb = -y / (a+a2*t)
-				dxdc = -1. / (a+a2*t)
-				dxda2 = -x * a2 / (a+a2*t)
-				dxdb2 = -y * t / (a+a2*t)
-				dxdc2 = -t / (a+a2*t)
-				V = np.array([dxda, dxdb, dxdc, dxda2, dxdb2, dxdc2])
-				sx = (V @ CM @ V.T) ** .5
-				return sx
+		x, y = D4x, d4x
+		D4x_raw = (a * x + b * y + c + a2 * x * t + b2 * y * t + c2 * t).n
+		sx = ((D4x_raw - b*y - b2*y*t - c - c2*t) / (a + a2*t)).s
 
+		return sx
 
 	@make_verbal
 	def summary(self,
@@ -2852,66 +2841,35 @@ class D4xdata(list):
 		if include_c2:
 			out[-1] += ['c2 ± SE']
 		for session in self.sessions:
-			_ss_ = self.standardization[target]['sessions'][session]
-			match target:
-				case 'pooled':
-					out += [[
-						session,
-						f"{_ss_['Na']}",
-						f"{_ss_['Nu']}",
-						f"{self.sessions[session]['d13Cwg_VPDB']:.3f}",
-						f"{self.sessions[session]['d18Owg_VSMOW']:.3f}",
-						f"{self.sessions[session]['r_d13C_VPDB']:.4f}",
-						f"{self.sessions[session]['r_d18O_VSMOW']:.4f}",
-						f"{self.sessions[session][f'r_D{self._4x}']:.4f}",
-						f"{_ss_['a']:.3f} ± {_ss_['SE_a']:.3f}",
-						f"{1e3*_ss_['b']:.3f} ± {1e3*_ss_['SE_b']:.3f}",
-						f"{_ss_['c']:.3f} ± {_ss_['SE_c']:.3f}",
-						]]
-					if include_a2:
-						if self.sessions[session]['scrambling_drift']:
-							out[-1] += [f"{_ss_['a2']:.1e} ± {_ss_['SE_a2']:.1e}"]
-						else:
-							out[-1] += ['']
-					if include_b2:
-						if self.sessions[session]['slope_drift']:
-							out[-1] += [f"{_ss_['b2']:.1e} ± {_ss_['SE_b2']:.1e}"]
-						else:
-							out[-1] += ['']
-					if include_c2:
-						if self.sessions[session]['wg_drift']:
-							out[-1] += [f"{_ss_['c2']:.1e} ± {_ss_['SE_c2']:.1e}"]
-						else:
-							out[-1] += ['']
-				case 'bayes':
-					out += [[
-						session,
-						f"{_ss_['Na']}",
-						f"{_ss_['Nu']}",
-						f"{self.sessions[session]['d13Cwg_VPDB']:.3f}",
-						f"{self.sessions[session]['d18Owg_VSMOW']:.3f}",
-						f"{self.sessions[session]['r_d13C_VPDB']:.4f}",
-						f"{self.sessions[session]['r_d18O_VSMOW']:.4f}",
-						f"{self.sessions[session][f'r_D{self._4x}']:.4f}",
-						f"{_ss_['a']['ufloat'].n:.3f} ± {_ss_['a']['ufloat'].s:.3f}",
-						f"{1e3*_ss_['b']['ufloat'].n:.3f} ± {1e3*_ss_['b']['ufloat'].s:.3f}",
-						f"{_ss_['c']['ufloat'].n:.3f} ± {_ss_['c']['ufloat'].s:.3f}",
-						]]
-					if include_a2:
-						if self.sessions[session]['scrambling_drift']:
-							out[-1] += [f"{_ss_['a2']['ufloat'].n:.1e} ± {_ss_['a2']['ufloat'].s:.1e}"]
-						else:
-							out[-1] += ['']
-					if include_b2:
-						if self.sessions[session]['slope_drift']:
-							out[-1] += [f"{_ss_['b2']['ufloat'].n:.1e} ± {_ss_['b2']['ufloat'].s:.1e}"]
-						else:
-							out[-1] += ['']
-					if include_c2:
-						if self.sessions[session]['wg_drift']:
-							out[-1] += [f"{_ss_['c2']['ufloat'].n:.1e} ± {_ss_['c2']['ufloat'].s:.1e}"]
-						else:
-							out[-1] += ['']
+			S = self.standardization[target]['sessions'][session]
+			out += [[
+				session,
+				f"{self.sessions[session]['Na']}",
+				f"{self.sessions[session]['Nu']}",
+				f"{self.sessions[session]['d13Cwg_VPDB']:.3f}",
+				f"{self.sessions[session]['d18Owg_VSMOW']:.3f}",
+				f"{self.sessions[session]['r_d13C_VPDB']:.4f}",
+				f"{self.sessions[session]['r_d18O_VSMOW']:.4f}",
+				f"{self.sessions[session][f'r_D{self._4x}']:.4f}",
+				f"{S['a'].n:.3f} ± {S['a'].s:.3f}",
+				f"{1e3*S['b'].n:.3f} ± {1e3*S['b'].s:.3f}",
+				f"{S['c'].n:.3f} ± {S['c'].s:.3f}",
+				]]
+			if include_a2:
+				if self.sessions[session]['scrambling_drift']:
+					out[-1] += [f"{S['a2'].n:.1e} ± {S['a2'].s:.1e}"]
+				else:
+					out[-1] += ['']
+			if include_b2:
+				if self.sessions[session]['slope_drift']:
+					out[-1] += [f"{S['b2'].n:.1e} ± {S['b2'].s:.1e}"]
+				else:
+					out[-1] += ['']
+			if include_c2:
+				if self.sessions[session]['wg_drift']:
+					out[-1] += [f"{S['c2'].n:.1e} ± {S['c2'].s:.1e}"]
+				else:
+					out[-1] += ['']
 
 		if save_to_file:
 			if not os.path.exists(dir):
@@ -3075,7 +3033,7 @@ class D4xdata(list):
 			# 'p_Levene',
 		]]
 
-		_ss_ = self.standardization[target]['samples']
+		S = self.standardization[target]['samples']
 		match target:
 			case 'bayes':
 				for sample in self.fixed_anchors:
@@ -3084,31 +3042,29 @@ class D4xdata(list):
 						f"{self.samples[sample]['N']}",
 						f"{self.samples[sample]['d13C_VPDB']:.2f}",
 						f"{self.samples[sample]['d18O_VSMOW']:.2f}",
-						f"{_ss_[sample]['ufloat'].n:.4f}",'','',
+						f"{S[sample][f'D{self._4x}'].n:.4f}",'','',
 						f"{self.samples[sample][f'SD_D{self._4x}']:.4f}" if self.samples[sample]['N'] > 1 else '', ''
 						]]
-				for sample in self.unknowns:
+				for sample in (self.unknowns | self.loose_anchors):
 					out += [[
 						f"{sample}",
 						f"{self.samples[sample]['N']}",
 						f"{self.samples[sample]['d13C_VPDB']:.2f}",
 						f"{self.samples[sample]['d18O_VSMOW']:.2f}",
-						f"{_ss_[sample]['ufloat'].n:.4f}",
-						f"{_ss_[sample]['ufloat'].s:.4f}",
-						f"± {_ss_[sample]['95CL']:.4f}",
+						f"{S[sample][f'D{self._4x}'].n:.4f}",
+						f"{S[sample][f'D{self._4x}'].s:.4f}",
+						f"± {S[sample][f'95CL_D{self._4x}']:.4f}",
 						f"{self.samples[sample][f'SD_D{self._4x}']:.4f}" if self.samples[sample]['N'] > 1 else '',
 						# f"{self.samples[sample]['p_Levene']:.3f}" if self.samples[sample]['N'] > 2 else ''
 						]]
 			case 'pooled':
 				for sample in self.anchors:
-					print(sample)
-					print(_ss_[sample])
 					out += [[
 						f"{sample}",
 						f"{self.samples[sample]['N']}",
 						f"{self.samples[sample]['d13C_VPDB']:.2f}",
 						f"{self.samples[sample]['d18O_VSMOW']:.2f}",
-						f"{_ss_[sample][f'D{self._4x}']:.4f}",'','',
+						f"{S[sample][f'D{self._4x}'].n:.4f}",'','',
 						f"{self.samples[sample][f'SD_D{self._4x}']:.4f}" if self.samples[sample]['N'] > 1 else '', ''
 						]]
 				for sample in self.unknowns:
@@ -3117,11 +3073,10 @@ class D4xdata(list):
 						f"{self.samples[sample]['N']}",
 						f"{self.samples[sample]['d13C_VPDB']:.2f}",
 						f"{self.samples[sample]['d18O_VSMOW']:.2f}",
-						f"{_ss_[sample][f'D{self._4x}']:.4f}",
-						f"{_ss_[sample][f'SE_D{self._4x}']:.4f}",
-						f"± {_ss_[sample][f'95CL_D{self._4x}']:.4f}",
+						f"{S[sample][f'D{self._4x}'].n:.4f}",
+						f"{S[sample][f'D{self._4x}'].s:.4f}",
+						f"± {S[sample][f'95CL_D{self._4x}']:.4f}",
 						f"{self.samples[sample][f'SD_D{self._4x}']:.4f}" if self.samples[sample]['N'] > 1 else '',
-						# f"{self.samples[sample]['p_Levene']:.3f}" if self.samples[sample]['N'] > 2 else ''
 						]]
 
 		if save_to_file:
@@ -3175,7 +3130,7 @@ class D4xdata(list):
 		for session in self.sessions:
 			match target:
 				case 'pooled':
-					sp = self.plot_single_session(session, xylimits = 'constant')
+					sp = self.plot_single_pooled_session(session, xylimits = 'constant')
 				case 'bayes':
 					sp = self.plot_single_bayesian_session(session, xylimits = 'constant')
 			ppl.savefig(f'{dir}/D{self._4x}_plot_{session}.{filetype}', **({'dpi': dpi} if filetype.lower() == 'png' else {}))
@@ -3204,70 +3159,30 @@ class D4xdata(list):
 		+ `d18O_VSMOW`: the average δ18O_VSMOW value for this sample (as CO2)
 		'''
 
-		# D4x_ref_pop = [r[f'D{self._4x}'] for r in self.samples[self.LEVENE_REF_SAMPLE]['data']]
+		target = self._resolve_target(target)
+		_D4x_ = f'D{self._4x}'
 
 		for sample in self.samples:
+
+			for k in self.samples[sample]:
+				if k != 'data':
+					print(f'Popping {k} from {sample}.')
+					self.samples[sample].pop(k)
+
 			self.samples[sample]['N'] = len(self.samples[sample]['data'])
+
 			if self.samples[sample]['N'] > 1:
 				self.samples[sample][f'SD_D{self._4x}'] = stdev([r[f'D{self._4x}'] for r in self.samples[sample]['data']])
 
 			self.samples[sample]['d13C_VPDB'] = np.mean([r['d13C_VPDB'] for r in self.samples[sample]['data']])
 			self.samples[sample]['d18O_VSMOW'] = np.mean([r['d18O_VSMOW'] for r in self.samples[sample]['data']])
 
-			# D4x_pop = [r[f'D{self._4x}'] for r in self.samples[sample]['data']]
-			# if len(D4x_pop) > 2:
-			# 	self.samples[sample]['p_Levene'] = levene(D4x_ref_pop, D4x_pop, center = 'median')[1]
+			self.samples[sample][_D4x_] = self.standardization[target]['samples'][sample][_D4x_].n
+			self.samples[sample][f'SE_{_D4x_}'] = self.standardization[target]['samples'][sample][_D4x_].s
+			self.samples[sample][f'95CL_{_D4x_}'] = self.standardization[target]['samples'][sample][f'95CL_{_D4x_}']
 
-		target = self._resolve_target(target)
-		match target:
-			case 'pooled':
-
-				for sample in self.anchors:
-					if sample not in self.standardization[target]['samples']:
-						self.standardization[target]['samples'][sample] = {}
-					X, sX = self.bare_RMs[sample], 0
-
-					self.samples[sample][f'D{self._4x}'] = X
-					self.samples[sample][f'SE_D{self._4x}'] = sX
-
-					self.standardization[target]['samples'][sample][f'D{self._4x}'] = X
-					self.standardization[target]['samples'][sample][f'SE_D{self._4x}'] = sX
-
-				for sample in self.unknowns:
-					if sample not in self.standardization[target]['samples']:
-						self.standardization[target]['samples'][sample] = {}
-
-					X = self.standardization[target]['lmfit'].params.valuesdict()[f'D{self._4x}_{pf(sample)}']
-					self.samples[sample][f'D{self._4x}'] = X
-					self.standardization[target]['samples'][sample][f'D{self._4x}'] = X
-
-					try:
-						sX = self.sample_D4x_covar(sample)**.5
-					except ValueError:
-						# when `sample` is constrained by self.standardize(constraints = {...}),
-						# it is no longer listed in self.standardization.var_names.
-						# Temporary fix: define SE as zero for now
-						sX = 0.
-					self.samples[sample][f'SE_D{self._4x}'] = sX
-					self.standardization[target]['samples'][sample][f'SE_D{self._4x}'] = sX
-
-				for r in self:
-					r[f'D{self._4x}_residual'] = r[f'D{self._4x}'] - self.standardization[target]['samples'][r['Sample']][f'D{self._4x}']
-
-			case 'bayes':
-
-				for sample in list(self.samples):
-
-					self.samples[sample][f'D{self._4x}'] = self.standardization['bayes']['samples'][sample]['ufloat'].n
-					self.samples[sample][f'SE_D{self._4x}'] = self.standardization['bayes']['samples'][sample]['ufloat'].s
-
-					self.standardization[target]['samples'][sample][f'D{self._4x}'] = self.standardization['bayes']['samples'][sample]['ufloat'].n
-					self.standardization[target]['samples'][sample][f'SE_D{self._4x}'] = self.standardization['bayes']['samples'][sample]['ufloat'].s
-
-				for r in self:
-					r[f'D{self._4x}_residual'] = r[f'D{self._4x}'] - self.standardization[target]['samples'][r['Sample']][f'D{self._4x}']
-
-
+		for r in self:
+			r[f'{_D4x_}_residual'] = r[f'D{self._4x}'] - self.standardization[target]['samples'][r['Sample']][f'D{self._4x}'].n
 
 	def consolidate_sessions(self, target = 'latest'):
 		'''
@@ -3296,9 +3211,13 @@ class D4xdata(list):
 		+ `d18Owg_VSMOW`: δ18O_VSMOW of WG
 		'''
 
-		target = self._resolve_target(target)
-
 		for session in self.sessions:
+
+			self.sessions[session] = {
+				k: self.sessions[session][k]
+				for k in ['data', 'N', 'scrambling_drift', 'slope_drift', 'wg_drift']
+			}
+
 			if 'd13Cwg_VPDB' not in self.sessions[session]:
 				self.sessions[session]['d13Cwg_VPDB'] = self.sessions[session]['data'][0]['d13Cwg_VPDB']
 			if 'd18Owg_VSMOW' not in self.sessions[session]:
@@ -3311,90 +3230,90 @@ class D4xdata(list):
 			self.sessions[session]['r_d18O_VSMOW'] = self.compute_r('d18O_VSMOW', samples = 'anchors', sessions = [session])
 			self.sessions[session][f'r_D{self._4x}'] = self.compute_r(f'D{self._4x}', sessions = [session])
 
-		match target:
-			case 'bayes':
-				raise NotImplementedError
-			case 'pooled':
-				for session in self.sessions:
+		# target = self._resolve_target(target)
+		# match target:
+		# 	case 'bayes':
+		# 		raise NotImplementedError
+		# 	case 'pooled':
+		# 		for session in self.sessions:
+		# 			_s_ = self.standardization[target]['sessions'][session]
 
-					_s_ = self.standardization[target]['sessions'][session]
+		# 			_s_['a'] = self.standardization[target]['lmfit'].params.valuesdict()[f'a_{pf(session)}']
+		# 			i = self.standardization[target]['var_names'].index(f'a_{pf(session)}')
+		# 			_s_['SE_a'] = self.standardization[target]['covar'][i,i]**.5
 
-					_s_['a'] = self.standardization[target]['lmfit'].params.valuesdict()[f'a_{pf(session)}']
-					i = self.standardization[target]['var_names'].index(f'a_{pf(session)}')
-					_s_['SE_a'] = self.standardization[target]['covar'][i,i]**.5
+		# 			_s_['b'] = self.standardization[target]['lmfit'].params.valuesdict()[f'b_{pf(session)}']
+		# 			i = self.standardization[target]['var_names'].index(f'b_{pf(session)}')
+		# 			_s_['SE_b'] = self.standardization[target]['covar'][i,i]**.5
 
-					_s_['b'] = self.standardization[target]['lmfit'].params.valuesdict()[f'b_{pf(session)}']
-					i = self.standardization[target]['var_names'].index(f'b_{pf(session)}')
-					_s_['SE_b'] = self.standardization[target]['covar'][i,i]**.5
+		# 			_s_['c'] = self.standardization[target]['lmfit'].params.valuesdict()[f'c_{pf(session)}']
+		# 			i = self.standardization[target]['var_names'].index(f'c_{pf(session)}')
+		# 			_s_['SE_c'] = self.standardization[target]['covar'][i,i]**.5
 
-					_s_['c'] = self.standardization[target]['lmfit'].params.valuesdict()[f'c_{pf(session)}']
-					i = self.standardization[target]['var_names'].index(f'c_{pf(session)}')
-					_s_['SE_c'] = self.standardization[target]['covar'][i,i]**.5
+		# 			_s_['a2'] = self.standardization[target]['lmfit'].params.valuesdict()[f'a2_{pf(session)}']
+		# 			if self.sessions[session]['scrambling_drift']:
+		# 				i = self.standardization[target]['var_names'].index(f'a2_{pf(session)}')
+		# 				_s_['SE_a2'] = self.standardization[target]['covar'][i,i]**.5
+		# 			else:
+		# 				_s_['SE_a2'] = 0.
 
-					_s_['a2'] = self.standardization[target]['lmfit'].params.valuesdict()[f'a2_{pf(session)}']
-					if self.sessions[session]['scrambling_drift']:
-						i = self.standardization[target]['var_names'].index(f'a2_{pf(session)}')
-						_s_['SE_a2'] = self.standardization[target]['covar'][i,i]**.5
-					else:
-						_s_['SE_a2'] = 0.
+		# 			_s_['b2'] = self.standardization[target]['lmfit'].params.valuesdict()[f'b2_{pf(session)}']
+		# 			if self.sessions[session]['slope_drift']:
+		# 				i = self.standardization[target]['var_names'].index(f'b2_{pf(session)}')
+		# 				_s_['SE_b2'] = self.standardization[target]['covar'][i,i]**.5
+		# 			else:
+		# 				_s_['SE_b2'] = 0.
 
-					_s_['b2'] = self.standardization[target]['lmfit'].params.valuesdict()[f'b2_{pf(session)}']
-					if self.sessions[session]['slope_drift']:
-						i = self.standardization[target]['var_names'].index(f'b2_{pf(session)}')
-						_s_['SE_b2'] = self.standardization[target]['covar'][i,i]**.5
-					else:
-						_s_['SE_b2'] = 0.
+		# 			_s_['c2'] = self.standardization[target]['lmfit'].params.valuesdict()[f'c2_{pf(session)}']
+		# 			if self.sessions[session]['wg_drift']:
+		# 				i = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
+		# 				_s_['SE_c2'] = self.standardization[target]['covar'][i,i]**.5
+		# 			else:
+		# 				_s_['SE_c2'] = 0.
 
-					_s_['c2'] = self.standardization[target]['lmfit'].params.valuesdict()[f'c2_{pf(session)}']
-					if self.sessions[session]['wg_drift']:
-						i = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
-						_s_['SE_c2'] = self.standardization[target]['covar'][i,i]**.5
-					else:
-						_s_['SE_c2'] = 0.
+		# 			i = self.standardization[target]['var_names'].index(f'a_{pf(session)}')
+		# 			j = self.standardization[target]['var_names'].index(f'b_{pf(session)}')
+		# 			k = self.standardization[target]['var_names'].index(f'c_{pf(session)}')
+		# 			CM = np.zeros((6,6))
+		# 			CM[:3,:3] = self.standardization[target]['covar'][[i,j,k],:][:,[i,j,k]]
+		# 			try:
+		# 				i2 = self.standardization[target]['var_names'].index(f'a2_{pf(session)}')
+		# 				CM[3,[0,1,2,3]] = self.standardization[target]['covar'][i2,[i,j,k,i2]]
+		# 				CM[[0,1,2,3],3] = self.standardization[target]['covar'][[i,j,k,i2],i2]
+		# 				try:
+		# 					j2 = self.standardization[target]['var_names'].index(f'b2_{pf(session)}')
+		# 					CM[3,4] = self.standardization[target]['covar'][i2,j2]
+		# 					CM[4,3] = self.standardization[target]['covar'][j2,i2]
+		# 				except ValueError:
+		# 					pass
+		# 				try:
+		# 					k2 = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
+		# 					CM[3,5] = self.standardization[target]['covar'][i2,k2]
+		# 					CM[5,3] = self.standardization[target]['covar'][k2,i2]
+		# 				except ValueError:
+		# 					pass
+		# 			except ValueError:
+		# 				pass
+		# 			try:
+		# 				j2 = self.standardization[target]['var_names'].index(f'b2_{pf(session)}')
+		# 				CM[4,[0,1,2,4]] = self.standardization[target]['covar'][j2,[i,j,k,j2]]
+		# 				CM[[0,1,2,4],4] = self.standardization[target]['covar'][[i,j,k,j2],j2]
+		# 				try:
+		# 					k2 = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
+		# 					CM[4,5] = self.standardization[target]['covar'][j2,k2]
+		# 					CM[5,4] = self.standardization[target]['covar'][k2,j2]
+		# 				except ValueError:
+		# 					pass
+		# 			except ValueError:
+		# 				pass
+		# 			try:
+		# 				k2 = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
+		# 				CM[5,[0,1,2,5]] = self.standardization[target]['covar'][k2,[i,j,k,k2]]
+		# 				CM[[0,1,2,5],5] = self.standardization[target]['covar'][[i,j,k,k2],k2]
+		# 			except ValueError:
+		# 				pass
 
-					i = self.standardization[target]['var_names'].index(f'a_{pf(session)}')
-					j = self.standardization[target]['var_names'].index(f'b_{pf(session)}')
-					k = self.standardization[target]['var_names'].index(f'c_{pf(session)}')
-					CM = np.zeros((6,6))
-					CM[:3,:3] = self.standardization[target]['covar'][[i,j,k],:][:,[i,j,k]]
-					try:
-						i2 = self.standardization[target]['var_names'].index(f'a2_{pf(session)}')
-						CM[3,[0,1,2,3]] = self.standardization[target]['covar'][i2,[i,j,k,i2]]
-						CM[[0,1,2,3],3] = self.standardization[target]['covar'][[i,j,k,i2],i2]
-						try:
-							j2 = self.standardization[target]['var_names'].index(f'b2_{pf(session)}')
-							CM[3,4] = self.standardization[target]['covar'][i2,j2]
-							CM[4,3] = self.standardization[target]['covar'][j2,i2]
-						except ValueError:
-							pass
-						try:
-							k2 = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
-							CM[3,5] = self.standardization[target]['covar'][i2,k2]
-							CM[5,3] = self.standardization[target]['covar'][k2,i2]
-						except ValueError:
-							pass
-					except ValueError:
-						pass
-					try:
-						j2 = self.standardization[target]['var_names'].index(f'b2_{pf(session)}')
-						CM[4,[0,1,2,4]] = self.standardization[target]['covar'][j2,[i,j,k,j2]]
-						CM[[0,1,2,4],4] = self.standardization[target]['covar'][[i,j,k,j2],j2]
-						try:
-							k2 = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
-							CM[4,5] = self.standardization[target]['covar'][j2,k2]
-							CM[5,4] = self.standardization[target]['covar'][k2,j2]
-						except ValueError:
-							pass
-					except ValueError:
-						pass
-					try:
-						k2 = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
-						CM[5,[0,1,2,5]] = self.standardization[target]['covar'][k2,[i,j,k,k2]]
-						CM[[0,1,2,5],5] = self.standardization[target]['covar'][[i,j,k,k2],k2]
-					except ValueError:
-						pass
-
-					_s_['CM'] = CM
+		# 			_s_['CM'] = CM
 
 	@make_verbal
 	def repeatabilities(self, target = 'latest'):
@@ -3600,7 +3519,7 @@ class D4xdata(list):
 			/ self.unknowns[sample2][f'SE_D{self._4x}']
 			)
 
-	def plot_single_session(self,
+	def plot_single_pooled_session(self,
 		session,
 		kw_plot_anchors = dict(ls='None', marker='x', mec=(.75, 0, 0), mew = .75, ms = 4),
 		kw_plot_unknowns = dict(ls='None', marker='x', mec=(0, 0, .75), mew = .75, ms = 4),
@@ -3628,17 +3547,32 @@ class D4xdata(list):
 		anchors_D = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.anchors]
 		unknowns_d = [r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns]
 		unknowns_D = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in self.unknowns]
-		anchor_avg = (np.array([ np.array([
-				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
-				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
-				]) for sample in anchors]).T,
-			np.array([ np.array([0, 0]) + self.RMs[sample] for sample in anchors]).T)
-		unknown_avg = (np.array([ np.array([
-				np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
-				np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1
-				]) for sample in unknowns]).T,
-			np.array([ np.array([0, 0]) + self.unknowns[sample][f'D{self._4x}'] for sample in unknowns]).T)
-
+		anchor_avg = (
+			np.array([
+				np.array([
+					np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
+					np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1,
+				])
+				for sample in anchors
+			]).T,
+			np.array([
+				np.array([0, 0]) + self.bare_RMs[sample]
+				for sample in anchors
+			]).T,
+		)
+		unknown_avg = (
+			np.array([
+				np.array([
+					np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 1,
+					np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 1,
+				])
+				for sample in unknowns
+			]).T,
+			np.array([
+				np.array([0, 0]) + self.unknowns[sample][f'D{self._4x}']
+				for sample in unknowns
+			]).T,
+		)
 
 		if fig == 'new':
 			out.fig = ppl.figure(figsize = (6,6))
@@ -4089,8 +4023,8 @@ class D4xdata(list):
 			xy = (0.6, -0.02),
 			xycoords = 'axes fraction',
 			xytext = (.4, -0.02),
-            arrowprops = dict(arrowstyle = "->", color = 'k'),
-            )
+			arrowprops = dict(arrowstyle = "->", color = 'k'),
+		)
 
 
 		x2 = -1

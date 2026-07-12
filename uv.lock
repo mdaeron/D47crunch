@@ -215,7 +215,7 @@ wheels = [
 
 [[package]]
 name = "d47crunch"
-version = "3.0.0a1"
+version = "3.0.0a2"
 source = { editable = "." }
 dependencies = [
     { name = "coloraide" },

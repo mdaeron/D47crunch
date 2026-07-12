@@ -48,7 +48,7 @@ D = D47data(
 	virtual_data(session = 'Session_01', **args, seed = 12)
 	+ virtual_data(session = 'Session_02', **args, seed = 123)
 	+ virtual_data(session = 'Session_03', **args, seed = 1234),
-	verbose = True,
+	verbose = False,
 )
 
 D.crunch()
@@ -75,5 +75,5 @@ D.plot_sessions(dir = 'output/bayes')
 D.table_of_sessions(verbose = True, save_to_file = True, dir = 'output/bayes')
 D.table_of_samples(verbose = True, save_to_file = True, dir = 'output/bayes')
 
-D.table_of_least_squares_vs_bayesian_results(dir = 'output/bayes')
+D.table_of_least_squares_vs_bayesian_results(dir = 'output/bayes', verbose = True)
 D.plot_least_squares_vs_bayesian_results(dir = 'output/bayes')

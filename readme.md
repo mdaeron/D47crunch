@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4314550.svg)](https://doi.org/10.5281/zenodo.4314550)
 <!--[![PyPI Version](https://img.shields.io/pypi/v/D47crunch.svg)](https://pypi.python.org/pypi/D47crunch)-->
-[![PyPI Version](https://img.shields.io/badge/pypi-3.0.0a1-orange)](https://pypi.python.org/pypi/D47crunch)
+[![PyPI Version](https://img.shields.io/badge/pypi-3.0.0a2-orange)](https://pypi.python.org/pypi/D47crunch)
 ![License](https://img.shields.io/pypi/l/D47crunch)
 [![docs](https://shields.io/badge/docs-D47crunch-success?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIj48cGF0aCBkPSJNNjcuODA3IDIzLjI0NGMtMTguMDMyIDUuNTIzLTI0LjI3MyA5LjQxMS0zMy4xOTMgMTYuMTY5UzE5LjQwNyA1MS4xMjUgOS4zNCA2OS43NkMzLjI3IDgwLjk5Ni44MjcgOTkuMjcxIDEgMTExLjY3OWMuMTE0IDguMTY5IDIuMTg4IDEzLjU1OSAyLjE4OCAxMy41NTlTNDIuMzI2IDI0Ny4yNyAyMC40MzUgMjc4LjEwNWMtMTAuNDg4IDE0Ljc3MyA4NC40MjIgMjcuMDA3IDgwLjA0NyAxMC40NS0xMC4zOTctMzkuMzQ4LTI3LjU5NS05Ny40MDktMzEuOTA4LTExMy42NjctMy4wNDctMTEuNDg0IDguMTYtMjEuOTk1IDE2LjI5NS0yNy4zNDMgMy4zODMtMi4yMjQgOC4wNTEtMy43ODYgOC4wNTEtMy43ODZsNTEuOTI0LTE1LjU5NXMyMy44MDktOC41NzkgMzQuMDYyLTI2LjU2NyAxMi42ODktMzcuNTg0IDEyLjY4OS0zNy41ODQuNDk1LTE2LjU4OC01LjkzOS0yMy4xNC0yLjczMi01Ljg2Ni0xOC42NDYtMTIuNDk4LTQ5LjEyMi0xMC4wNTMtNDkuMTIyLTEwLjA1My0zMi4wNDktLjYwMi01MC4wODEgNC45MjF6IiBmaWxsPSIjMjBhZDZjIi8+PGcgdHJhbnNmb3JtPSJyb3RhdGUoMzQzLjk5MykiPjxlbGxpcHNlIGN4PSI1Mi4yNzYiIGN5PSI5NC4wODkiIGZpbGw9IiNmZmYiIHJ4PSIyNy44NTIiIHJ5PSIyNy44MjMiLz48ZWxsaXBzZSBjeD0iNTIuNTM4IiBjeT0iOTQuNjg5IiByeD0iMTguNjg4IiByeT0iMTguMzMxIiBmaWxsPSIjMTA1YTQ4Ii8+PGVsbGlwc2UgY3g9IjYzLjMzMyIgY3k9Ijg2LjMiIGZpbGw9IiNmZmYiIHJ4PSI3LjU5NiIgcnk9IjcuNTg4Ii8+PC9nPjxnIGZpbGw9IiMxMDVhNDgiPjxlbGxpcHNlIGN4PSI5NC4xNTQiIGN5PSIxMzUuNzM0IiByeD0iNC41MDUiIHJ5PSI1LjI1NyIgdHJhbnNmb3JtPSJyb3RhdGUoMzI1LjAxNSkiLz48ZWxsaXBzZSBjeD0iMTY3Ljg2IiBjeT0iNTYuOTUxIiByeD0iNC40ODQiIHJ5PSI1LjIzMSIgdHJhbnNmb3JtPSJyb3RhdGUoMzU4Ljc3OSkiLz48L2c+PHBhdGggZD0iTTE4OC45NjIgNzcuNDU4bC0zNC4yNDggMTAuMTcxYy02Ljg3OCAxLjk3My05Ljk3NCAzLjM4OC0xNC44ODggMy42NnMtMTAuODY4LTEuODY5LTEwLjg2OC0xLjg2OWwtMi4zNDIgOC42MzNjMi4xOTcuOTQ0IDkuOTY5IDIuMzkgMTQuNzU2IDIuNTkyczE1LjU4Mi0yLjQ2IDE1LjU4Mi0yLjQ2bDI3LjQ3MS03LjUzNGMxLjk1MS00LjcwOSAzLjQzMi05LjIzOCA0LjUzNy0xMy4xOTN6IiBmaWxsPSIjZTc4MzYxIi8+PC9zdmc+)](https://mdaeron.github.io/D47crunch)
 
@@ -20,7 +20,7 @@ The new Bayesian standardization approach introduced in the upcoming version 3 o
 mkdir testD47crunch         # create new working directory
 cd testD47crunch            # enter the working directory
 uv init                     # initialize a new uv project
-uv add D47crunch==3.0.0a1   # install the new version of D47crunch
+uv add D47crunch==3.0.0a2   # install the new version of D47crunch
 uv run bayes-demo.py        # run the demo code
 ```
 
