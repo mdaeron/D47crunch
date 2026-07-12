@@ -37,17 +37,6 @@ from colorsys import hls_to_rgb
 from matplotlib import rcParams
 from typer import rich_utils
 
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-logger.debug("Detailed info, typically for diagnosing problems")
-logger.info("Confirmation things are working as expected")
-logger.warning("Something unexpected happened, but still working")
-logger.error("A more serious problem, something failed")
-logger.critical("A serious error, program may be unable to continue")
-
 rich_utils.STYLE_HELPTEXT = ''
 
 rcParams['font.family'] = 'sans-serif'
@@ -1783,14 +1772,14 @@ class D4xdata(list):
 			for r in self:
 				session = pf(r['Session'])
 				sample = pf(r['Sample'])
-				if r['Sample'] in self.RMs:
+				if r['Sample'] in self.bare_RMs:
 					R += [ (
 						r[f'D{self._4x}raw'] - (
-							p[f'a_{session}'] * self.RMs[r['Sample']]
+							p[f'a_{session}'] * self.bare_RMs[r['Sample']]
 							+ p[f'b_{session}'] * r[f'd{self._4x}']
 							+	p[f'c_{session}']
 							+ r['t'] * (
-								p[f'a2_{session}'] * self.RMs[r['Sample']]
+								p[f'a2_{session}'] * self.bare_RMs[r['Sample']]
 								+ p[f'b2_{session}'] * r[f'd{self._4x}']
 								+	p[f'c2_{session}']
 								)
@@ -1817,16 +1806,18 @@ class D4xdata(list):
 		result.Q, _ = np.linalg.qr(result.J)                 # QR decomposition of J
 		result.h = np.einsum('ij,ij->i', result.Q, result.Q) # leverage h matrix, aligned row-for-row with result.residual
 
+
+
 		# sanity check
 		assert np.isclose(result.h.sum(), len(result.var_names))
 
-		self.standardization[method]['Nf'] = result.nfree
-		self.standardization[method]['t95'] = tstudent.ppf(1 - 0.05/2, result.nfree)
+		self.standardization['pooled']['Nf'] = result.nfree
+		self.standardization['pooled']['t95'] = tstudent.ppf(1 - 0.05/2, result.nfree)
 		new_names, new_covar, new_se = _fullcovar(result)[:3]
-		self.standardization[method]['var_names'] = new_names
-		self.standardization[method]['covar'] = new_covar
-		self.standardization[method]['lmfit'] = result
-		self.standardization[method]['samples'] = {}
+		self.standardization['pooled']['var_names'] = new_names
+		self.standardization['pooled']['covar'] = new_covar
+		self.standardization['pooled']['lmfit'] = result
+		self.standardization['pooled']['samples'] = {}
 
 		for r in self:
 			s = pf(r["Session"])
@@ -1838,25 +1829,25 @@ class D4xdata(list):
 			c2 = result.params.valuesdict()[f'c2_{s}']
 			r[f'D{self._4x}'] = (r[f'D{self._4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
 
-		self.standardization[method]['sessions'] = {}
+		self.standardization['pooled']['sessions'] = {}
 		for session in self.sessions:
-			self.standardization[method]['sessions'][session] = {'Np': 3}
+			self.standardization['pooled']['sessions'][session] = {'Np': 3}
 			for k in ['scrambling', 'slope', 'wg']:
 				if self.sessions[session][f'{k}_drift']:
-					self.standardization[method]['sessions'][session]['Np'] += 1
+					self.standardization['pooled']['sessions'][session]['Np'] += 1
 
 		if consolidate:
-			self.consolidate(target = method, tables = consolidate_tables, plots = consolidate_plots)
+			self.consolidate(target = 'pooled', tables = consolidate_tables, plots = consolidate_plots)
 
 		for session in self.sessions:
 			for k in ['Na', 'Nu']:
-				self.standardization[method]['sessions'][session][k] = self.sessions[session][k]
+				self.standardization['pooled']['sessions'][session][k] = self.sessions[session][k]
 
 		_D4x_ = f'D{self._4x}'
 		for sample in self.samples:
 			for k in [_D4x_, f'SE_{_D4x_}']:
-				self.standardization[method]['samples'][sample][k] = self.samples[sample][k]
-			self.standardization[method]['samples'][sample][f'95CL_{_D4x_}'] = self.samples[sample][f'SE_{_D4x_}'] * self.standardization[method]['t95']
+				self.standardization['pooled']['samples'][sample][k] = self.samples[sample][k]
+			self.standardization['pooled']['samples'][sample][f'95CL_{_D4x_}'] = self.samples[sample][f'SE_{_D4x_}'] * self.standardization['pooled']['t95']
 
 		return result
 
@@ -1909,7 +1900,7 @@ class D4xdata(list):
 		d4x = np.array([_[_d4x_] for _ in self])
 		D4x_raw = np.array([_[f'{_D4x_}raw'] for _ in self])
 
-		# unknowns = samples not in strong nor weak_anchors
+		# unknowns = samples not in fixed nor loose anchors
 		unknowns = {
 			s: (0.5, 2.)
 			for s in self.samples
@@ -2051,7 +2042,7 @@ class D4xdata(list):
 
 			target = _parse_single_ref(target_str) # -> (base_name, pos)
 
-			# Raise error if target is a strong anchor
+			# Raise error if target is a fixed anchor
 			if target[0] == _D4x_ and samples[target[1]] in self.fixed_RMs:
 				raise ValueError(
 					f"Constraints: '{target_str}' cannot be constrained because '{samples[target[1]]}' is a fixed anchor."
@@ -2187,7 +2178,7 @@ class D4xdata(list):
 
 			sigma = pm.HalfNormal('sigma', sigma = 0.1)
 
-			# D4x: constants for strong anchors, free Normals for the rest,
+			# D4x: constants for fixed anchors, free Normals for the rest,
 			# except positions targeted by a constraint, left as None for now
 			D4x_slots = [None] * n_samples
 
@@ -2266,7 +2257,7 @@ class D4xdata(list):
 				round_to = 9,
 				ci_kind = 'eti',
 				ci_prob=0.95,
-				# coords={'samples': [s for s in samples if s not in strong_anchors]}
+				# coords={'samples': [s for s in samples if s not in fixed_anchors]}
 			)
 
 		self.standardization['bayes']['sessions'] = {}
@@ -2410,7 +2401,7 @@ class D4xdata(list):
 		from scipy.stats import gaussian_kde
 		from coloraide import Color
 
-		samples = [s for s in self.weak_anchors] + [s for s in self.unknowns if s not in self.weak_anchors]
+		samples = [s for s in self.samples if s not in self.fixed_RMs]
 		N = len(samples)
 		lines  = N//columns
 		if target == 'samples':
@@ -2470,7 +2461,7 @@ class D4xdata(list):
 					linespacing = 1.9,
 				)
 
-				if sample in self.weak_anchors:
+				if sample in self.loose_RMs:
 					_color = Color('srgb', weak_anchor_color)
 					kw = dict(
 						ec = Color(_color).mix('white', 0.3, space = 'srgb'),
@@ -2478,14 +2469,14 @@ class D4xdata(list):
 						lw = 1,
 						zorder = 2,
 					)
-					yi = yi.max() * np.exp(-0.5 * ((xi-self.weak_anchors[sample][0])/self.weak_anchors[sample][1])**2)
+					yi = yi.max() * np.exp(-0.5 * ((xi-self.loose_RMs[sample][0])/self.loose_RMs[sample][1])**2)
 					ax.fill_between(
 						xi,
 						yi*(1 if bayes_on_top else 0),
 						yi*(0 if bayes_on_top else -1),
 						**kw,
 					)
-					xm = self.weak_anchors[sample][0]
+					xm = self.loose_RMs[sample][0]
 					ha = 'left' if (xm - xmin) > (xmax - xm) else 'right'
 					x = xmin if (xm - xmin) > (xmax - xm) else xmax
 					ax.text(
@@ -2548,10 +2539,10 @@ class D4xdata(list):
 
 	def plot_single_bayesian_session(self,
 		session,
-		kw_plot_strong_anchors = dict(ls='None', marker='x', mec=(.75, 0, 0), mew = .75, ms = 4),
+		kw_plot_fixed_anchors = dict(ls='None', marker='x', mec=(.75, 0, 0), mew = .75, ms = 4),
 		kw_plot_weak_anchors = dict(ls='None', marker='x', mec=(1, 0, .25), mew = .75, ms = 4),
 		kw_plot_unknowns = dict(ls='None', marker='x', mec=(0, 0, .75), mew = .75, ms = 4),
-		kw_plot_strong_anchor_avg = dict(ls='-', marker='None', color=(.75, 0, 0), lw = 2, alpha = 1/3),
+		kw_plot_fixed_anchor_avg = dict(ls='-', marker='None', color=(.75, 0, 0), lw = 2, alpha = 1/3),
 		kw_fill_weak_anchor_avg = dict(color=(1, 0, .25), lw = 0, alpha = 1/3),
 		kw_fill_unknown_avg = dict(color=(0, 0, .75), lw = 0, alpha = 0.2),
 		kw_contour_error = dict(colors = [[0, 0, 0]], alpha = .5, linewidths = 0.75),
@@ -2571,29 +2562,28 @@ class D4xdata(list):
 
 		out = _SessionPlot()
 
-		strong_anchors = [a for a in self.strong_anchors if [r for r in self.sessions[session]['data'] if r['Sample'] == a]]
-		weak_anchors   = [a for a in self.weak_anchors if [r for r in self.sessions[session]['data'] if r['Sample'] == a]]
+		fixed_anchors = [a for a in self.fixed_anchors if [r for r in self.sessions[session]['data'] if r['Sample'] == a]]
+		weak_anchors   = [a for a in self.loose_anchors if [r for r in self.sessions[session]['data'] if r['Sample'] == a]]
 		unknowns       = [u for u in self.unknowns if [r for r in self.sessions[session]['data'] if r['Sample'] == u]]
-		unknowns       = [u for u in unknowns if u not in strong_anchors and u not in weak_anchors]
 
-		strong_anchors_d = [r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in strong_anchors]
-		strong_anchors_D = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in strong_anchors]
+		fixed_anchors_d = [r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in fixed_anchors]
+		fixed_anchors_D = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in fixed_anchors]
 		weak_anchors_d   = [r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in weak_anchors]
 		weak_anchors_D   = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in weak_anchors]
 		unknowns_d       = [r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in unknowns]
 		unknowns_D       = [r[f'D{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] in unknowns]
 
-		strong_anchor_avg = (
+		fixed_anchor_avg = (
 			np.array([
 				[
 					np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 0.5,
 					np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 0.5,
 				]
-				for sample in strong_anchors
+				for sample in fixed_anchors
 			]).T,
 			np.array([
-				self.strong_anchors[sample] + np.array([0, 0])
-				for sample in strong_anchors
+				self.bare_RMs[sample] + np.array([0, 0])
+				for sample in fixed_anchors
 			]).T
 		)
 
@@ -2625,13 +2615,13 @@ class D4xdata(list):
 					np.max([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) + 0.5,
 					np.min([r[f'd{self._4x}'] for r in self.sessions[session]['data'] if r['Sample'] == sample]) - 0.5,
 				]
-				for sample in self.unknowns if sample not in self.strong_anchors and sample not in self.weak_anchors
+				for sample in unknowns
 			]).T,
 			np.array([
 				self.standardization['bayes']['samples'][sample]['ufloat'].n
 				+ np.array([-1, 1, 1, -1, -1])
 				* self.standardization['bayes']['samples'][sample]['95CL']
-				for sample in self.unknowns if sample not in self.strong_anchors and sample not in self.weak_anchors
+				for sample in unknowns
 			]).T
 		)
 
@@ -2639,10 +2629,10 @@ class D4xdata(list):
 			out.fig = ppl.figure(figsize = (6,6))
 			ppl.subplots_adjust(.1,.1,.9,.9)
 
-		out.strong_anchor_analyses, = ppl.plot(
-			strong_anchors_d,
-			strong_anchors_D,
-			**kw_plot_strong_anchors)
+		out.fixed_anchor_analyses, = ppl.plot(
+			fixed_anchors_d,
+			fixed_anchors_D,
+			**kw_plot_fixed_anchors)
 		out.weak_anchor_analyses, = ppl.plot(
 			weak_anchors_d,
 			weak_anchors_D,
@@ -2651,9 +2641,9 @@ class D4xdata(list):
 			unknowns_d,
 			unknowns_D,
 			**kw_plot_unknowns)
-		out.strong_anchor_avg = ppl.plot(
-			*strong_anchor_avg,
-			**kw_plot_strong_anchor_avg)
+		out.fixed_anchor_avg = ppl.plot(
+			*fixed_anchor_avg,
+			**kw_plot_fixed_anchor_avg)
 		out.weak_anchor_avg = ppl.fill(
 			*weak_anchor_avg,
 			**kw_fill_weak_anchor_avg)
@@ -3087,7 +3077,7 @@ class D4xdata(list):
 		_ss_ = self.standardization[target]['samples']
 		match target:
 			case 'bayes':
-				for sample in self.strong_anchors:
+				for sample in self.fixed_anchors:
 					out += [[
 						f"{sample}",
 						f"{self.samples[sample]['N']}",
@@ -3110,6 +3100,8 @@ class D4xdata(list):
 						]]
 			case 'pooled':
 				for sample in self.anchors:
+					print(sample)
+					print(_ss_[sample])
 					out += [[
 						f"{sample}",
 						f"{self.samples[sample]['N']}",
@@ -3232,7 +3224,7 @@ class D4xdata(list):
 				for sample in self.anchors:
 					if sample not in self.standardization[target]['samples']:
 						self.standardization[target]['samples'][sample] = {}
-					X, sX = self.RMs[sample], 0
+					X, sX = self.bare_RMs[sample], 0
 
 					self.samples[sample][f'D{self._4x}'] = X
 					self.samples[sample][f'SE_D{self._4x}'] = sX

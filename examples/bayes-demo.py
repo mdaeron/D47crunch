@@ -42,6 +42,8 @@ args = dict(
 		rD48 = 0.030,
 )
 
+D47data.RMs['TAC-1'] = (0.7, 0.01)
+
 D = D47data(
 	virtual_data(session = 'Session_01', **args, seed = 12)
 	+ virtual_data(session = 'Session_02', **args, seed = 123)
@@ -60,7 +62,6 @@ D.table_of_samples(verbose = True, save_to_file = True, dir = 'output/pooled')
 
 D.standardize(
 	method = 'bayes',
-	weak_anchors = {'TAC-1': (0.700, 0.02)},
 	constraints = {
 		# two different ways to specify that WG bulk composition remains constant:
 		"c['Session_02']": "c['Session_01'] / a['Session_01'] * a['Session_02']",
@@ -76,5 +77,3 @@ D.table_of_samples(verbose = True, save_to_file = True, dir = 'output/bayes')
 
 D.table_of_least_squares_vs_bayesian_results(dir = 'output/bayes')
 D.plot_least_squares_vs_bayesian_results(dir = 'output/bayes')
-
-pprint(D[::5])
