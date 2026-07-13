@@ -1,6 +1,6 @@
 [project]
 name = "D47crunch"
-version = "3.0.0a2"
+version = "3.0.0a3"
 description = "Standardization and analytical error propagation of Δ47 and Δ48 clumped-isotope measurements"
 readme = "readme.md"
 license = "MIT"

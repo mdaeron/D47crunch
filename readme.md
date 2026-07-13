@@ -20,7 +20,7 @@ The new Bayesian standardization approach introduced in the upcoming version 3 o
 mkdir testD47crunch         # create new working directory
 cd testD47crunch            # enter the working directory
 uv init                     # initialize a new uv project
-uv add D47crunch==3.0.0a2   # install the new version of D47crunch
+uv add D47crunch==3.0.0a3   # install the new version of D47crunch
 uv run bayes-demo.py        # run the demo code
 ```
 
