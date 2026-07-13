@@ -6,6 +6,7 @@
 * Add `bayes` standardization method
 * Extensively refactor how standardization results are stored in `D4xdata`
 * Updated plotting functions to fit the refactored structure
+* Added `D4xdata.pprint()` method for full inspection of `D4xdata` instances
 
 ## v2.5.3
 
