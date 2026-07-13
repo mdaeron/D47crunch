@@ -1855,10 +1855,10 @@ class D4xdata(list):
 			for k in ['a', 'b', 'c', 'a2', 'b2', 'c2']:
 				S['sessions'][session][k] = S['uparams'][f'{k}_{pf(session)}']
 
-			S['sessions'][session]['CM'] = uncertainties.covariance_matrix([
+			S['sessions'][session]['CM'] = np.array(uncertainties.covariance_matrix([
 				S['sessions'][session][k]
 				for k in ['a', 'b', 'c', 'a2', 'b2', 'c2']
-			])
+			]))
 
 
 		if consolidate:
@@ -4249,6 +4249,21 @@ class D4xdata(list):
 				fid.write(make_csv(out))
 		else:
 			return make_csv(out)
+
+	def pprint(self):
+		from rich.pretty import pprint as pp
+		pp(_pp({k:v for k,v in self.__dict__.items()}))
+
+def _pp(x):
+	if isinstance(x, np.ndarray):
+		with np.printoptions(formatter={'float_kind': lambda x: f"{x:.1e}"}):
+			return '<array>'
+	if isinstance(x, dict):
+		return {
+			k: '<list>' if k == 'data' else _pp(v)
+			for k,v in x.items()
+		}
+	return x
 
 
 class D47data(D4xdata):
