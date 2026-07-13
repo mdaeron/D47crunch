@@ -1840,7 +1840,7 @@ class D4xdata(list):
 			if sample in self.bare_RMs:
 				with warnings.catch_warnings():
 					warnings.filterwarnings("ignore", message="Using UFloat objects with std_dev==0")
-					S['samples'][sample][_D4x_] = uncertainties.ufloat(self.bare_RMs[sample], 0)
+					S['samples'][sample][_D4x_] = uncertainties.ufloat(self.bare_RMs[sample], 0.)
 			else:
 				S['samples'][sample][_D4x_] = S['uparams'][f'{_D4x_}_{pf(sample)}']
 			S['samples'][sample][f'95CL_{_D4x_}'] = S['samples'][sample][_D4x_].s * S['t95']
@@ -4255,9 +4255,11 @@ class D4xdata(list):
 		pp(_pp({k:v for k,v in self.__dict__.items()}))
 
 def _pp(x):
+	if isinstance(x, np.float64):
+		return float(x)
 	if isinstance(x, np.ndarray):
-		with np.printoptions(formatter={'float_kind': lambda x: f"{x:.1e}"}):
-			return '<array>'
+		with np.printoptions(formatter={'float_kind': lambda x: f"{x: 7.2e}"}):
+			return {k:str(x[k]) for k in range(x.shape[0])}
 	if isinstance(x, dict):
 		return {
 			k: '<list>' if k == 'data' else _pp(v)
