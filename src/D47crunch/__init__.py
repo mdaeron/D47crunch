@@ -984,7 +984,6 @@ class D4xdata(list):
 		self.prefix = 'D4xdata'
 		self.logfile = logfile
 		list.__init__(self, l)
-		self.Nf = None
 		self.repeatability = {}
 		self.standardization = {}
 		self.refresh(session = session)
@@ -3867,14 +3866,14 @@ class D4xdata(list):
 
 		ax1.axis([None, None, ymin, ymax])
 
+
 		if savefig:
 			if not os.path.exists(dir):
 				os.makedirs(dir)
 			if filename is None:
-				return fig
-			elif filename == '':
 				filename = f'D{self._4x}_residuals.pdf'
 			ppl.savefig(f'{dir}/{filename}', dpi = dpi)
+			print('done')
 			ppl.close(fig)
 		else:
 			return fig
