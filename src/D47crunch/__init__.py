@@ -1926,6 +1926,9 @@ class D4xdata(list):
 		d4x = np.array([_[_d4x_] for _ in self])
 		D4x_raw = np.array([_[f'{_D4x_}raw'] for _ in self])
 
+		# within-session timetag, used to model drifts of a/b/c via a2/b2/c2
+		t = np.array([_['t'] for _ in self])
+
 		# unknowns = samples not in fixed nor loose anchors
 		unknowns = {
 			s: (0.5, 2.)
@@ -2009,9 +2012,12 @@ class D4xdata(list):
 
 		# which coordinate each constrainable variable is indexed along
 		variable_dim = {
-			'a': 'sessions',
-			'b': 'sessions',
-			'c': 'sessions',
+			'a':  'sessions',
+			'b':  'sessions',
+			'c':  'sessions',
+			'a2': 'sessions',
+			'b2': 'sessions',
+			'c2': 'sessions',
 			_D4x_: 'samples',
 		}
 
@@ -2171,7 +2177,7 @@ class D4xdata(list):
 			_visit(key, [])
 		# at this point, resolved_order should be populated in the correct order
 
-		#### GENERIC BUILDER FOR PARTIALLY-FREE VECTORS (USED FOR a, b, c) ####
+		#### GENERIC BUILDER FOR PARTIALLY-FREE VECTORS (USED FOR a, b, c, a2, b2, c2) ####
 
 		def _build_vector(base_name, dist_fn, size, dims, **dist_kwargs):
 			'''
@@ -2241,6 +2247,35 @@ class D4xdata(list):
 				sigma = 2,
 			)
 
+			# a2/b2/c2: per-session drift rates (multiplying `t`), analogous to a/b/c but
+			# centered on zero, since "no drift" is the default expectation.
+			a2_free, a2_slots = _build_vector(
+				base_name = 'a2',
+				dist_fn = pm.Normal,
+				size = n_sessions,
+				dims = 'sessions',
+				mu = [0. for session in self.sessions],
+				sigma = 0.01,
+			)
+
+			b2_free, b2_slots = _build_vector(
+				base_name = 'b2',
+				dist_fn = pm.Normal,
+				size = n_sessions,
+				dims = 'sessions',
+				mu = [0. for session in self.sessions],
+				sigma = 0.05,
+			)
+
+			c2_free, c2_slots = _build_vector(
+				base_name = 'c2',
+				dist_fn = pm.Normal,
+				size = n_sessions,
+				dims = 'sessions',
+				mu = [0. for session in self.sessions],
+				sigma = 0.5,
+			)
+
 			# one free Δ4x sigma value per group defined by sigma_session_groups,
 			# shared by every session within its group
 			sigma_group = pm.HalfNormal('sigma_group', sigma = 0.2, shape = n_sigma_groups)
@@ -2265,7 +2300,12 @@ class D4xdata(list):
 					D4x_slots[i] = pm.Normal(f'D4x_{s}', mu = mu, sigma = sig)
 
 			# Resolve constrained positions in the correct dependency order
-			slots_by_var = {'a': a_slots, 'b': b_slots, 'c': c_slots, _D4x_: D4x_slots}
+			# (a2/b2/c2 slots added so constraints can reference/target them too)
+			slots_by_var = {
+				'a' :  a_slots, 'b' :  b_slots, 'c' :  c_slots,
+				'a2': a2_slots, 'b2': b2_slots, 'c2': c2_slots,
+				_D4x_: D4x_slots,
+			}
 
 			for base_name, pos in resolved_order:
 				info = parsed_constraints[(base_name, pos)]
@@ -2284,28 +2324,37 @@ class D4xdata(list):
 
 				slots_by_var[base_name][pos] = numeric_func(*arg_values)
 
-			# Finalize a, b, c (Deterministic if constrained, free RV otherwise)
+			# Finalize a, b, c, a2, b2, c2 (Deterministic if constrained, free RV otherwise)
 			a = _finalize_vector('a', a_free, a_slots, 'sessions')
 			b = _finalize_vector('b', b_free, b_slots, 'sessions')
 			c = _finalize_vector('c', c_free, c_slots, 'sessions')
+			a2 = _finalize_vector('a2', a2_free, a2_slots, 'sessions')
+			b2 = _finalize_vector('b2', b2_free, b2_slots, 'sessions')
+			c2 = _finalize_vector('c2', c2_free, c2_slots, 'sessions')
 
 			# Finalize D4x (Deterministic if constrained, free RV otherwise)
 			D4x = pm.Deterministic(_D4x_, pt.stack(D4x_slots), dims = 'samples')
 			D4x_idx = {v: k for k, v in enumerate(samples)}
 
 			# Convenience variable (WG composition, computed from a,c)
+			# NB: calculated as -c/a (drift-free), corresponding to t=0
 			D4x_wg = pm.Deterministic(f'D{self._4x}_wg', -c/a)
 
 			# Build predicted raw D4x values (observations)
 			mu = (
-				a[session_idx] * D4x[sample_idx]
-				+ b[session_idx] * d4x
-				+ c[session_idx]
+				(a[session_idx] + a2[session_idx] * t) * D4x[sample_idx]
+				+ (b[session_idx] + b2[session_idx] * t) * d4x
+				+ (c[session_idx] + c2[session_idx] * t)
 			)
 
 			# sigma is per-session (grouped) but indexed by session, just like a, b, c,
-			# andr rescaled by a[session_idx] to convert from corrected to raw Δ4x noise
-			pm.Normal('D4xraw', mu = mu, sigma = sigma[session_idx] * a[session_idx], observed = D4x_raw)
+			# and rescaled by (a + a2*t) to convert from corrected to raw Δ4x noise.
+			pm.Normal(
+				'D4xraw',
+				mu = mu,
+				sigma = sigma[session_idx] * pt.abs(a[session_idx] + a2[session_idx] * t),
+				observed = D4x_raw,
+			)
 
 			idata = pm.sample(
 				**(default_mcmc_sample_kw | mcmc_sample_kw)
@@ -2333,7 +2382,7 @@ class D4xdata(list):
 
 			self.standardization['bayes']['summary'] = az.summary(
 				idata,
-				var_names = ['sigma', 'a', 'b', 'c', f'D{self._4x}_wg', f'D{self._4x}'],
+				var_names = ['sigma', 'a', 'b', 'c', 'a2', 'b2', 'c2', f'D{self._4x}_wg', f'D{self._4x}'],
 				round_to = 9,
 				ci_kind = 'eti',
 				ci_prob=0.95,
@@ -2346,7 +2395,7 @@ class D4xdata(list):
 
 		for session in self.sessions:
 
-			params = ['a', 'b', 'c', 'sigma']
+			params = ['a', 'b', 'c', 'a2', 'b2', 'c2', 'sigma']
 			session_index = session_search[session]
 
 			draws = np.array([_posterior[p][:,:,session_index].values.reshape(-1) for p in params])
@@ -2364,7 +2413,15 @@ class D4xdata(list):
 					np.quantile(np.abs(draws[p_index,:] - uparams[p_index].n), 0.95)
 				)
 
-			S[session]['Np'] = 3
+			# 6 fitted parameters per session now (a, b, c, a2, b2, c2), not 3
+			S[session]['Np'] = 3 + sum([
+				self.sessions[session][_]
+				for _ in [
+					'scrambling_drift',
+					'slope_drift',
+					'wg_drift',
+				]
+			])
 
 		# populate self.standardization['bayes']['samples']
 		D4x = f'D{self._4x}'
@@ -2400,9 +2457,9 @@ class D4xdata(list):
 			a = self.standardization['bayes']['sessions'][s]['a'].n
 			b = self.standardization['bayes']['sessions'][s]['b'].n
 			c = self.standardization['bayes']['sessions'][s]['c'].n
-			a2 = 0.
-			b2 = 0.
-			c2 = 0.
+			a2 = self.standardization['bayes']['sessions'][s]['a2'].n
+			b2 = self.standardization['bayes']['sessions'][s]['b2'].n
+			c2 = self.standardization['bayes']['sessions'][s]['c2'].n
 			r[D4x] = (r[f'{D4x}raw'] - c - b * r[f'd{self._4x}'] - c2 * r['t'] - b2 * r['t'] * r[f'd{self._4x}']) / (a + a2 * r['t'])
 
 	@make_verbal
