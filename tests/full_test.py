@@ -30,7 +30,7 @@ def test_bayes():
 		assert 'd13C_VPDB' in r
 		assert 'd18O_VSMOW' in r
 
-	D.standardize()
+	D.standardize(method = 'pooled')
 
 	D.table_of_sessions(dir = 'tests/output')
 	D.table_of_samples(dir = 'tests/output')
@@ -39,4 +39,6 @@ def test_bayes():
 	D.plot_sessions(dir = 'tests/output')
 	D.plot_residuals(dir = 'tests/output')
 
-	# D.pprint()
+	D.standardize(method = 'bayes')
+
+	D.pprint()

@@ -1868,6 +1868,7 @@ class D4xdata(list):
 	def _bayesian_standardization(
 		self,
 		constraints = {},
+		sigma_session_groups = None,
 		consolidate = True,
 		consolidate_tables = False,
 		consolidate_plots = False,
@@ -1896,6 +1897,18 @@ class D4xdata(list):
 
 		Each key/value may reference elements of `a`, `b`, `c`, or `D{4x}` by session/sample
 		label (e.g. `a['Session_01']`) or by integer position (e.g. `a[0]`).
+
+		+ `sigma_session_groups`: a list of lists of session names specifying which sessions
+		  share a common value of `sigma` (the corrected-Δ4x-space analytical noise), e.g.:
+
+		    sigma_session_groups = [
+		        ['Session_01', 'Session_02'],
+		        ['Session_03', 'Session_04', 'Session_05'],
+		    ]
+
+		Sessions not listed in any group are silently collected into one additional group.
+		If `None` (default), a single group containing all sessions is used, i.e. `sigma`
+		is a single value shared by every session.
 		'''
 
 		# lazy imports:
@@ -1935,6 +1948,45 @@ class D4xdata(list):
 		sample_search = {s:k for k,s in enumerate(samples)} | {k:s for k,s in enumerate(samples)}
 		# sample index for all analyses:
 		sample_idx = np.array([sample_search[_['Sample']] for _ in self])
+
+		#### HELPERS FOR SESSION SIGMA GROUPS ####
+
+		if sigma_session_groups is None:
+			# default: one single group containing every session
+			# (equivalent to the original single-scalar-sigma behavior)
+			sigma_session_groups = [sessions]
+		else:
+			# copy the input so we never mutate the caller's list/sublists in place
+			sigma_session_groups = [list(group) for group in sigma_session_groups]
+
+		# validate group contents:
+		# every listed session must be real, and no session may be assigned to more than one group
+		sessions_already_grouped = set()
+		for group in sigma_session_groups:
+			for session in group:
+				if session not in sessions:
+					raise ValueError(f"sigma_session_groups: unknown session '{session}'")
+				if session in sessions_already_grouped:
+					raise ValueError(f"sigma_session_groups: session '{session}' appears in more than one group")
+				sessions_already_grouped.add(session)
+
+		# silently collect any session absent from all groups into one extra group
+		ungrouped_sessions = [session for session in sessions if session not in sessions_already_grouped]
+		if ungrouped_sessions:
+			sigma_session_groups.append(ungrouped_sessions)
+
+		# total number of distinct sigma values to estimate
+		n_sigma_groups = len(sigma_session_groups)
+
+		# map each session name to its sigma-group index
+		session_to_sigma_group = {}
+		for group_index, group in enumerate(sigma_session_groups):
+			for session in group:
+				session_to_sigma_group[session] = group_index
+
+		# array mapping each *position* in `sessions` (0..n_sessions-1) to its sigma-group index;
+		# used to broadcast the per-group free sigma values onto the full `sessions`-dims vector
+		sigma_group_of_session = np.array([session_to_sigma_group[session] for session in sessions])
 
 		#### HELPERS FOR PARSING CONSTRAINTS ####
 
@@ -2189,7 +2241,14 @@ class D4xdata(list):
 				sigma = 2,
 			)
 
-			sigma = pm.HalfNormal('sigma', sigma = 0.1)
+			# one free Δ4x sigma value per group defined by sigma_session_groups,
+			# shared by every session within its group
+			sigma_group = pm.HalfNormal('sigma_group', sigma = 0.2, shape = n_sigma_groups)
+
+			# broadcast each group's sigma value onto every session belonging to that group,
+			# giving a full-length vector indexed like `a`, `b`, `c` (dims = 'sessions');
+			# sigma_group_of_session[k] is the group index of sessions[k]
+			sigma = pm.Deterministic('sigma', sigma_group[sigma_group_of_session], dims = 'sessions')
 
 			# D4x: constants for fixed anchors, free Normals for the rest,
 			# except positions targeted by a constraint, left as None for now
@@ -2244,7 +2303,9 @@ class D4xdata(list):
 				+ c[session_idx]
 			)
 
-			pm.Normal('D4xraw', mu = mu, sigma = sigma * a[session_idx], observed = D4x_raw)
+			# sigma is per-session (grouped) but indexed by session, just like a, b, c,
+			# andr rescaled by a[session_idx] to convert from corrected to raw Δ4x noise
+			pm.Normal('D4xraw', mu = mu, sigma = sigma[session_idx] * a[session_idx], observed = D4x_raw)
 
 			idata = pm.sample(
 				**(default_mcmc_sample_kw | mcmc_sample_kw)
@@ -2256,6 +2317,12 @@ class D4xdata(list):
 		self.standardization['latest'] = self.standardization['bayes']
 
 		self.standardization['bayes']['idata'] = idata
+		if len(sigma_session_groups) == 1:
+			pdf = _posterior['sigma'][:,:,0].values.reshape(-1)
+			self.standardization['bayes']['sigma'] = uncertainties.ufloat(
+				pdf.mean(),
+				pdf.std(ddof = 1)
+			)
 
 		with warnings.catch_warnings():
 			warnings.filterwarnings(
@@ -2279,7 +2346,7 @@ class D4xdata(list):
 
 		for session in self.sessions:
 
-			params = ['a', 'b', 'c']
+			params = ['a', 'b', 'c', 'sigma']
 			session_index = session_search[session]
 
 			draws = np.array([_posterior[p][:,:,session_index].values.reshape(-1) for p in params])
@@ -4257,11 +4324,16 @@ def _pp(x):
 	if isinstance(x, np.float64):
 		return float(x)
 	if isinstance(x, np.ndarray):
-		with np.printoptions(formatter={'float_kind': lambda x: f"{x: 7.2e}"}):
-			return {k:str(x[k]) for k in range(x.shape[0])}
+		if len(x.shape) > 1:
+			with np.printoptions(formatter={'float_kind': lambda x: f"{x: 7.2e}"}):
+				return {k:str(x[k]) for k in range(x.shape[0])}
+		elif x.size < 10:
+			return x
+		else:
+			return '<large array>'
 	if isinstance(x, dict):
 		return {
-			k: '<list>' if k == 'data' else _pp(v)
+			k: '<large list>' if k == 'data' else _pp(v)
 			for k,v in x.items()
 		}
 	return x
