@@ -1,6 +1,6 @@
 def test_bayes():
 
-	from D47crunch import D47data
+	from D47crunch import D47data, pf
 
 	print()
 	print()
@@ -9,6 +9,15 @@ def test_bayes():
 
 	D = D47data(verbose = True)
 	D.read('tests/vdata.csv')
+	for s in D.sessions:
+		D.sessions[s]['wg_drift'] = True
+
+	pooled_constraints = {}
+	bayes_constraints = {}
+	s0 = list(D.sessions)[0]
+	for s in list(D.sessions)[1:]:
+		pooled_constraints[f"c2_{pf(s)}"] = f"c2_{pf(s0)}"
+		bayes_constraints[f"c2['{s}']"] = f"c2['{s0}']"
 
 	assert len(D) == 57
 	assert len(D.sessions) == 3
@@ -30,7 +39,7 @@ def test_bayes():
 		assert 'd13C_VPDB' in r
 		assert 'd18O_VSMOW' in r
 
-	D.standardize(method = 'pooled')
+	D.standardize(method = 'pooled', constraints = pooled_constraints)
 
 	D.table_of_sessions(dir = 'tests/output')
 	D.table_of_samples(dir = 'tests/output')
@@ -39,6 +48,6 @@ def test_bayes():
 	D.plot_sessions(dir = 'tests/output')
 	D.plot_residuals(dir = 'tests/output')
 
-	D.standardize(method = 'bayes')
+	D.standardize(method = 'bayes', constraints = bayes_constraints)
 
 	D.pprint()

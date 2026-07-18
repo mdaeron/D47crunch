@@ -1952,6 +1952,23 @@ class D4xdata(list):
 		# sample index for all analyses:
 		sample_idx = np.array([sample_search[_['Sample']] for _ in self])
 
+		#### TRANSLATE PER-SESSION DRIFT FLAGS INTO CONSTRAINTS ####
+
+		# Sessions with scrambling_drift, slope_drift and/or wg_drift set to False get
+		# their corresponding a2/b2/c2 element constrained to '0.0' via the same mechanism
+		# as any other constraint
+		drift_constraints = {}
+		for session in sessions:
+			if not self.sessions[session]['scrambling_drift']:
+				drift_constraints[f"a2['{session}']"] = '0.0'
+			if not self.sessions[session]['slope_drift']:
+				drift_constraints[f"b2['{session}']"] = '0.0'
+			if not self.sessions[session]['wg_drift']:
+				drift_constraints[f"c2['{session}']"] = '0.0'
+
+		# Merge drift-derived constraints with user-specified ones
+		constraints = drift_constraints | constraints
+
 		#### HELPERS FOR SESSION SIGMA GROUPS ####
 
 		if sigma_session_groups is None:
@@ -2348,7 +2365,8 @@ class D4xdata(list):
 			)
 
 			# sigma is per-session (grouped) but indexed by session, just like a, b, c,
-			# and rescaled by (a + a2*t) to convert from corrected to raw Δ4x noise.
+			# and rescaled by |a + a2*t| to convert from corrected to raw Δ4x noise
+			# (abs() guards against the effective slope crossing zero when a2 is free).
 			pm.Normal(
 				'D4xraw',
 				mu = mu,
@@ -2413,7 +2431,6 @@ class D4xdata(list):
 					np.quantile(np.abs(draws[p_index,:] - uparams[p_index].n), 0.95)
 				)
 
-			# 6 fitted parameters per session now (a, b, c, a2, b2, c2), not 3
 			S[session]['Np'] = 3 + sum([
 				self.sessions[session][_]
 				for _ in [
