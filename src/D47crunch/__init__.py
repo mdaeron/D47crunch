@@ -2383,6 +2383,34 @@ class D4xdata(list):
 		self.standardization['bayes'] = dict(method = 'bayes')
 		self.standardization['latest'] = self.standardization['bayes']
 
+		# convert posteriors to ufloats
+		psizes = _posterior.sizes
+		ncols = psizes['chain'] * psizes['draw']
+		nrows = len(samples) + 7 * len(sessions)
+		draws = np.empty((nrows, ncols))
+		fields = []
+
+		row = 0
+		for field in ('a', 'b', 'c', 'a2', 'b2', 'c2', 'sigma', f'D{self._4x}'):
+			if field == f'D{self._4x}':
+				for k, sample in enumerate(samples):
+					fields.append((field, sample))
+					draws[row,:] = _posterior[field][:,:,k].values.reshape(-1)
+					row += 1
+			else:
+				for k, session in enumerate(sessions):
+					fields.append((field, session))
+					draws[row,:] = _posterior[field][:,:,k].values.reshape(-1)
+					row += 1
+
+		_ufloats = uncertainties.correlated_values(
+			draws.mean(1),
+			np.cov(draws),
+		)
+
+		print('TODO: NOW USE _UFLOATS BELOW WHEREVER POSSIBLE')
+		exit()
+
 		self.standardization['bayes']['idata'] = idata
 		if len(sigma_session_groups) == 1:
 			pdf = _posterior['sigma'][:,:,0].values.reshape(-1)

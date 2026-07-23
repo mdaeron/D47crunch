@@ -64,10 +64,10 @@ D.standardize(
 	method = 'bayes',
 	constraints = {
 		# two different ways to specify that WG bulk composition remains constant:
-		"c['Session_02']": "c['Session_01'] / a['Session_01'] * a['Session_02']",
-		"c[2]": "c[0] / a[0] * a[2]",
+		# "c['Session_02']": "c['Session_01'] / a['Session_01'] * a['Session_02']",
+		# "c[2]": "c[0] / a[0] * a[2]",
 		# also specify a known D47 offset between FOO and BAR:
-		"D47['FOO-1']": "D47['BAR-1'] - 0.3",
+		# "D47['FOO-1']": "D47['BAR-1'] - 0.3",
 	},
 )
 
