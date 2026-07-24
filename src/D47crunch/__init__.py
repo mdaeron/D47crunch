@@ -2544,7 +2544,6 @@ class D4xdata(list):
 
 	def plot_least_squares_vs_bayesian_results(
 		self,
-		target = 'samples',
 		figsize = None,
 		columns = 1,
 		left_margin = 0.2,
@@ -2563,144 +2562,142 @@ class D4xdata(list):
 		bayes_color = (0, 0.75, 1),
 	):
 
-		from scipy.stats import gaussian_kde
 		from coloraide import Color
+		from scipy.stats import gaussian_kde
 
 		samples = [s for s in self.samples if s not in self.fixed_RMs]
 		N = len(samples)
 		lines  = N//columns
-		if target == 'samples':
-			if figsize is None:
-				figsize = (
-					columns * cell_width + (columns + 1) * (left_margin + right_margin)/2,
-					lines * cell_height + (lines + 1) * (top_margin + bottom_margin)/2,
-				)
-			fig = ppl.figure(figsize = figsize)
-			ppl.subplots_adjust(
-				left_margin/figsize[0],
-				bottom_margin/figsize[1],
-				1 - right_margin/figsize[0],
-				1 - top_margin/figsize[1],
-				(left_margin + right_margin)/2/cell_width,
-				(top_margin + bottom_margin)/2/cell_height,
+		if figsize is None:
+			figsize = (
+				columns * cell_width + (columns + 1) * (left_margin + right_margin)/2,
+				lines * cell_height + (lines + 1) * (top_margin + bottom_margin)/2,
 			)
-			axs = [ppl.subplot(lines, columns, _+1) for _ in range(N)]
-			xmin, xmax = 1000, -1000
-			for sample in samples:
-				x = self.standardization['bayes']['samples'][sample][f'pdf_D{self._4x}']
-				x0 = x.min() - 0.02
-				x1 = x.max() + 0.02
-				xmin = min(xmin, x0)
-				xmax = max(xmax, x1)
+		fig = ppl.figure(figsize = figsize)
+		ppl.subplots_adjust(
+			left_margin/figsize[0],
+			bottom_margin/figsize[1],
+			1 - right_margin/figsize[0],
+			1 - top_margin/figsize[1],
+			(left_margin + right_margin)/2/cell_width,
+			(top_margin + bottom_margin)/2/cell_height,
+		)
+		axs = [ppl.subplot(lines, columns, _+1) for _ in range(N)]
+		xmin, xmax = 1000, -1000
+		for sample in samples:
+			x = self.standardization['bayes']['samples'][sample][f'pdf_D{self._4x}']
+			x0 = x.min() - 0.02
+			x1 = x.max() + 0.02
+			xmin = min(xmin, x0)
+			xmax = max(xmax, x1)
 
-			for sample, ax in zip(samples, axs):
-				ppl.sca(ax)
-				ppl.yticks([])
-				ppl.title(sample, weight = 'bold', size = 10)
-				xi = np.linspace(xmin, xmax, 1001)
-				x = self.standardization['bayes']['samples'][sample][f'pdf_D{self._4x}']
-				yi = gaussian_kde(x).evaluate(xi)
-				_color = Color('srgb', bayes_color)
+		for sample, ax in zip(samples, axs):
+			ppl.sca(ax)
+			ppl.yticks([])
+			ppl.title(sample, weight = 'bold', size = 10)
+			xi = np.linspace(xmin, xmax, 1001)
+			x = self.standardization['bayes']['samples'][sample][f'pdf_D{self._4x}']
+			yi = gaussian_kde(x).evaluate(xi)
+			_color = Color('srgb', bayes_color)
+			kw = dict(
+				ec = Color(_color).mix('white', 0.2, space = 'srgb'),
+				fc = Color(_color).set('alpha', 0.3),
+				lw = 1,
+				zorder = 5,
+			)
+			ax.fill_between(
+				xi,
+				yi*(1 if bayes_on_top else 0),
+				yi*(0 if bayes_on_top else -1),
+				**kw,
+			)
+			xm = self.standardization['bayes']['samples'][sample][f'D{self._4x}'].n
+			ha = 'left' if (xm - xmin) > (xmax - xm) else 'right'
+			x = xmin if (xm - xmin) > (xmax - xm) else xmax
+			ax.text(
+				x,
+				0,
+				'  Bayesian posterior\n' if ha == 'left' else 'Bayesian posterior  \n',
+				ha = ha,
+				va = 'center',
+				color = _color,
+				linespacing = 1.9,
+			)
+
+			if sample in self.loose_RMs:
+				_color = Color('srgb', weak_anchor_color)
 				kw = dict(
-					ec = Color(_color).mix('white', 0.2, space = 'srgb'),
-					fc = Color(_color).set('alpha', 0.3),
+					ec = Color(_color).mix('white', 0.3, space = 'srgb'),
+					fc = Color(_color).set('alpha', 0.15),
 					lw = 1,
-					zorder = 5,
+					zorder = 2,
 				)
+				yi = yi.max() * np.exp(-0.5 * ((xi-self.loose_RMs[sample][0])/self.loose_RMs[sample][1])**2)
 				ax.fill_between(
 					xi,
 					yi*(1 if bayes_on_top else 0),
 					yi*(0 if bayes_on_top else -1),
 					**kw,
 				)
-				xm = self.standardization['bayes']['samples'][sample][f'D{self._4x}'].n
+				xm = self.loose_RMs[sample][0]
 				ha = 'left' if (xm - xmin) > (xmax - xm) else 'right'
 				x = xmin if (xm - xmin) > (xmax - xm) else xmax
 				ax.text(
 					x,
 					0,
-					'  Bayesian posterior\n' if ha == 'left' else 'Bayesian posterior  \n',
+					' '*33 + '(and prior)\n' if ha == 'left' else '(and prior)' + ' '*33 + '\n',
+					ha = ha,
+					va = 'center',
+					color = _color,
+					linespacing = 1.9,
+				)
+			if sample in self.unknowns:
+				_color = Color('srgb', ls_color)
+				kw = dict(
+					ec = Color(_color).mix('white', 0.5, space = 'srgb'),
+					fc = Color(_color).set('alpha', 0.2),
+					lw = 1,
+					zorder = 4,
+				)
+				mu = self.standardization['pooled']['samples'][sample][f'D{self._4x}'].n
+				sigma = self.standardization['pooled']['samples'][sample][f'D{self._4x}'].s
+				yi = yi.max() * np.exp(-0.5 * ((xi - mu)/sigma)**2)
+				ax.fill_between(
+					xi,
+					yi*(0 if bayes_on_top else 1),
+					yi*(-1 if bayes_on_top else 0),
+					**kw,
+				)
+				ha = 'left' if (mu - xmin) > (xmax - mu) else 'right'
+				x = xmin if (mu - xmin) > (xmax - mu) else xmax
+				ax.text(
+					x,
+					0,
+					'\n  Least squares' if ha == 'left' else '\nLeast squares  ',
 					ha = ha,
 					va = 'center',
 					color = _color,
 					linespacing = 1.9,
 				)
 
-				if sample in self.loose_RMs:
-					_color = Color('srgb', weak_anchor_color)
-					kw = dict(
-						ec = Color(_color).mix('white', 0.3, space = 'srgb'),
-						fc = Color(_color).set('alpha', 0.15),
-						lw = 1,
-						zorder = 2,
-					)
-					yi = yi.max() * np.exp(-0.5 * ((xi-self.loose_RMs[sample][0])/self.loose_RMs[sample][1])**2)
-					ax.fill_between(
-						xi,
-						yi*(1 if bayes_on_top else 0),
-						yi*(0 if bayes_on_top else -1),
-						**kw,
-					)
-					xm = self.loose_RMs[sample][0]
-					ha = 'left' if (xm - xmin) > (xmax - xm) else 'right'
-					x = xmin if (xm - xmin) > (xmax - xm) else xmax
-					ax.text(
-						x,
-						0,
-						' '*33 + '(and prior)\n' if ha == 'left' else '(and prior)' + ' '*33 + '\n',
-						ha = ha,
-						va = 'center',
-						color = _color,
-						linespacing = 1.9,
-					)
-				if sample in self.unknowns:
-					_color = Color('srgb', ls_color)
-					kw = dict(
-						ec = Color(_color).mix('white', 0.5, space = 'srgb'),
-						fc = Color(_color).set('alpha', 0.2),
-						lw = 1,
-						zorder = 4,
-					)
-					mu = self.samples[sample][f'D{self._4x}']
-					sigma = self.samples[sample][f'SE_D{self._4x}']
-					yi = yi.max() * np.exp(-0.5 * ((xi - mu)/sigma)**2)
-					ax.fill_between(
-						xi,
-						yi*(0 if bayes_on_top else 1),
-						yi*(-1 if bayes_on_top else 0),
-						**kw,
-					)
-					xm = self.standardization['pooled']['samples'][sample][f'D{self._4x}'].n
-					ha = 'left' if (xm - xmin) > (xmax - xm) else 'right'
-					x = xmin if (xm - xmin) > (xmax - xm) else xmax
-					ax.text(
-						x,
-						0,
-						'\n  Least squares' if ha == 'left' else '\nLeast squares  ',
-						ha = ha,
-						va = 'center',
-						color = _color,
-						linespacing = 1.9,
-					)
+		for ax in axs:
+			ppl.sca(ax)
+			ppl.grid(alpha = 0.2)
+			ppl.axis([xmin, xmax, None, None])
 
-			for ax in axs:
-				ppl.sca(ax)
-				ppl.grid(alpha = 0.2)
-				ppl.axis([xmin, xmax, None, None])
+		ppl.xlabel(f'Δ{self._4x} [‰]')
 
-			ppl.xlabel(f'Δ{self._4x} [‰]')
-
-			if savefig:
-				if not os.path.exists(dir):
-					os.makedirs(dir)
-				if filename is None:
-					return fig
-				elif filename == '':
-					filename = f'D{self._4x}_ls_vs_bayes.pdf'
-				ppl.savefig(f'{dir}/{filename}', dpi = dpi)
-				ppl.close(fig)
-			else:
+		if savefig:
+			if not os.path.exists(dir):
+				os.makedirs(dir)
+			if filename is None:
 				return fig
+			elif filename == '':
+				filename = f'D{self._4x}_ls_vs_bayes.pdf'
+			ppl.savefig(f'{dir}/{filename}', dpi = dpi)
+			ppl.close(fig)
+		else:
+			return fig
 
 	def plot_single_bayesian_session(self,
 		session,
@@ -3339,14 +3336,13 @@ class D4xdata(list):
 			self.samples[sample]['d13C_VPDB'] = np.mean([r['d13C_VPDB'] for r in self.samples[sample]['data']])
 			self.samples[sample]['d18O_VSMOW'] = np.mean([r['d18O_VSMOW'] for r in self.samples[sample]['data']])
 
-			self.samples[sample][_D4x_] = self.standardization[target]['samples'][sample][_D4x_].n
-			self.samples[sample][f'SE_{_D4x_}'] = self.standardization[target]['samples'][sample][_D4x_].s
+			self.samples[sample][_D4x_] = self.standardization[target]['samples'][sample][_D4x_]
 			self.samples[sample][f'95CL_{_D4x_}'] = self.standardization[target]['samples'][sample][f'95CL_{_D4x_}']
 
 		for r in self:
-			r[f'{_D4x_}_residual'] = r[f'D{self._4x}'] - self.standardization[target]['samples'][r['Sample']][f'D{self._4x}'].n
+			r[f'{_D4x_}_residual'] = r[f'D{self._4x}'] - self.samples[sample][_D4x_].n
 
-	def consolidate_sessions(self, target = 'latest'):
+	def consolidate_sessions(self, target = None):
 		'''
 		Compute various statistics for each session.
 
@@ -3373,6 +3369,9 @@ class D4xdata(list):
 		+ `d18Owg_VSMOW`: δ18O_VSMOW of WG
 		'''
 
+		target = self._resolve_target(target)
+		_D4x_ = f'D{self._4x}'
+
 		for session in self.sessions:
 
 			self.sessions[session] = {
@@ -3390,92 +3389,21 @@ class D4xdata(list):
 			self.msg(f'Computing repeatabilities for session {session}')
 			self.sessions[session]['r_d13C_VPDB'] = self.compute_r('d13C_VPDB', samples = 'anchors', sessions = [session])
 			self.sessions[session]['r_d18O_VSMOW'] = self.compute_r('d18O_VSMOW', samples = 'anchors', sessions = [session])
-			self.sessions[session][f'r_D{self._4x}'] = self.compute_r(f'D{self._4x}', sessions = [session])
-
-		# target = self._resolve_target(target)
-		# match target:
-		# 	case 'bayes':
-		# 		raise NotImplementedError
-		# 	case 'pooled':
-		# 		for session in self.sessions:
-		# 			_s_ = self.standardization[target]['sessions'][session]
-
-		# 			_s_['a'] = self.standardization[target]['lmfit'].params.valuesdict()[f'a_{pf(session)}']
-		# 			i = self.standardization[target]['var_names'].index(f'a_{pf(session)}')
-		# 			_s_['SE_a'] = self.standardization[target]['covar'][i,i]**.5
-
-		# 			_s_['b'] = self.standardization[target]['lmfit'].params.valuesdict()[f'b_{pf(session)}']
-		# 			i = self.standardization[target]['var_names'].index(f'b_{pf(session)}')
-		# 			_s_['SE_b'] = self.standardization[target]['covar'][i,i]**.5
-
-		# 			_s_['c'] = self.standardization[target]['lmfit'].params.valuesdict()[f'c_{pf(session)}']
-		# 			i = self.standardization[target]['var_names'].index(f'c_{pf(session)}')
-		# 			_s_['SE_c'] = self.standardization[target]['covar'][i,i]**.5
-
-		# 			_s_['a2'] = self.standardization[target]['lmfit'].params.valuesdict()[f'a2_{pf(session)}']
-		# 			if self.sessions[session]['scrambling_drift']:
-		# 				i = self.standardization[target]['var_names'].index(f'a2_{pf(session)}')
-		# 				_s_['SE_a2'] = self.standardization[target]['covar'][i,i]**.5
-		# 			else:
-		# 				_s_['SE_a2'] = 0.
-
-		# 			_s_['b2'] = self.standardization[target]['lmfit'].params.valuesdict()[f'b2_{pf(session)}']
-		# 			if self.sessions[session]['slope_drift']:
-		# 				i = self.standardization[target]['var_names'].index(f'b2_{pf(session)}')
-		# 				_s_['SE_b2'] = self.standardization[target]['covar'][i,i]**.5
-		# 			else:
-		# 				_s_['SE_b2'] = 0.
-
-		# 			_s_['c2'] = self.standardization[target]['lmfit'].params.valuesdict()[f'c2_{pf(session)}']
-		# 			if self.sessions[session]['wg_drift']:
-		# 				i = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
-		# 				_s_['SE_c2'] = self.standardization[target]['covar'][i,i]**.5
-		# 			else:
-		# 				_s_['SE_c2'] = 0.
-
-		# 			i = self.standardization[target]['var_names'].index(f'a_{pf(session)}')
-		# 			j = self.standardization[target]['var_names'].index(f'b_{pf(session)}')
-		# 			k = self.standardization[target]['var_names'].index(f'c_{pf(session)}')
-		# 			CM = np.zeros((6,6))
-		# 			CM[:3,:3] = self.standardization[target]['covar'][[i,j,k],:][:,[i,j,k]]
-		# 			try:
-		# 				i2 = self.standardization[target]['var_names'].index(f'a2_{pf(session)}')
-		# 				CM[3,[0,1,2,3]] = self.standardization[target]['covar'][i2,[i,j,k,i2]]
-		# 				CM[[0,1,2,3],3] = self.standardization[target]['covar'][[i,j,k,i2],i2]
-		# 				try:
-		# 					j2 = self.standardization[target]['var_names'].index(f'b2_{pf(session)}')
-		# 					CM[3,4] = self.standardization[target]['covar'][i2,j2]
-		# 					CM[4,3] = self.standardization[target]['covar'][j2,i2]
-		# 				except ValueError:
-		# 					pass
-		# 				try:
-		# 					k2 = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
-		# 					CM[3,5] = self.standardization[target]['covar'][i2,k2]
-		# 					CM[5,3] = self.standardization[target]['covar'][k2,i2]
-		# 				except ValueError:
-		# 					pass
-		# 			except ValueError:
-		# 				pass
-		# 			try:
-		# 				j2 = self.standardization[target]['var_names'].index(f'b2_{pf(session)}')
-		# 				CM[4,[0,1,2,4]] = self.standardization[target]['covar'][j2,[i,j,k,j2]]
-		# 				CM[[0,1,2,4],4] = self.standardization[target]['covar'][[i,j,k,j2],j2]
-		# 				try:
-		# 					k2 = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
-		# 					CM[4,5] = self.standardization[target]['covar'][j2,k2]
-		# 					CM[5,4] = self.standardization[target]['covar'][k2,j2]
-		# 				except ValueError:
-		# 					pass
-		# 			except ValueError:
-		# 				pass
-		# 			try:
-		# 				k2 = self.standardization[target]['var_names'].index(f'c2_{pf(session)}')
-		# 				CM[5,[0,1,2,5]] = self.standardization[target]['covar'][k2,[i,j,k,k2]]
-		# 				CM[[0,1,2,5],5] = self.standardization[target]['covar'][[i,j,k,k2],k2]
-		# 			except ValueError:
-		# 				pass
-
-		# 			_s_['CM'] = CM
+			self.sessions[session][f'r_{_D4x_}'] = self.compute_r(f'D{self._4x}', sessions = [session])
+			try:
+				self.sessions[session]['sigma'] = self.standardization[target]['sessions'][session]['sigma']
+			except KeyError:
+				pass
+			self.sessions[session]['a'] = self.standardization[target]['sessions'][session]['a']
+			self.sessions[session]['b'] = self.standardization[target]['sessions'][session]['b']
+			self.sessions[session]['c'] = self.standardization[target]['sessions'][session]['c']
+			for flag, k in (
+				('scrambling_drift', 'a2'),
+				('slope_drift', 'b2'),
+				('wg_drift', 'c2'),
+			):
+				if self.sessions[session][flag]:
+					self.sessions[session][k] = self.standardization[target]['sessions'][session][k]
 
 	@make_verbal
 	def repeatabilities(self, target = 'latest'):
@@ -3731,7 +3659,7 @@ class D4xdata(list):
 				for sample in unknowns
 			]).T,
 			np.array([
-				np.array([0, 0]) + self.unknowns[sample][f'D{self._4x}']
+				np.array([0, 0]) + self.unknowns[sample][f'D{self._4x}'].n
 				for sample in unknowns
 			]).T,
 		)

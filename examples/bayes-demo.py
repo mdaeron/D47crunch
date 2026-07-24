@@ -44,9 +44,9 @@ args = dict(
 D47data.RMs['TAC-1'] = (0.7, 0.01)
 
 D = D47data(
-	virtual_data(session = 'Session_01', **args, seed = 12)
-	+ virtual_data(session = 'Session_02', **args, seed = 123)
-	+ virtual_data(session = 'Session_03', **args, seed = 1234),
+	virtual_data(session = 'Session_01', **args,   seed = 412)
+	+ virtual_data(session = 'Session_02', **args, seed = 4123)
+	+ virtual_data(session = 'Session_03', **args, seed = 41234),
 	verbose = False,
 )
 
