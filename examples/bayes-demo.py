@@ -1,5 +1,4 @@
 from rich.pretty import pprint
-
 from D47crunch import virtual_data, D47data
 
 args = dict(
@@ -70,6 +69,8 @@ D.standardize(
 		# "D47['FOO-1']": "D47['BAR-1'] - 0.3",
 	},
 )
+
+D.pprint()
 
 D.plot_sessions(dir = 'output/bayes')
 D.table_of_sessions(verbose = True, save_to_file = True, dir = 'output/bayes')

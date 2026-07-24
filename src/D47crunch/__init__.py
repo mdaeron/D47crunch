@@ -2403,21 +2403,24 @@ class D4xdata(list):
 					draws[row,:] = _posterior[field][:,:,k].values.reshape(-1)
 					row += 1
 
-		_ufloats = uncertainties.correlated_values(
+		_CM = np.cov(draws)
+		_ufloats = np.array(uncertainties.correlated_values(
 			draws.mean(1),
-			np.cov(draws),
-		)
+			_CM,
+		))
 
-		print('TODO: NOW USE _UFLOATS BELOW WHEREVER POSSIBLE')
-		exit()
+		for k,v in enumerate(np.diag(_CM)):
+			if np.abs(v) < 1e-16:
+				_ufloats[k] = uncertainties.ufloat(_ufloats[k].n, 0.)
+
+		dict_draws = {k: draws[r,:] for r,k in enumerate(fields)}
+		dict_ufloats = {k: u for k,u in zip(fields, _ufloats)}
 
 		self.standardization['bayes']['idata'] = idata
 		if len(sigma_session_groups) == 1:
-			pdf = _posterior['sigma'][:,:,0].values.reshape(-1)
-			self.standardization['bayes']['sigma'] = uncertainties.ufloat(
-				pdf.mean(),
-				pdf.std(ddof = 1)
-			)
+			self.standardization['bayes']['sigma'] = dict_ufloats[('sigma', sessions[0])]
+		else:
+			self.standardization['bayes'].pop('sigma')
 
 		with warnings.catch_warnings():
 			warnings.filterwarnings(
@@ -2442,21 +2445,21 @@ class D4xdata(list):
 		for session in self.sessions:
 
 			params = ['a', 'b', 'c', 'a2', 'b2', 'c2', 'sigma']
-			session_index = session_search[session]
+			# session_index = session_search[session]
 
-			draws = np.array([_posterior[p][:,:,session_index].values.reshape(-1) for p in params])
-			uparams = uncertainties.correlated_values(
-				draws.mean(1),
-				np.cov(draws),
-			)
+			# draws = np.array([_posterior[p][:,:,session_index].values.reshape(-1) for p in params])
+			# uparams = uncertainties.correlated_values(
+			# 	draws.mean(1),
+			# 	np.cov(draws),
+			# )
 
 			S[session] = {}
 
 			for p_index, p in enumerate(params):
-				S[session][p] = uparams[p_index]
-				S[session][f'pdf_{p}'] = draws[p_index,:]
+				S[session][p] = dict_ufloats[(p, session)]
+				S[session][f'pdf_{p}'] = dict_draws[(p, session)]
 				S[session][f'95CL_{p}'] = float(
-					np.quantile(np.abs(draws[p_index,:] - uparams[p_index].n), 0.95)
+					np.quantile(np.abs(dict_draws[(p, session)] - dict_ufloats[(p, session)].n), 0.95)
 				)
 
 			S[session]['Np'] = 3 + sum([
@@ -2477,24 +2480,15 @@ class D4xdata(list):
 			S[s] = {}
 
 		for s in (self.loose_anchors | self.unknowns):
-			S[s] = {f'pdf_{D4x}': _posterior[D4x].sel(samples = s).values.reshape(-1)}
+			S[s] = {f'pdf_{D4x}': dict_draws[(D4x, s)]}
 
-		# Caution: we are redefining samples here. Why? Do we really need to?
-		samples = [s for s in S]
-		sample_index = [D4x_idx[s] for s in samples]
-
-		draws = np.array([_posterior[D4x][:,:,i].values.reshape(-1) for i in sample_index])
-		uD4x = uncertainties.correlated_values(
-			draws.mean(1),
-			np.cov(draws),
-		)
 		for k,s in enumerate(samples):
-			S[s][D4x] = uD4x[k]
-			if sample in self.fixed_RMs:
+			S[s][D4x] = dict_ufloats[(D4x, s)]
+			if s in self.fixed_RMs:
 				S[s][f'95CL_{D4x}'] = 0.
 			else:
 				S[s][f'95CL_{D4x}'] = float(
-					np.quantile(np.abs(draws[k,:] - draws[k,:].mean()), 0.95)
+					np.quantile(np.abs(dict_draws[(D4x, s)] - dict_ufloats[(D4x, s)].n), 0.95)
 				)
 
 		for r in self:
